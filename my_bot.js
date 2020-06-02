@@ -19,7 +19,7 @@ client.on('ready', () =>{
     // generalChannel.send("", {files: ['https://www.devdungeon.com/sites/all/themes/devdungeon2/logo.png']});
     client.user.setUsername("pepo pog"); 
 })
-
+const prefix = "!";
 client.on('message', (receivedMessage) =>{
     if (receivedMessage.author == client.user){
         return
@@ -56,8 +56,38 @@ function processCommand(receivedMessage){
     else if (primaryCommand == "greekpoki"){
         greekPoki(arguments, receivedMessage)
     }
+    else if (primaryCommand == "send"){
+        sendDM(arguments, receivedMessage)
+    }
     else{
         receivedMessage.channel.send("Unknown command. Try '!help'")
+    }
+}
+function sendDM(arguments, receivedMessage){
+    let generalChannel = client.channels.cache.get(generalChannelid)
+    let count = 0
+    msg = receivedMessage.content.toLowerCase();
+    mention = receivedMessage.mentions.users
+    if (mention == null){ return; }
+    if (msg.startsWith (prefix + "send")){
+        mention.forEach((users) => {
+            count++;
+        }) 
+    }
+    if (count > 1){ 
+        generalChannel.send("Error, try again and only mention 1 person.")
+        return; 
+    }
+    else{
+        mention.forEach((users) => {
+            let fullCommand =  receivedMessage.content.substr(6)
+            let splitCommand = fullCommand.split(" ")
+            let primaryCommand = splitCommand[0]
+            let arguments = splitCommand.slice(1)
+            let finishedString = arguments.join(" ");
+            generalChannel.send(">>> **psst " + users.toString() + " " + receivedMessage.author.toString() + " says: **")
+            generalChannel.send(finishedString)
+        }) 
     }
 }
 function greekPoki(arguments, receivedMessage){
