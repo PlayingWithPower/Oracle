@@ -106,4 +106,4 @@ function helpCommand(arguments, receivedMessage){
         receivedMessage.channel.send("It looks like you need help with " + arguments)
     }
 }
-client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtVB7A.nTbYsWAH4dQClyLbcM6d5JocUPg")
+client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
