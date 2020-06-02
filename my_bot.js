@@ -33,8 +33,11 @@ client.on('message', (receivedMessage) =>{
     // receivedMessage.react("😌")
     // receivedMessage.react("😬")
 
-    if (receivedMessage.content.startsWith("!")){
+    if (receivedMessage.content.startsWith("!") && receivedMessage.channel == (client.channels.cache.get(generalChannelid))){
         processCommand(receivedMessage)
+    }
+    else{
+        let currentChannel =  client.channels.cache.get()
     }
 })
 
@@ -57,13 +60,13 @@ function processCommand(receivedMessage){
         greekPoki(arguments, receivedMessage)
     }
     else if (primaryCommand == "send"){
-        sendDM(arguments, receivedMessage)
+        sendMessage(arguments, receivedMessage)
     }
     else{
-        receivedMessage.channel.send("Unknown command. Try '!help'")
+        receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-function sendDM(arguments, receivedMessage){
+function sendMessage(arguments, receivedMessage){
     let generalChannel = client.channels.cache.get(generalChannelid)
     let count = 0
     msg = receivedMessage.content.toLowerCase();
@@ -75,18 +78,18 @@ function sendDM(arguments, receivedMessage){
         }) 
     }
     if (count > 1){ 
-        generalChannel.send("Error, try again and only mention 1 person.")
+        generalChannel.send(">>> Error, try again and only mention 1 person.")
+        generalChannel.send(">>> Try: !send @Username Hello my dear friend!")
         return; 
     }
     else{
         mention.forEach((users) => {
-            let fullCommand =  receivedMessage.content.substr(6)
-            let splitCommand = fullCommand.split(" ")
-            let primaryCommand = splitCommand[0]
-            let arguments = splitCommand.slice(1)
-            let finishedString = arguments.join(" ");
+            let fullMessage =  receivedMessage.content.substr(6)
+            let splitCommand = fullMessage.split(" ")
+            let mentionedAndMessage = splitCommand.slice(1)
+            let finishedString = mentionedAndMessage.join(" ");
             generalChannel.send(">>> **psst " + users.toString() + " " + receivedMessage.author.toString() + " says: **")
-            generalChannel.send(finishedString)
+            generalChannel.send(">>> " + finishedString)
         }) 
     }
 }
@@ -121,11 +124,12 @@ function helpCommand(arguments, receivedMessage){
         .setDescription('An excellent bot for excellent boys')
         .setThumbnail('')
         .addFields(
-            { name: '!help', value: 'Where you are now. A list of all available commands with a brief description of each' },
+            { name: '!help', value: 'Where you are now. A list of all available commands with a brief description of each.' },
             { name: '\u200B', value: '\u200B' },
-            { name: '!multiply', value: 'Multiply two numbers', inline: true },
-            { name: '!simp', value: 'Shows you the object of desire', inline: true },
-            { name: '!greekpoki', value: 'The man who gets it all', inline: true },
+            { name: '!multiply', value: 'Multiply two numbers.', inline: true },
+            { name: '!simp', value: 'Shows you the object of desire.', inline: true },
+            { name: '!greekpoki', value: 'The man who gets it all.', inline: true },
+            { name: '!send', value: 'Pepo will tell your friends what you really think of them.', inline: true },
         )
         .setImage('')
         .setTimestamp()
