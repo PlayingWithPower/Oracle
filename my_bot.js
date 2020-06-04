@@ -1,22 +1,26 @@
 const Discord = require('discord.js')
 const client = new Discord.Client()
-const generalChannelid = "265295950388396033"
 
-client.on('ready', () =>{
+const Module = require('../EloDiscordBot/find_one')
+const generalID = require('../EloDiscordBot/constants')
+const moongoose = require('mongoose')
+const url = 'mongodb+srv://firstuser:willams112@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true'
+
+moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+
+client.on('ready', (on) =>{
     console.log("Connected as " + client.user.tag)
     
     client.user.setActivity("Try !help", {type: ""})
     
-    client.guilds.cache.forEach((guild) => {
-        console.log(guild.name)
-        guild.channels.cache.forEach((channel) =>{
-            console.log(` - ${channel.name} ${channel.type} ${channel.id}`)
-        })
-        //General channel id: 717073663324848141
-        //coolboiz id: 265295950388396033
-    })
-    // let generalChannel = client.channels.cache.get("717073663324848141")
-    // generalChannel.send("", {files: ['https://www.devdungeon.com/sites/all/themes/devdungeon2/logo.png']});
+    // client.guilds.cache.forEach((guild) => {
+    //     console.log(guild.name)
+    //     guild.channels.cache.forEach((channel) =>{
+    //         console.log(` - ${channel.name} ${channel.type} ${channel.id}`)
+    //     })
+    // })
+    //General channel id: 717073663324848141
+    //coolboiz id: 265295950388396033
     client.user.setUsername("pepo pog"); 
 })
 const prefix = "!";
@@ -25,15 +29,15 @@ client.on('message', (receivedMessage) =>{
         return
     }
     if (receivedMessage.mentions.users == client.user){
-        let generalChannel = client.channels.cache.get(generalChannelid)
+        let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
         generalChannel.channel.send("text")
     }
-    //receivedMessage.channel.send("Message receieved, " + receivedMessage.author.toString() + ": " + receivedMessage.content)
+    // receivedMessage.channel.send("Message receieved, " + receivedMessage.author.toString() + ": " + receivedMessage.content)
     // receivedMessage.react("🤥")
     // receivedMessage.react("😌")
     // receivedMessage.react("😬")
 
-    if (receivedMessage.content.startsWith("!") && receivedMessage.channel == (client.channels.cache.get(generalChannelid))){
+    if (receivedMessage.content.startsWith("!") && receivedMessage.channel == (client.channels.cache.get(generalID.getGeneralChatID()))){
         processCommand(receivedMessage)
     }
     else{
@@ -62,12 +66,47 @@ function processCommand(receivedMessage){
     else if (primaryCommand == "send"){
         sendMessage(arguments, receivedMessage)
     }
+    else if (primaryCommand == "register"){
+        register(arguments, receivedMessage)
+    }
+    else if (primaryCommand == "users"){
+        users(arguments, receivedMessage)
+    }
     else{
         receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+function users(arguments, receivedMessage){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    Module.promise1(receivedMessage, function(err,msg){
+        if (err){
+            console.log(msg)
+        }
+        else{
+            console.log("test1")
+            console.log(msg)
+        }
+    })
+    // Module.findAllFunc(receivedMessage).then(res=>{
+    //     console.log(res)
+    // })
+    generalChannel.send("pepo users")
+}
+function register(arguments, receivedMessage){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    Module.registerFunc(receivedMessage, function(err,msg){
+        if (err){
+            console.log(msg)
+        }
+        else{
+            console.log("test1")
+            console.log(msg)
+        }
+    })
+    generalChannel.send(">>> " + receivedMessage.author.username + " is Registered")
+}
 function sendMessage(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalChannelid)
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     let count = 0
     msg = receivedMessage.content.toLowerCase();
     mention = receivedMessage.mentions.users
@@ -94,11 +133,11 @@ function sendMessage(arguments, receivedMessage){
     }
 }
 function greekPoki(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalChannelid)
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     generalChannel.send("", {files: ['https://preview.redd.it/7q6e0zxc8og31.png?width=656&auto=webp&s=4988a88a75015329f6212538944aea59f8c938f6']})
 }
 function simpCommand(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalChannelid)
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     generalChannel.send("", {files: ['https://d.newsweek.com/en/full/1571727/pokimane-twitch-deal-exclusive-stream-streaming.jpg?w=1600&h=1600&l=57&t=37&q=88&f=2bb3df1fccb5e50c6d2097c34866fb6d']});
 }
 function multiplyCommand(arguments, receivedMessage){
@@ -114,7 +153,7 @@ function multiplyCommand(arguments, receivedMessage){
 }
 
 function helpCommand(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalChannelid)
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     if (arguments.length == 0){
         const exampleEmbed = new Discord.MessageEmbed()
         .setColor('#0099ff')
