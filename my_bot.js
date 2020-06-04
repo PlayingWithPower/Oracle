@@ -4,7 +4,7 @@
 const Discord = require('discord.js')
 const client = new Discord.Client()
 
-const Module = require('../EloDiscordBot/find_one')
+const Module = require('./mongoFunctions')
 const generalID = require('../EloDiscordBot/constants')
 const moongoose = require('mongoose')
 const url = 'mongodb+srv://firstuser:willams112@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true'
@@ -12,19 +12,26 @@ const url = 'mongodb+srv://firstuser:willams112@cluster0-ebhft.mongodb.net/UserD
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
 client.on('ready', (on) =>{
+    // var MongoClient = require('mongodb').MongoClient
+    // var url = 'mongodb+srv://firstuser:willams112@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true'
+    // MongoClient.connect(url)
+    // .then(function (db) { // <- db as first argument
+    //     console.log(db)
+    // })
+    // .catch(function (err) {})
     console.log("Connected as " + client.user.tag)
     
     client.user.setActivity("Try !help", {type: ""})
     
+    //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
+
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.name)
     //     guild.channels.cache.forEach((channel) =>{
     //         console.log(` - ${channel.name} ${channel.type} ${channel.id}`)
     //     })
     // })
-    //General channel id: 717073663324848141
-    //coolboiz id: 265295950388396033
-    client.user.setUsername("PWP Bot"); 
+    // client.user.setUsername("PWP Bot"); 
 })
 const prefix = "!";
 client.on('message', (receivedMessage) =>{
@@ -60,12 +67,6 @@ function processCommand(receivedMessage){
     else if (primaryCommand == "multiply"){
         multiplyCommand(arguments, receivedMessage)
     }
-    else if (primaryCommand == "simp"){
-        simpCommand(arguments, receivedMessage)
-    }
-    else if (primaryCommand == "greekpoki"){
-        greekPoki(arguments, receivedMessage)
-    }
     else if (primaryCommand == "send"){
         sendMessage(arguments, receivedMessage)
     }
@@ -75,25 +76,27 @@ function processCommand(receivedMessage){
     else if (primaryCommand == "users"){
         users(arguments, receivedMessage)
     }
+    else if(primaryCommand == "addelo"){
+        changeElo(receivedMessage, true, arguments)
+    }
+    else if (primaryCommand == "subtractelo"){
+        changeElo(receivedMessage, false)
+    }
     else{
         receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-function users(arguments, receivedMessage){
+function changeElo(receivedMessage, add, args){
+    //console.log("arguments passed: " + arguments)
+    const user = receivedMessage.mentions.users
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.promise1(receivedMessage, function(err,msg){
-        if (err){
-            console.log(msg)
-        }
-        else{
-            console.log("test1")
-            console.log(msg)
-        }
-    })
-    // Module.findAllFunc(receivedMessage).then(res=>{
-    //     console.log(res)
-    // })
-    generalChannel.send("pepo users")
+    Module.changeElo(receivedMessage, add, args);
+    generalChannel.send(">>> Elo Updated!")
+}
+function users(arguments, receivedMessage){
+    //not functioning right now
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    generalChannel.send(">>> pepo users")
 }
 function register(arguments, receivedMessage){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
@@ -135,14 +138,6 @@ function sendMessage(arguments, receivedMessage){
         }) 
     }
 }
-function greekPoki(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    generalChannel.send("", {files: ['https://preview.redd.it/7q6e0zxc8og31.png?width=656&auto=webp&s=4988a88a75015329f6212538944aea59f8c938f6']})
-}
-function simpCommand(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    generalChannel.send("", {files: ['https://d.newsweek.com/en/full/1571727/pokimane-twitch-deal-exclusive-stream-streaming.jpg?w=1600&h=1600&l=57&t=37&q=88&f=2bb3df1fccb5e50c6d2097c34866fb6d']});
-}
 function multiplyCommand(arguments, receivedMessage){
     if (arguments.length < 2){
         receivedMessage.channel.send("Not enough arguments. Try '!multiply 2 10'")
@@ -169,9 +164,8 @@ function helpCommand(arguments, receivedMessage){
             { name: '!help', value: 'Where you are now. A list of all available commands with a brief description of each.' },
             { name: '\u200B', value: '\u200B' },
             { name: '!multiply', value: 'Multiply two numbers.', inline: true },
-            { name: '!simp', value: 'Shows you the object of desire.', inline: true },
-            { name: '!greekpoki', value: 'The man who gets it all.', inline: true },
-            { name: '!send', value: 'Pepo will tell your friends what you really think of them.', inline: true },
+            { name: '!send', value: 'Bot will tell your friends what you really think of them.', inline: true },
+            { name: '!addelo', value: 'Testing function, adds elo to an account. ', inline: true },
         )
         .setImage('')
         .setTimestamp()
