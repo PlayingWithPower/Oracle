@@ -1,3 +1,6 @@
+//The main hub for the bot, more comments coming soon.
+//Most of the commands are labeled apprioriately so far. More organization coming soon.
+
 const Discord = require('discord.js')
 const client = new Discord.Client()
 
