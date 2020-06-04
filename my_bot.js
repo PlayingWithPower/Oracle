@@ -24,7 +24,7 @@ client.on('ready', (on) =>{
     // })
     //General channel id: 717073663324848141
     //coolboiz id: 265295950388396033
-    client.user.setUsername("pepo pog"); 
+    client.user.setUsername("PWP Bot"); 
 })
 const prefix = "!";
 client.on('message', (receivedMessage) =>{
