@@ -7,7 +7,7 @@ const client = new Discord.Client()
 const Module = require('./mongoFunctions')
 const generalID = require('../EloDiscordBot/constants')
 const moongoose = require('mongoose')
-const url = 'mongodb+srv://firstuser:willams112@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true'
+const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -76,40 +76,58 @@ function processCommand(receivedMessage){
     else if (primaryCommand == "users"){
         users(arguments, receivedMessage)
     }
-    else if(primaryCommand == "addelo"){
-        changeElo(receivedMessage, true, arguments)
+    else if(primaryCommand == "log"){
+        log(receivedMessage, arguments)
     }
-    else if (primaryCommand == "subtractelo"){
-        changeElo(receivedMessage, false)
+    else if (primaryCommand == "profile"){
+        profile(receivedMessage, arguments)
+    }
+    else if (primaryCommand == "adddeck"){
+        addDeck(receivedMessage, arguments)
     }
     else{
         receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-function changeElo(receivedMessage, add, args){
+function addDeck(receivedMessage, args){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    Module.addDeckList(receivedMessage, args);
+    generalChannel.send(">>> Listed decklist in console")
+}
+function profile(receivedMessage, args){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    Module.profile(receivedMessage, args);
+    generalChannel.send(">>> Listed profile in console")
+}
+async function log(receivedMessage, args){
     //console.log("arguments passed: " + arguments)
     const user = receivedMessage.mentions.users
+    var someArray = new Array();
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.changeElo(receivedMessage, add, args);
-    generalChannel.send(">>> Elo Updated!")
+    Module.log(receivedMessage, args, function(callback,err){
+        callback.forEach(item => {
+            someArray.push(item)
+        });
+        generalChannel.send(">>> " + callback)
+    });
+    
 }
 function users(arguments, receivedMessage){
-    //not functioning right now
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    generalChannel.send(">>> pepo users")
+    Module.listAll(receivedMessage, function(callback, err){
+        generalChannel.send(">>> There are " + callback + " registered users in this league.")
+    })
 }
 function register(arguments, receivedMessage){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.registerFunc(receivedMessage, function(err,msg){
-        if (err){
-            console.log(msg)
+    Module.registerFunc(receivedMessage, function(callback,err){
+        if (callback == "1"){ //user is not registered and becomes registered in this portion
+            generalChannel.send(">>> " + receivedMessage.author.username + " is now registered.")
         }
-        else{
-            console.log("test1")
-            console.log(msg)
+        else{ //user is already registered and the bot tells the user they are already registered
+            generalChannel.send(">>> " + receivedMessage.author.username + " is already registered.")
         }
     })
-    generalChannel.send(">>> " + receivedMessage.author.username + " is Registered")
 }
 function sendMessage(arguments, receivedMessage){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
@@ -165,7 +183,7 @@ function helpCommand(arguments, receivedMessage){
             { name: '\u200B', value: '\u200B' },
             { name: '!multiply', value: 'Multiply two numbers.', inline: true },
             { name: '!send', value: 'Bot will tell your friends what you really think of them.', inline: true },
-            { name: '!addelo', value: 'Testing function, adds elo to an account. ', inline: true },
+            { name: '!log', value: 'Testing function, adds elo to an account. ', inline: true },
         )
         .setImage('')
         .setTimestamp()
