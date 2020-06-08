@@ -77,7 +77,7 @@ function processCommand(receivedMessage){
         users(arguments, receivedMessage)
     }
     else if(primaryCommand == "log"){
-        log(receivedMessage, arguments)
+        logLosers(receivedMessage, arguments)
     }
     else if (primaryCommand == "profile"){
         profile(receivedMessage, arguments)
@@ -85,9 +85,19 @@ function processCommand(receivedMessage){
     else if (primaryCommand == "adddeck"){
         addDeck(receivedMessage, arguments)
     }
+    else if (primaryCommand == "test"){
+        test(receivedMessage, arguments)
+    }
     else{
         receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
+}
+function test(receivedMessage, args){
+    Module.addDeckList().then(function(data){
+        console.log(data + " data")
+    }, function (err){
+        console.log(err + " err")
+    })
 }
 function addDeck(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
@@ -99,18 +109,46 @@ function profile(receivedMessage, args){
     Module.profile(receivedMessage, args);
     generalChannel.send(">>> Listed profile in console")
 }
-async function log(receivedMessage, args){
-    //console.log("arguments passed: " + arguments)
-    const user = receivedMessage.mentions.users
-    var someArray = new Array();
+async function logLosers(receivedMessage, args){
+    var callBackArray = new Array();
+     
+    //var lostEloArray = new Array();
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.log(receivedMessage, args, function(callback,err){
+    Module.logLosers(args, function(callback,err){
         callback.forEach(item => {
-            someArray.push(item)
+            callBackArray.push(item)
         });
-        generalChannel.send(">>> " + callback)
-    });
-    
+        generalChannel.send(">>> " + callback[0] + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
+        .then(function (message, callback){
+            const filter = (reaction, user) => {
+                return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
+            };   
+
+            message.react("👍")
+            message.react("👎")
+            message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
+                .then(collected => {
+                    const reaction = collected.first();
+
+                    if (reaction.emoji.name === '👍') {
+                        receivedMessage.reply("received confirmation for logging");
+                        //console.log(reaction.users)
+                    }
+                    else {
+                        receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
+                        return
+
+                        //THIS WILL SAY THIS AND STILL LOG THE POINTS, NEED TO FIX THAT
+                    }
+                })
+        })
+        callback.shift()
+        // Module.logWinners(receivedMessage, callback, function(callback, err){
+        //     //console.log(callback)
+        // })
+        
+    })
+   
 }
 function users(arguments, receivedMessage){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())

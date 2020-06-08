@@ -1,11 +1,16 @@
 const MongoClient = require('mongodb').MongoClient;
 const user = require('./lib/mongodb')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
+const percentageToLose = 0.010
 
 module.exports = {
     //function to change elo
     addDeckList(receivedMessage, args){
-
+        return new Promise(function(resolve, reject){
+            
+            //resolve("2")
+            reject("1")
+        })
     },
     profile(receivedMessage, args){
         MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db){
@@ -25,13 +30,11 @@ module.exports = {
     //Things to add: 
     //          - edge cases for if someone isn't registered
     //          - "valToGive" cannot be edited inside of the "loserQuery" and then passed to the "winnerQuery", this is probably a misunderstanding on my part on how these variables work in these scopes
-    log(receivedMessage, args, callback){
+    logLosers(args, callback){
         MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db){
             var dbo = db.db("UserData")
             var valToGive = 0;
-            var percentageToLose = 0.010
-            var losersArray = new Array ();
-            if (args.length < 1){
+            if (args.length < 1){ //MAKE SURE TO CHANGE TO 3 AFTER TESTING
                 //return error message, not sure how to pass back variables yet
                 return
             }
@@ -50,7 +53,7 @@ module.exports = {
                         valToGive = Number(res._elo)*(percentageToLose)
                         var singleLoserArray = new Array();
                                 singleLoserArray.push(loser.toString())
-                                singleLoserArray.push(valToGive.toString())
+                                singleLoserArray.push((Math.round(valToGive)).toString())
                         user.updateOne(loserQuery, newValue, function(err, result){
                             if (result){
                                 callback(singleLoserArray)
@@ -60,20 +63,35 @@ module.exports = {
                             }
                         })
                     })
-                });
-
-                // var winnerQuery = {_name: receivedMessage.author.username};
-                // //console.log("Number that is being passed: " + valToGive) //valToGive here does not match up with valToGive above ^ check output logs, it should be 
-                // dbo.collection("users").findOne(winnerQuery, function(err, res){
-                //     if(err) throw err;
-                //     var newValue = {$set: {_elo: Math.round(Number(res._elo) + Number(res._elo)*(.010)), _wins: Number(res._wins) + 1}}
-                //     dbo.collection("users").updateOne(winnerQuery, newValue, function(err, result){
-                //         if(err) throw err;
-                //         //console.log("ID of winner: " + receivedMessage.author.id);
-                //     })
-                // })
+                });  
+                
             }
         });
+    },
+    logWinners(receivedMessage, lostEloArray, callback){
+        MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db){
+            console.log(Number(lostEloArray.toString()))
+            var winnerQuery = {_name: receivedMessage.author.username};
+            var dbo = db.db("UserData")
+                    //console.log("Number that is being passed: " + valToGive) //valToGive here does not match up with valToGive above ^ check output logs, it should be 
+                    dbo.collection("users").findOne(winnerQuery, function(err, res){
+                        if(err) throw err;
+                        try{
+                            var newValue = {$set: {_elo: Math.round(Number(res._elo) + Number(lostEloArray.toString())), _wins: Number(res._wins) + 1}}//lose 10% per loss
+                        }catch (error){
+                            return error
+                        }
+                        var singleLoserArray = new Array();
+                        user.updateOne(winnerQuery, newValue, function(err, result){
+                            if (result){
+                                callback("successful")
+                            }
+                            else{
+                                callback("Unknown error, try again.")
+                            }
+                        })
+                    })
+            })
     },
     //this function registers a user to the league, it sends their "id" (used to mention a person) and their discord name to the server and saves it in the 'Users' collection
     registerFunc(receivedMessage, callback){
