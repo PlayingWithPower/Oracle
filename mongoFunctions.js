@@ -1,5 +1,5 @@
 const MongoClient = require('mongodb').MongoClient;
-const user = require('./lib/mongodb')
+const user = require('./Schema/User')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 const percentageToLose = 0.010
 
@@ -7,8 +7,7 @@ module.exports = {
     //function to change elo
     addDeckList(receivedMessage, args){
         return new Promise(function(resolve, reject){
-            
-            //resolve("2")
+            resolve("2")
             reject("1")
         })
     },
@@ -29,18 +28,15 @@ module.exports = {
     //So far, only works with @ing one person
     //Things to add: 
     //          - edge cases for if someone isn't registered
-    //          - "valToGive" cannot be edited inside of the "loserQuery" and then passed to the "winnerQuery", this is probably a misunderstanding on my part on how these variables work in these scopes
     logLosers(args, callback){
         MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db){
             var dbo = db.db("UserData")
             var valToGive = 0;
             if (args.length < 1){ //MAKE SURE TO CHANGE TO 3 AFTER TESTING
-                //return error message, not sure how to pass back variables yet
+                //@TODO
                 return
             }
             else{
-                //This below is close. It is defintely working in some ways. It's getting all 3 IDs and I think should be updating them, but it is only updating the last one written on discord
-                // in the list of 3
                 args.forEach(loser => {
                     let loserQuery = {_id: loser.toString()};
                     dbo.collection("users").findOne(loserQuery, function(err, res){
@@ -52,8 +48,8 @@ module.exports = {
                         }
                         valToGive = Number(res._elo)*(percentageToLose)
                         var singleLoserArray = new Array();
-                                singleLoserArray.push(loser.toString())
-                                singleLoserArray.push((Math.round(valToGive)).toString())
+                            singleLoserArray.push(loser.toString())
+                            singleLoserArray.push((Math.round(valToGive)).toString())
                         user.updateOne(loserQuery, newValue, function(err, result){
                             if (result){
                                 callback(singleLoserArray)
@@ -63,8 +59,7 @@ module.exports = {
                             }
                         })
                     })
-                });  
-                
+                });
             }
         });
     },
@@ -106,7 +101,6 @@ module.exports = {
                 }
             });
     },
-    //messy and not finished, trying to send a callback
     //this function will count the number of users and return that value, useful for adminstrative and stats
     listAll(receivedMessage, callback){
             user.countDocuments(function(err, result){
@@ -119,5 +113,5 @@ module.exports = {
             
             });
             
-        }
+    }
 } 

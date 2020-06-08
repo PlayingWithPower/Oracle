@@ -5,7 +5,7 @@ const Discord = require('discord.js')
 const client = new Discord.Client()
 
 const Module = require('./mongoFunctions')
-const generalID = require('../EloDiscordBot/constants')
+const generalID = require('./constants')
 const moongoose = require('mongoose')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
@@ -35,6 +35,7 @@ client.on('ready', (on) =>{
 })
 const prefix = "!";
 client.on('message', (receivedMessage) =>{
+
     if (receivedMessage.author == client.user){
         return
     }
@@ -43,10 +44,6 @@ client.on('message', (receivedMessage) =>{
         generalChannel.channel.send("text")
     }
     // receivedMessage.channel.send("Message receieved, " + receivedMessage.author.toString() + ": " + receivedMessage.content)
-    // receivedMessage.react("🤥")
-    // receivedMessage.react("😌")
-    // receivedMessage.react("😬")
-
     if (receivedMessage.content.startsWith("!") && receivedMessage.channel == (client.channels.cache.get(generalID.getGeneralChatID()))){
         processCommand(receivedMessage)
     }
@@ -54,50 +51,44 @@ client.on('message', (receivedMessage) =>{
         let currentChannel =  client.channels.cache.get()
     }
 })
-
 function processCommand(receivedMessage){
     let fullCommand = receivedMessage.content.substr(1)
     let splitCommand = fullCommand.split(" ")
     let primaryCommand = splitCommand[0]
     let arguments = splitCommand.slice(1)
 
-    if (primaryCommand == "help"){
-        helpCommand(arguments, receivedMessage)
-    }
-    else if (primaryCommand == "multiply"){
-        multiplyCommand(arguments, receivedMessage)
-    }
-    else if (primaryCommand == "send"){
-        sendMessage(arguments, receivedMessage)
-    }
-    else if (primaryCommand == "register"){
-        register(arguments, receivedMessage)
-    }
-    else if (primaryCommand == "users"){
-        users(arguments, receivedMessage)
-    }
-    else if(primaryCommand == "log"){
-        logLosers(receivedMessage, arguments)
-    }
-    else if (primaryCommand == "profile"){
-        profile(receivedMessage, arguments)
-    }
-    else if (primaryCommand == "adddeck"){
-        addDeck(receivedMessage, arguments)
-    }
-    else if (primaryCommand == "test"){
-        test(receivedMessage, arguments)
-    }
-    else{
-        receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+    switch(primaryCommand){
+        case "help":
+            helpCommand(receivedMessage, arguments)
+            break;
+        case "register":
+            register(receivedMessage, arguments)
+            break;
+        case "users":
+            users(receivedMessage, arguments)
+            break;
+        case "log":
+            logLosers(receivedMessage, arguments)
+            break;
+        case "profile":
+            profile(receivedMessage, arguments)
+            break;
+        case "adddeck":
+            addDeck(receivedMessage, arguments)
+            break;
+        case "credits":
+            credits(receivedMessage, arguments)
+            break;
+        default:
+            receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
 function test(receivedMessage, args){
-    Module.addDeckList().then(function(data){
-        console.log(data + " data")
-    }, function (err){
-        console.log(err + " err")
-    })
+    // Module.addDeckList().then(function(data){
+    //     console.log(data + " data")
+    // }, function (err){
+    //     console.log(err + " err")
+    // })
 }
 function addDeck(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
@@ -105,15 +96,17 @@ function addDeck(receivedMessage, args){
     generalChannel.send(">>> Listed decklist in console")
 }
 function profile(receivedMessage, args){
+    // @TODO
+    // Send this information in a nicer format to discord
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     Module.profile(receivedMessage, args);
     generalChannel.send(">>> Listed profile in console")
 }
 async function logLosers(receivedMessage, args){
     var callBackArray = new Array();
-     
     //var lostEloArray = new Array();
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+
     Module.logLosers(args, function(callback,err){
         callback.forEach(item => {
             callBackArray.push(item)
@@ -126,6 +119,9 @@ async function logLosers(receivedMessage, args){
 
             message.react("👍")
             message.react("👎")
+            // @TODO: 
+            // Look into time of awaitReactions (configurable?)
+            // Log points only after upvotes are seen. Right now we are logging THEN checking upvotes
             message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
                 .then(collected => {
                     const reaction = collected.first();
@@ -137,8 +133,6 @@ async function logLosers(receivedMessage, args){
                     else {
                         receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
                         return
-
-                        //THIS WILL SAY THIS AND STILL LOG THE POINTS, NEED TO FIX THAT
                     }
                 })
         })
@@ -150,23 +144,76 @@ async function logLosers(receivedMessage, args){
     })
    
 }
-function users(arguments, receivedMessage){
+function users(receivedMessage, args){
+    /* @TODO
+    This function can be useful for other aspects of the project, it should be converted to a general count function. ATM it only 
+    counts the number of documents in the user collection, but it can be expanded to a lot more.
+    */
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     Module.listAll(receivedMessage, function(callback, err){
         generalChannel.send(">>> There are " + callback + " registered users in this league.")
     })
 }
-function register(arguments, receivedMessage){
+function register(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     Module.registerFunc(receivedMessage, function(callback,err){
-        if (callback == "1"){ //user is not registered and becomes registered in this portion
+        //Case 1: User is not registered and becomes registered
+        if (callback == "1"){ 
             generalChannel.send(">>> " + receivedMessage.author.username + " is now registered.")
         }
-        else{ //user is already registered and the bot tells the user they are already registered
+        //Case 2: User is already registered and the bot tells the user they are already registered
+        else{
             generalChannel.send(">>> " + receivedMessage.author.username + " is already registered.")
         }
     })
 }
+function helpCommand(receivedMessage, arguments){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    if (arguments.length == 0){
+        const exampleEmbed = new Discord.MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle('PWP Bot')
+        .setURL('')
+        .setAuthor('Noah Saldaña', '', '')
+        .setDescription('An excellent bot for excellent people')
+        .setThumbnail('')
+        .addFields(
+            { name: '!help', value: 'Where you are now. A list of all available commands with a brief description of each.' },
+            { name: '\u200B', value: '\u200B' },
+            { name: '!multiply', value: 'Multiply two numbers.', inline: true },
+            { name: '!send', value: 'Bot will tell your friends what you really think of them.', inline: true },
+            { name: '!log', value: 'Testing function, adds elo to an account. ', inline: true },
+            /* @TODO
+                Add other commands manually or find a way to programmatically list all commands available + a blurb
+            */
+        )
+        .setImage('')
+        .setTimestamp()
+        .setFooter('Some footer text here', '');
+    
+    generalChannel.send(exampleEmbed);
+    } else{
+        receivedMessage.channel.send("It looks like you need help with " + arguments)
+
+        //@TODO
+        //  Take argument user has mentioned and spit back information on it. EX: user types: !help test. Spit back information about test command.
+    }
+}
+function credits(argument, receivedMessage){
+    /* @TODO
+        Give credit where credit is due 
+    */
+}
+client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
+
+
+
+
+
+//Outdated or old testing commands. Not commented out so they can be collapsed.
+
+//Sends a message to a user. Mention them and then your message and the bot will
+//   take the mentioned person and repeat your message to them
 function sendMessage(arguments, receivedMessage){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     let count = 0
@@ -194,6 +241,7 @@ function sendMessage(arguments, receivedMessage){
         }) 
     }
 }
+//Multiplies two numbers. Tutorial stuff 
 function multiplyCommand(arguments, receivedMessage){
     if (arguments.length < 2){
         receivedMessage.channel.send("Not enough arguments. Try '!multiply 2 10'")
@@ -205,31 +253,3 @@ function multiplyCommand(arguments, receivedMessage){
     })
     receivedMessage.channel.send("The product of " + arguments + " is " + product.toString())
 }
-
-function helpCommand(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    if (arguments.length == 0){
-        const exampleEmbed = new Discord.MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle('Pepo Pog')
-        .setURL('')
-        .setAuthor('Noah Saldaña', '', '')
-        .setDescription('An excellent bot for excellent boys')
-        .setThumbnail('')
-        .addFields(
-            { name: '!help', value: 'Where you are now. A list of all available commands with a brief description of each.' },
-            { name: '\u200B', value: '\u200B' },
-            { name: '!multiply', value: 'Multiply two numbers.', inline: true },
-            { name: '!send', value: 'Bot will tell your friends what you really think of them.', inline: true },
-            { name: '!log', value: 'Testing function, adds elo to an account. ', inline: true },
-        )
-        .setImage('')
-        .setTimestamp()
-        .setFooter('Some footer text here', '');
-    
-    generalChannel.send(exampleEmbed);
-    } else{
-        receivedMessage.channel.send("It looks like you need help with " + arguments)
-    }
-}
-client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
