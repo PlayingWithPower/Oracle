@@ -1,12 +1,15 @@
 //The main hub for the bot, more comments coming soon.
 //Most of the commands are labeled apprioriately so far. More organization coming soon.
-
-
-//some change 
-
-
 const Discord = require('discord.js')
 const client = new Discord.Client()
+
+const deckObj = require('./objects/Deck')
+const gameObj = require('./objects/Game')
+const leagueObj = require('./objects/League')
+const seaonObj = require('./objects/Season')
+const userObj = require('./objects/User')
+
+const botListeningPrefix = "!";
 
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
@@ -16,19 +19,16 @@ const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
 client.on('ready', (on) =>{
-    // var MongoClient = require('mongodb').MongoClient
-    // var url = 'mongodb+srv://firstuser:willams112@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true'
-    // MongoClient.connect(url)
-    // .then(function (db) { // <- db as first argument
-    //     console.log(db)
-    // })
-    // .catch(function (err) {})
-    console.log("Connected as " + client.user.tag)
-    
-    client.user.setActivity("Try !help", {type: ""})
+    console.log("Debug log: Successfully connected as " + client.user.tag)
+    client.user.setPresence({
+        game: { 
+            name: 'my code',
+            type: 'WATCHING'
+        },
+        status: 'online'
+    })
     
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
-
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.name)
     //     guild.channels.cache.forEach((channel) =>{
@@ -37,18 +37,15 @@ client.on('ready', (on) =>{
     // })
     // client.user.setUsername("PWP Bot"); 
 })
-const prefix = "!";
 client.on('message', (receivedMessage) =>{
-
     if (receivedMessage.author == client.user){
-        return
+        return 
     }
     if (receivedMessage.mentions.users == client.user){
         let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
         generalChannel.channel.send("text")
     }
-    // receivedMessage.channel.send("Message receieved, " + receivedMessage.author.toString() + ": " + receivedMessage.content)
-    if (receivedMessage.content.startsWith("!") && receivedMessage.channel == (client.channels.cache.get(generalID.getGeneralChatID()))){
+    if (receivedMessage.content.startsWith(botListeningPrefix) && receivedMessage.channel == (client.channels.cache.get(generalID.getGeneralChatID()))){
         processCommand(receivedMessage)
     }
     else{
@@ -86,13 +83,6 @@ function processCommand(receivedMessage){
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
-}
-function test(receivedMessage, args){
-    // Module.addDeckList().then(function(data){
-    //     console.log(data + " data")
-    // }, function (err){
-    //     console.log(err + " err")
-    // })
 }
 function addDeck(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
