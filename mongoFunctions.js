@@ -91,19 +91,6 @@ module.exports = {
                     })
             })
     },
-    //this function registers a user to the league, it sends their "id" (used to mention a person) and their discord name to the server and saves it in the 'Users' collection
-    registerFunc(receivedMessage, callback){
-        var queryFound = false
-            //ran into problems above if the users aren't saved in the id format below... I'm not sure if this will hurt us later but probably not. This format is the format for @ing people on discord in their own codebase
-            user({'_id' : "<@!" + receivedMessage.author.id +">", '_name' : receivedMessage.author.username, '_elo' : 1000, '_wins' : 0, '_losses' : 0}).save(function(err, result){
-                if(result){
-                    callback("1")
-                }
-                else {
-                    callback("2")
-                }
-            });
-    },
     //this function will count the number of users and return that value, useful for adminstrative and stats
     listAll(receivedMessage, callback){
             user.countDocuments(function(err, result){
