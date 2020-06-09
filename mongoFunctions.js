@@ -1,3 +1,6 @@
+//Depricated, these functions will be moved into their respective objects in the hierarchy. There's a lot of stuff to move here.
+//  I will be moving it over in a branch seperate from develop in the coming days -noah
+
 const MongoClient = require('mongodb').MongoClient;
 const user = require('./Schema/Users')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
