@@ -1,5 +1,5 @@
 const MongoClient = require('mongodb').MongoClient;
-const user = require('./Schema/User')
+const user = require('./Schema/Users')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 const percentageToLose = 0.010
 
