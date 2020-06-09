@@ -10,21 +10,30 @@
  *  - Alias Required (this setting allows you to require a deck alias when registering a user deck)
  *  - Admin (users who have admin privileges on your server)
  */
-
 module.exports = {
 
     /**
      * Summary info for the league
      */
     getInfo() {
-
+        
     },
 
     /**
      * Register a new user to the league.
      */
-    register() {
-
+    register(receivedMessage, callback) {
+    const user = require('../Schema/Users')
+        user({'_id' : "<@!" + receivedMessage.author.id +">", '_name' : receivedMessage.author.username, '_elo' : 1000, '_wins' : 0, '_losses' : 0}).save(function(err, result){
+            if(result){
+                console.log("Successfully Registered User")
+                callback("1")
+            }
+            else {
+                console.log("User is already registered")
+                callback("2")
+            }
+        });
     },
 
     /**
