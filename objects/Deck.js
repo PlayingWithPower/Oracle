@@ -42,8 +42,14 @@ module.exports = {
     /**
      * Adds a new User deck to the server.
      */
-    addDeck() {
-
+    addDeck(receivedMessage, args) {
+        console.log(args)
+        const user = require('../Schema/Deck')
+        //user({'_id' : "<@!" + receivedMessage.author.id +">", '_name' : receivedMessage.author.username, '_elo' : 1000, '_wins' : 0, '_losses' : 0}).save(function(err, result){
+        let query = {'_name': args, '_alias': "", '_user': receivedMessage.author.username, '_server': "PWP", '_season': "1"}
+        user(query).save(function(err, res){
+            console.log(res)
+        })
     },
 
     /**
