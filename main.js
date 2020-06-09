@@ -93,7 +93,7 @@ function profile(receivedMessage, args){
     // @TODO
     // Send this information in a nicer format to discord
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.profile(receivedMessage, args);
+    userObj.profile(receivedMessage, args);
     generalChannel.send(">>> Listed profile in console")
 }
 async function logLosers(receivedMessage, args){

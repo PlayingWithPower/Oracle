@@ -10,13 +10,11 @@ module.exports = {
      * Get user league profile
      */
     profile(receivedMessage, args) {
-        MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db){
-            var dbo = db.db("UserData")
-            let query = {_name: receivedMessage.author.username}
-            dbo.collection("users").findOne(query, function(err, res){
-                console.log(res)
-            })
-        });
+    const user = require('../Schema/Users')
+        let query = {_name: receivedMessage.author.username}
+        user.findOne(query, function(err, res){
+            console.log(res)
+        })
     },
 
     /**
