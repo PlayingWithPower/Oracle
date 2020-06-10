@@ -94,7 +94,6 @@ function use(receivedMessage, args){
             generalChannel.send(">>> Deck set to " + "**" + callback+ "**" + " for " + receivedMessage.author.username)
         }
     });
-    
 }
 function profile(receivedMessage, args){
     // @TODO
