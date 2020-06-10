@@ -86,8 +86,10 @@ function processCommand(receivedMessage){
 }
 function addDeck(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    deckObj.addDeck(receivedMessage, args);
-    generalChannel.send(">>> Listed decklist in console")
+    deckObj.addDeck(receivedMessage, args, function(callback,err){
+        generalChannel.send(">>> " + callback)
+    });
+    
 }
 function profile(receivedMessage, args){
     // @TODO
