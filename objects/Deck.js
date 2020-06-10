@@ -36,7 +36,7 @@ module.exports = {
      * Registers a new Deck Alias into the server.
      */
     registerAlias() {
-
+        
     },
 
     /**
@@ -48,12 +48,13 @@ module.exports = {
     addDeck(receivedMessage, args, callback) {
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
+        const callBackArray = new Array();
 
         let urlArg;
         let aliasArg;
         try{
             urlArg = args[0].toString()
-            aliasArg = args[1].toString()
+            aliasArg = (args.slice(1)).toString();
         }
         catch{
             console.log("url or alias failed")
@@ -72,7 +73,7 @@ module.exports = {
                 else{
                     deck(deckQuery).save(function(err, res){
                         if (res){
-                            callback("Successfully Added to Decklists!")
+                            callBackArray.push(urlArg)
                             //console.log("DEBUG: Successfully saved to DECK DB")
                         }
                         else{
@@ -81,7 +82,8 @@ module.exports = {
                     })
                     alias(aliasQuery).save(function(err, res){
                         if (res){
-                            callback("Successfully Added to Aliases!")
+                            callBackArray.push(aliasArg)
+                            callback(callBackArray)
                             //console.log("DEBUG: Successfully saved to ALIAS DB")
                         }
                         else{

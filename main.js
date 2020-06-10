@@ -85,11 +85,30 @@ function processCommand(receivedMessage){
     }
 }
 function addDeck(receivedMessage, args){
+    var callBackArray = new Array();
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     deckObj.addDeck(receivedMessage, args, function(callback,err){
-        generalChannel.send(">>> " + callback)
+        console.log(callBackArray)
+        if ((callback != ("Error: Alias already used"))&& 
+        (callback != ("Error: Unable to save to Database, please try again"))&&
+        (callback != ("Error: Not a valid URL, please follow the format !adddeck <url> <alias>"))
+        ){
+            callback.forEach(item => {
+                callBackArray.push(item)
+            });
+            console.log(callBackArray)
+            const exampleEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setURL("")
+            .addFields(
+                { name: 'URL:', value: 'Where you are now. A list of all available commands with a brief description of each.' },
+            )
+            generalChannel.send(exampleEmbed)
+        }
+        else{
+            generalChannel.send(callback)
+        }
     });
-    
 }
 function profile(receivedMessage, args){
     // @TODO
