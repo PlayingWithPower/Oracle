@@ -74,8 +74,8 @@ function processCommand(receivedMessage){
         case "profile":
             profile(receivedMessage, arguments)
             break;
-        case "adddeck":
-            addDeck(receivedMessage, arguments)
+        case "use":
+            use(receivedMessage, arguments)
             break;
         case "credits":
             credits(receivedMessage, arguments)
@@ -84,10 +84,17 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-function addDeck(receivedMessage, args){
+function use(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.addDeckList(receivedMessage, args);
-    generalChannel.send(">>> Listed decklist in console")
+    userObj.useDeck(receivedMessage, args, function(callback, err){
+        if (callback == "Error"){
+            generalChannel.send("Unknown error, try again.")
+        }
+        else{
+            generalChannel.send(">>> Deck set to " + "**" + callback+ "**" + " for " + receivedMessage.author.username)
+        }
+    });
+    
 }
 function profile(receivedMessage, args){
     // @TODO

@@ -33,15 +33,26 @@ module.exports = {
     /**
      * Sets the users current Deck
      */
-    useDeck(){
+    useDeck(receivedMessage, args, callback){
         /**
-         * TODO: Check if the deck they are using is a real deck 
+         * TODO: Check if the deck they are using is a real deck (against alias)
          */
         const user = require('../Schema/Users')
+        let argsWithCommas = args.toString()
+        let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let findQuery = {_name: receivedMessage.author.username}
-        let toSave = {$set: {_currentDeck: "test"}}
+        let toSave = {$set: {_currentDeck: argsWithSpaces}}
+
+        // console.log("DEBUG: \nargs as entered: " + args + '\n' + "args with commas to string: " + argsWithCommas
+        // + '\n' + "args with spaces to string " + argsWithSpaces)
+
         user.updateOne(findQuery, toSave, function(err, res){
-            console.log(res)
+            if (res){
+                callback(argsWithSpaces)
+            }
+            else{
+                callback("Error")
+            }
         })
     }
 }
