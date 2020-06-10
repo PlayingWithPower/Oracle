@@ -14,6 +14,7 @@ const botListeningPrefix = "!";
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
+const { currentDeck } = require('./objects/User')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -77,6 +78,9 @@ function processCommand(receivedMessage){
         case "use":
             use(receivedMessage, arguments)
             break;
+        case "current":
+            current(receivedMessage, arguments)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -91,9 +95,23 @@ function use(receivedMessage, args){
             generalChannel.send("Unknown error, try again.")
         }
         else{
-            generalChannel.send(">>> Deck set to " + "**" + callback+ "**" + " for " + receivedMessage.author.username)
+            generalChannel.send(">>> Deck set to " + "**" + callback + "**" + " for " + receivedMessage.author.username)
         }
     });
+}
+function current(receivedMessage, args){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    userObj.currentDeck(receivedMessage, args, function(callback, err){
+        if (callback == "Error: 1"){
+            generalChannel.send(">>> User not found.")
+        }
+        else if (callback == "Error: 2"){
+            generalChannel.send(">>> No deck found for that user")
+        }
+        else{
+            generalChannel.send(">>> Current Deck for " + receivedMessage.author.username + ": " + callback)
+        }
+    })
 }
 function profile(receivedMessage, args){
     // @TODO

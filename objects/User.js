@@ -27,8 +27,29 @@ module.exports = {
     /**
      * Shows currently registered Deck and Alias
      */
-    currentDeck() {
+    currentDeck(receivedMessage, args, callback) {
+        const user = require('../Schema/Users')
+        const alias = require('../Schema/Alias')
 
+        let findQuery = {_name: receivedMessage.author.username.toString()}
+        let projection = {"_currentDeck": 1}
+
+        user.findOne(findQuery, function(err, res){
+            if (res) {
+                let findQuery = {_name: res._currentDeck.toString()}
+                alias.findOne(findQuery, function(err, res){
+                    if (res) {
+                        callback(res._name)
+                    }
+                    else {
+                        callback("Error: 2")
+                    }
+                })
+            }
+            else {
+                callback("Error: 1")
+            }
+        })
     },
     /**
      * Sets the users current Deck
