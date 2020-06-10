@@ -109,7 +109,7 @@ function current(receivedMessage, args){
             generalChannel.send(">>> No deck found for that user")
         }
         else{
-            generalChannel.send(">>> Current Deck for " + receivedMessage.author.username + ": " + callback)
+            generalChannel.send(">>> Current Deck for " + receivedMessage.author.username + ": **" + callback + "**")
         }
     })
 }
