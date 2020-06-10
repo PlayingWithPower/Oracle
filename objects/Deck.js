@@ -42,10 +42,12 @@ module.exports = {
     /**
      * Adds a new User deck to the server.
      * TODO: ****Case Sensitivity*** godo vs Godo are different decks right now
+     * TODO: Change receivedmessage.author.username to reference ID instead of username, IDs are absolute
      */
     addDeck(receivedMessage, args, callback) {
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
+
         const callBackArray = new Array();
 
         let urlArg;

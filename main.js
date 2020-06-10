@@ -88,6 +88,7 @@ function processCommand(receivedMessage){
 function addDeck(receivedMessage, args){
     var callBackArray = new Array();
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    
     deckObj.addDeck(receivedMessage, args, function(callback,err){
         if ((callback != ("Error: Alias already used"))&& 
         (callback != ("Error: Unable to save to Database, please try again"))&&
