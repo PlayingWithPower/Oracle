@@ -34,6 +34,10 @@ module.exports = {
      * Sets the users current Deck
      */
     useDeck(){
-
+        const user = require('../Schema/Users')
+        let query = {_name: receivedMessage.author.username}
+        user(someQuery).save(function(err, res){
+            console.log(res)
+        })
     }
 }
