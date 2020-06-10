@@ -3,8 +3,6 @@
  *
  * Functionality for decks and deck aliases.
  */
-var deckListArray = new Array();
-var aliasListArray = new Array();
 module.exports = {
 
     /**
@@ -110,7 +108,8 @@ module.exports = {
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
 
-        
+        var deckListArray = new Array();
+        var aliasListArray = new Array();
 
         deckListArray.push("https://tappedout.net/mtg-decks/waiting-for-godo-cedh-primer/")
         aliasListArray.push("Godo")
@@ -119,37 +118,35 @@ module.exports = {
         deckListArray.push("https://cedh-decklist-database.xyz/primary.html")
         aliasListArray.push("Kess Storm")
 
+        var internalIndex = 0;
         
         for (i = 0; i < deckListArray.length; i++){
-            let deckAliasQuery = {'_alias': aliasListArray[i]}
-            deck.findOne(deckAliasQuery, function(err, res, deckListArray, aliasListArray){
-                console.log(deckListArray)
 
+            let deckAliasQuery = {'_alias': aliasListArray[i]}
+            deck.findOne(deckAliasQuery, function(err, res){
                 if (res){
-                    console.log("Populate already ran... ignore this if not first set up.")
+                    //console.log("Populate already ran... ignore this if NOT first set up. Large error if this prints out on first set up. Will print out a few times")
                 }
                 else{
-                        let deckQuery = {'_name': deckListArray[i], '_alias': aliasListArray[i], '_user': "Discord Bot", '_server': "PWP", '_season': "1"}
+                        let deckQuery = {'_name': deckListArray[internalIndex], '_alias': aliasListArray[internalIndex], '_user': "Discord Bot", '_server': "PWP", '_season': "1"}
                         deck(deckQuery).save(function(err, res){
                             if (res){
-                                console.log(deckListArray[i])
+                                //console.log(deckListArray[i])
                             }
                             else{
                                 console.log("Error: Unable to save to Database, please try again")
                             }
                         })
-                    
-                    
-                        let aliasQuery = {'_name': aliasListArray[i]}
+                        let aliasQuery = {'_name': aliasListArray[internalIndex]}
                         alias(aliasQuery).save(function(err, res){
                             if (res){
-                                console.log(aliasListArray[i])
+                                //console.log(aliasListArray[i])
                             }
                             else{
                                 console.log("Error: Unable to save to Database, please try again")
                             }
                         })
-                    
+                    internalIndex++
                 }
             })
         }
