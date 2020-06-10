@@ -25,7 +25,7 @@ module.exports = {
     },
 
     /**
-     * Shows currently registered Deck and Alias
+     * Returns currently registered Deck name
      */
     currentDeck(receivedMessage, args, callback) {
         const user = require('../Schema/Users')
