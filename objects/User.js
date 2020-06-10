@@ -15,7 +15,6 @@ module.exports = {
         user.findOne(query, function(err, res){
             console.log(res)
         })
-        //some change
     },
 
     /**
