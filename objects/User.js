@@ -29,6 +29,11 @@ module.exports = {
      */
     currentDeck() {
 
-    }
+    },
+    /**
+     * Sets the users current Deck
+     */
+    useDeck(){
 
+    }
 }
