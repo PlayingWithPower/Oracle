@@ -80,15 +80,20 @@ function processCommand(receivedMessage){
         case "credits":
             credits(receivedMessage, arguments)
             break;
+        case "populate":
+            populate()
+            break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
+}
+function populate(){
+    deckObj.populateDecks()
 }
 function addDeck(receivedMessage, args){
     var callBackArray = new Array();
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     deckObj.addDeck(receivedMessage, args, function(callback,err){
-        console.log(callBackArray)
         if ((callback != ("Error: Alias already used"))&& 
         (callback != ("Error: Unable to save to Database, please try again"))&&
         (callback != ("Error: Not a valid URL, please follow the format !adddeck <url> <alias>"))
@@ -96,13 +101,18 @@ function addDeck(receivedMessage, args){
             callback.forEach(item => {
                 callBackArray.push(item)
             });
-            console.log(callBackArray)
+
+            var grabURL = callBackArray[0].toString()
+            var grabAlias = callBackArray[1].toString()
+            
             const exampleEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
-            .setURL("")
+            .setURL('')
             .addFields(
-                { name: 'URL:', value: 'Where you are now. A list of all available commands with a brief description of each.' },
+                { name: 'Decklist', value: "[Link]("+grabURL+")"},
+                { name: 'Alias', value: grabAlias},
             )
+            generalChannel.send("Successfully uploaded new Decklist to Decklists and Aliases!")
             generalChannel.send(exampleEmbed)
         }
         else{

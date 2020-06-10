@@ -3,6 +3,8 @@
  *
  * Functionality for decks and deck aliases.
  */
+var deckListArray = new Array();
+var aliasListArray = new Array();
 module.exports = {
 
     /**
@@ -41,9 +43,7 @@ module.exports = {
 
     /**
      * Adds a new User deck to the server.
-     * TODO: Check if listed URL DONE
-     * Check against alias
-     * 
+     * TODO: ****Case Sensitivity*** godo vs Godo are different decks right now
      */
     addDeck(receivedMessage, args, callback) {
         const deck = require('../Schema/Deck')
@@ -55,9 +55,12 @@ module.exports = {
         try{
             urlArg = args[0].toString()
             aliasArg = (args.slice(1)).toString();
+
+            var newStr = aliasArg.replace(/,/g, ' ');
+            aliasArg = newStr
         }
         catch{
-            console.log("url or alias failed")
+            console.log("Url or alias failed to cast to Strings")
         }
 
         let deckAliasQuery = {'_alias': aliasArg}
@@ -104,6 +107,51 @@ module.exports = {
      * Seed the server with an initial list of Deck Aliases.
      */
     populateDecks() {
+        const deck = require('../Schema/Deck')
+        const alias = require('../Schema/Alias')
 
+        
+
+        deckListArray.push("https://tappedout.net/mtg-decks/waiting-for-godo-cedh-primer/")
+        aliasListArray.push("Godo")
+        deckListArray.push("https://tappedout.net/mtg-decks/the-gitfrog-1/")
+        aliasListArray.push("Gitrog")
+        deckListArray.push("https://cedh-decklist-database.xyz/primary.html")
+        aliasListArray.push("Kess Storm")
+
+        
+        for (i = 0; i < deckListArray.length; i++){
+            let deckAliasQuery = {'_alias': aliasListArray[i]}
+            deck.findOne(deckAliasQuery, function(err, res, deckListArray, aliasListArray){
+                console.log(deckListArray)
+
+                if (res){
+                    console.log("Populate already ran... ignore this if not first set up.")
+                }
+                else{
+                        let deckQuery = {'_name': deckListArray[i], '_alias': aliasListArray[i], '_user': "Discord Bot", '_server': "PWP", '_season': "1"}
+                        deck(deckQuery).save(function(err, res){
+                            if (res){
+                                console.log(deckListArray[i])
+                            }
+                            else{
+                                console.log("Error: Unable to save to Database, please try again")
+                            }
+                        })
+                    
+                    
+                        let aliasQuery = {'_name': aliasListArray[i]}
+                        alias(aliasQuery).save(function(err, res){
+                            if (res){
+                                console.log(aliasListArray[i])
+                            }
+                            else{
+                                console.log("Error: Unable to save to Database, please try again")
+                            }
+                        })
+                    
+                }
+            })
+        }
     }
 }
