@@ -34,9 +34,13 @@ module.exports = {
      * Sets the users current Deck
      */
     useDeck(){
+        /**
+         * TODO: Check if the deck they are using is a real deck 
+         */
         const user = require('../Schema/Users')
-        let query = {_name: receivedMessage.author.username}
-        user(someQuery).save(function(err, res){
+        let findQuery = {_name: receivedMessage.author.username}
+        let toSave = {$set: {_currentDeck: "test"}}
+        user.updateOne(findQuery, toSave, function(err, res){
             console.log(res)
         })
     }
