@@ -35,20 +35,31 @@ module.exports = {
      */
     useDeck(receivedMessage, args, callback){
         /**
-         * TODO: Check if the deck they are using is a real deck (against alias)
+         * TODO: Basic checking against the alias DB is being made, but more work needs to be done
+         * EX: typing is $use gitrog will not set your deck but $use Gitrog will. 
+         * Case sensitivity work needs to be done
          */
         const user = require('../Schema/Users')
+        const alias = require('../Schema/Alias')
         let argsWithCommas = args.toString()
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
-        let findQuery = {_name: receivedMessage.author.username}
+
+        let findQuery = {_name: argsWithSpaces}
+        let updateQuery = {_name: receivedMessage.author.username}
         let toSave = {$set: {_currentDeck: argsWithSpaces}}
 
         // console.log("DEBUG: \nargs as entered: " + args + '\n' + "args with commas to string: " + argsWithCommas
         // + '\n' + "args with spaces to string " + argsWithSpaces)
-
-        user.updateOne(findQuery, toSave, function(err, res){
+        alias.findOne(findQuery, function(err, res){
             if (res){
-                callback(argsWithSpaces)
+                user.updateOne(updateQuery, toSave, function(err, res){
+                    if (res){
+                        callback(argsWithSpaces)
+                    }
+                    else{
+                        callback("Error")
+                    }
+                })
             }
             else{
                 callback("Error")
