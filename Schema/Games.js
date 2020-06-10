@@ -8,6 +8,10 @@ var match = new mongoose.Schema({
     _player2: String,
     _player3: String,
     _player4: String,
+    _player1Deck: String,
+    _player2Deck: String,
+    _player3Deck: String,
+    _player4Deck: String,
 });
 
 module.exports = mongoose.model('Matches', match);
