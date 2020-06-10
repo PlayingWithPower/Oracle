@@ -44,10 +44,14 @@ module.exports = {
      */
     addDeck(receivedMessage, args) {
         console.log(args)
-        const user = require('../Schema/Deck')
-        //user({'_id' : "<@!" + receivedMessage.author.id +">", '_name' : receivedMessage.author.username, '_elo' : 1000, '_wins' : 0, '_losses' : 0}).save(function(err, result){
-        let query = {'_name': args, '_alias': "", '_user': receivedMessage.author.username, '_server': "PWP", '_season': "1"}
-        user(query).save(function(err, res){
+        const user = require('../Schema/Seasons')
+        if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(args)) {
+        console.log("url inside")
+        }
+        const args2 = args.toString()
+        let query = {'_name': args2, '_alias': "", '_user': receivedMessage.author.username, '_server': "PWP", '_season': "1"}
+        let someQuery = {'_id': "test",'_server': "test", '_season_name': "test"}
+        user(someQuery).save(function(err, res){
             console.log(res)
         })
     },
