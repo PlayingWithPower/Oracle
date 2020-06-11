@@ -78,12 +78,27 @@ function processCommand(receivedMessage){
         case "adddeck":
             addDeck(receivedMessage, arguments)
             break;
+        case "listdecks":
+            listDecks();
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
+}
+function listDecks(){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    var callBackArray = new Array();
+    var betterString = String;
+    deckObj.listDecks(function(callback,err){
+        callback.forEach(item =>{
+            callBackArray.push(item.toString())
+        })
+        var callBackArrayNoCommas = callBackArray.join(' ')
+        generalChannel.send(">>> " + callBackArrayNoCommas)
+    });
 }
 function addDeck(receivedMessage, args){
     var callBackArray = new Array();

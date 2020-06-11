@@ -1,3 +1,5 @@
+const { db } = require('../Schema/Deck')
+
 /**
  * Deck Object
  *
@@ -8,8 +10,13 @@ module.exports = {
     /**
      * Returns a list of all Deck Aliases registered to the server
      */
-    listDecks() {
-
+    listDecks(callback) {
+        const deck = require('../Schema/Deck')
+        deck.find({}, {_name:"",_id:0}, function(err, res){
+            callback(res.map(user=> user._name))
+            console.log(res.map(user=> user._name))
+        })
+        
     },
     /**
      * Returns a list of all User submitted decks registered to the server.
@@ -51,6 +58,7 @@ module.exports = {
      * TODO: ****Case Sensitivity*** godo vs Godo are different decks right now
      * TODO: Change receivedmessage.author.username to reference ID instead of username, IDs are absolute
      * TODO: Add react to messages to confirm your deck and alias 
+     * TODO: Sanitization when user inputs something like "first sliver", comes out as "first,sliver"
      * TODO: Command only checks DB vs other aliases, not vs other URLS. AKA you can have two decklist URLs on the DB if they have different aliases
      */
     addDeck(receivedMessage, args, callback) {
@@ -66,10 +74,10 @@ module.exports = {
             urlArg = args[0].toString()
             nameArg = (args.slice(1)).toString();
             
-            var lower = nameArg.toLowerCase();
-            aliasArg = lower
-
+            //var lower = nameArg.toLowerCase();
             var newStr = nameArg.replace(/,/g, ' ');
+
+            aliasArg = newStr
             nameArg = newStr
         }
         catch{
@@ -144,15 +152,15 @@ module.exports = {
                                 console.log("Error: Unable to save to Database, please try again")
                             }
                         })
-                        let aliasQuery = {'_link': aliasListArray[internalIndex]}
-                        alias(aliasQuery).save(function(err, res){
-                            if (res){
-                                //console.log(aliasListArray[i])
-                            }
-                            else{
-                                console.log("Error: Unable to save to Database, please try again")
-                            }
-                        })
+                        // let aliasQuery = {'_link': aliasListArray[internalIndex]}
+                        // alias(aliasQuery).save(function(err, res){
+                        //     if (res){
+                        //         console.log(aliasListArray[i])
+                        //     }
+                        //     else{
+                        //         console.log("Error: Unable to save to Database, please try again")
+                        //     }
+                        // })
                     internalIndex++
                 }
             })
