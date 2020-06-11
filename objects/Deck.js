@@ -16,7 +16,6 @@ module.exports = {
             callback(res.map(user=> user._name))
             console.log(res.map(user=> user._name))
         })
-        
     },
     /**
      * Returns a list of all User submitted decks registered to the server.
