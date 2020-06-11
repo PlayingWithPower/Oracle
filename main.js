@@ -170,7 +170,8 @@ function logMatch(receivedMessage, args){
                         const reaction = collected.first();
 
                         if (reaction.emoji.name === '👍') {
-                            receivedMessage.reply("received confirmation for logging");
+                            console.log(reaction.author)
+                            generalChannel.send(loser + " received confirmation for logging");
                             arg = res._id.toString()
                             gameObj.logLoser(arg, function(cb, err){
                                 cbArr.push(cb)
@@ -194,6 +195,8 @@ function logMatch(receivedMessage, args){
                             receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
                             return
                         }
+                    }).catch(collected => {
+                        return
                     })
                 })
             }
@@ -229,7 +232,7 @@ function logMatch(receivedMessage, args){
                         const reaction = collected.first();
 
                         if (reaction.emoji.name === '👍') {
-                            receivedMessage.reply("received confirmation for logging");
+                            generalChannel.send(sanitizedString + " received confirmation for logging");
                             callbackArr.push("WIN: " + sanitizedString + ":" + " Current Points: " + cb)
                             if (callbackArr.length == 4){
                                 callbackArr.forEach(cb => {
