@@ -69,7 +69,8 @@ function processCommand(receivedMessage){
             users(receivedMessage, arguments)
             break;
         case "log":
-            logLosers(receivedMessage, arguments)
+            //logLosers(receivedMessage, arguments)
+            logMatch(receivedMessage, arguments)
             break;
         case "profile":
             profile(receivedMessage, arguments)
@@ -137,6 +138,56 @@ async function logLosers(receivedMessage, args){
         
     })
    
+}
+function logMatch(receivedMessage, args){
+    const user = require ('../DiscordBot/Schema/Users')
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    let arg
+    callbackArr = new Array()
+    cbArr = new Array()
+
+    args.forEach(loser =>{
+        let findQuery = {_id: loser.toString()}
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                arg = res._name.toString()
+                Module.logLoser(arg, function(cb, err){
+                    cbArr.push(cb)
+                    if (cb == "Error: FAIL"){
+                        callbackArr.push("Error: FAIL " + " " + loser)
+                    }
+                    else if (cb == "Error: NO-REGISTER"){
+                        callbackArr.push("Error: NO-REGISTER " + " " + loser)
+                    }
+                    else {
+                        callbackArr.push("SUCCESS" + " " + loser)
+                    }
+                })
+            }
+            else {
+                callbackArr.push("USER NOT FOUND ", + " " + loser)
+            }
+        })
+    });
+    arg = receivedMessage.author.id.toString()
+    Module.logWinner(arg, function(cb, err){
+        cbArr.push(cb)
+        if (cb == "Error: FAIL"){
+            callbackArr.push("Error: FAIL " + " " + receivedMessage.author.id)
+        }
+        else if (cb == "Error: NO-REGISTER"){
+            callbackArr.push("Error: NO-REGISTER " + " " + receivedMessage.author.id)
+        }
+        else {
+            callbackArr.push("SUCCESS" + " " + receivedMessage.author.id)
+        }
+    })
+    
+    console.log(callbackArr)
+    console.log(cbArr)
+    callbackArr.forEach(cb => {
+        generalChannel.send(">>> " + cb)
+    });
 }
 function users(receivedMessage, args){
     /* @TODO
