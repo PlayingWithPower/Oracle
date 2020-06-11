@@ -102,7 +102,7 @@ module.exports = {
         findQuery = {_id: args}
         user.findOne(findQuery, function(err, res){
             if (res){
-                var newElo = {$set: {_elo: Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose)), _wins: Number(res._wins) + 1}}
+                var newElo = {$set: {_elo: Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose)), _losses: Number(res._losses) + 1}}
                 user.updateOne(findQuery, newElo, function(err, res){
                     if (res){
                         callback("SUCCESS")
@@ -123,7 +123,7 @@ module.exports = {
         console.log(findQuery)
         user.findOne(findQuery, function(err, res){
             if (res){
-                var newElo = {$set: {_elo: Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain)), _losses: Number(res._wins) + 1}}
+                var newElo = {$set: {_elo: Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain)), _wins: Number(res._wins) + 1}}
                 user.updateOne(findQuery, newElo, function(err, res){
                     if (res){
                         callback("SUCCESS")
