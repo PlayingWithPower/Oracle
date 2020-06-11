@@ -90,17 +90,9 @@ module.exports = {
                     deck(deckQuery).save(function(err, res){
                         if (res){
                             callBackArray.push(urlArg)
-                            //console.log("DEBUG: Successfully saved to DECK DB")
-                        }
-                        else{
-                            callback("Error: Unable to save to Database, please try again")
-                        }
-                    })
-                    alias(nameQuery).save(function(err, res){
-                        if (res){
                             callBackArray.push(nameArg)
                             callback(callBackArray)
-                            //console.log("DEBUG: Successfully saved to ALIAS DB")
+                            //console.log("DEBUG: Successfully saved to DECK DB")
                         }
                         else{
                             callback("Error: Unable to save to Database, please try again")
