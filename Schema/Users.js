@@ -9,7 +9,6 @@ var user = new mongoose.Schema({
     _elo: Number,
     _wins: Number,
     _losses: Number
-    
 });
 
 module.exports = mongoose.model('Users', user);

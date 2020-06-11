@@ -14,15 +14,6 @@ module.exports = {
             reject("1")
         })
     },
-    profile(receivedMessage, args){
-        MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db){
-            var dbo = db.db("UserData")
-            let query = {_name: receivedMessage.author.username}
-            dbo.collection("users").findOne(query, function(err, res){
-                console.log(res)
-            })
-        });
-    },
     //Test by typing in !addelo and @ing someone who is registered.
     //There are 2 queries being made: A query to lookup the losers' information and one to look up the winners' information.
     //dbo connects to "UserData" db(not sure what to call this in Mongo?) and then makes a call to the "users" collection. FindOne returns a single entry when provided a query. The query is the
@@ -102,6 +93,6 @@ module.exports = {
               }
             
             });
-            
+  
     }
 } 
