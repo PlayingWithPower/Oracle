@@ -24,8 +24,7 @@ module.exports = {
      */
     register(receivedMessage, callback) {
     const user = require('../Schema/Users')
-        user({'_id' : "<@!" + receivedMessage.author.id +">", '_server': "PWP", '_season': "1", '_name' : receivedMessage.author.username, 
-        '_currentDeck': "None", '_elo' : 1000, '_wins' : 0, '_losses' : 0, '_deck': [['',0,0]]}).save(function(err, result){
+        user({'_id' : "<@!" + receivedMessage.author.id +">", '_server': "PWP", '_season': "1", '_name' : receivedMessage.author.username, '_currentDeck': "None", '_elo' : 1000, '_wins' : 0, '_losses' : 0, '_deck': [['',0,0]]}).save(function(err, result){
             if(result){
                 console.log("Successfully Registered User")
                 callback("1")
