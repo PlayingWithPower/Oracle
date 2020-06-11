@@ -29,7 +29,6 @@ module.exports = {
      */
     currentDeck(receivedMessage, args, callback) {
         /**
-         * TODO: Update alias to deck
          */
         const user = require('../Schema/Users')
         const deck = require('../Schema/Deck')
@@ -63,9 +62,6 @@ module.exports = {
     useDeck(receivedMessage, args, callback){
         /**
          * TODO: Basic checking against the alias DB is being made, but more work needs to be done
-         * TODO: Update alias to deck
-         * EX: typing is $use gitrog will not set your deck but $use Gitrog will. 
-         * Case sensitivity work needs to be done
          */
         const user = require('../Schema/Users')
         const alias = require('../Schema/Alias')
