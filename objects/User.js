@@ -9,7 +9,10 @@ module.exports = {
     /**
      * Get user league profile
      */
+    profile(){
 
+    },
+    
     /**
      * Shows recent matches
      */
