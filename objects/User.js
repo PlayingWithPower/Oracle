@@ -9,8 +9,12 @@ module.exports = {
     /**
      * Get user league profile
      */
-    profile() {
-
+    profile(receivedMessage, args) {
+        const user = require('../Schema/Users')
+        let query = {_name: receivedMessage.author.username}
+        user.findOne(query, function(err, res){
+            console.log(res)
+        })
     },
 
     /**
