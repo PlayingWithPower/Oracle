@@ -32,17 +32,20 @@ module.exports = {
          * TODO: Update alias to deck
          */
         const user = require('../Schema/Users')
+        const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
+        const callBackArray = new Array()
 
         let findQuery = {_name: receivedMessage.author.username.toString()}
-        let projection = {"_currentDeck": 1}
 
         user.findOne(findQuery, function(err, res){
             if (res) {
-                let findQuery = {_name: res._currentDeck.toString()}
-                alias.findOne(findQuery, function(err, res){
+                let findQuery = {_alias: res._currentDeck.toLowerCase()}
+                deck.findOne(findQuery, function(err, res){
                     if (res) {
-                        callback(res._name)
+                        callBackArray.push(res._link)
+                        callBackArray.push(res._name)
+                        callback(callBackArray)
                     }
                     else {
                         callback("Error: 2")
@@ -66,22 +69,25 @@ module.exports = {
          */
         const user = require('../Schema/Users')
         const alias = require('../Schema/Alias')
+        const deck = require('../Schema/Deck')
         
 
         let argsWithCommas = args.toString()
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
 
-        let findQuery = {_name: argsWithSpaces}
+        let findQuery = {_alias: argsWithSpaces.toLowerCase()}
         let updateQuery = {_name: receivedMessage.author.username}
-        let toSave = {$set: {_currentDeck: argsWithSpaces}}
+        
 
         // console.log("DEBUG: \nargs as entered: " + args + '\n' + "args with commas to string: " + argsWithCommas
         // + '\n' + "args with spaces to string " + argsWithSpaces)
-        alias.findOne(findQuery, function(err, res){
+        deck.findOne(findQuery, function(err, res){
             if (res){
+                name = res._name.toString()
+                let toSave = {$set: {_currentDeck: name}}
                 user.updateOne(updateQuery, toSave, function(err, res){
                     if (res){
-                        callback(argsWithSpaces)
+                        callback(name)
                     }
                     else{
                         callback("Error")

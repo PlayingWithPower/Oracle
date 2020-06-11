@@ -101,6 +101,7 @@ function use(receivedMessage, args){
 }
 function current(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    var callBackArray = new Array();
     userObj.currentDeck(receivedMessage, args, function(callback, err){
         if (callback == "Error: 1"){
             generalChannel.send(">>> User not found.")
@@ -109,7 +110,22 @@ function current(receivedMessage, args){
             generalChannel.send(">>> No deck found for that user")
         }
         else{
-            generalChannel.send(">>> Current Deck for " + receivedMessage.author.username + ": **" + callback + "**")
+            callback.forEach(item => {
+                callBackArray.push(item)
+            });
+
+            var grabURL = callBackArray[0].toString()
+            var grabName = callBackArray[1].toString()
+            
+            const exampleEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setURL('')
+            .addFields(
+                { name: 'Name', value: grabName},
+                { name: 'Decklist', value: "[Link]("+grabURL+")"},
+            )
+            generalChannel.send("Current Deck:")
+            generalChannel.send(exampleEmbed)
         }
     })
 }
