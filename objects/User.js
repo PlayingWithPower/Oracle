@@ -10,7 +10,7 @@ module.exports = {
      * Get user league profile
      */
     profile() {
-
+        
     },
 
     /**
