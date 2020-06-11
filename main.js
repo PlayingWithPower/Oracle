@@ -156,25 +156,46 @@ function logMatch(receivedMessage, args){
         console.log(findQuery)
         user.findOne(findQuery, function(err, res){
             if (res){
-                arg = res._id.toString()
-                gameObj.logLoser(arg, function(cb, err){
-                    cbArr.push(cb)
-                    if (cb == "Error: FAIL"){
-                        callbackArr.push("Error: FAIL " + " " + loser)
-                    }
-                    else if (cb == "Error: NO-REGISTER"){
-                        callbackArr.push("Error: NO-REGISTER " + " " + loser)
-                    }
-                    else {
-                        callbackArr.push("LOSS " + loser + ":" + " Current Points: " + cb)
-                        if (callbackArr.length == 4){
-                            callbackArr.forEach(cb => {
-                                    generalChannel.send(">>> " + cb)
-                                });
-                            }
-                    }
+                generalChannel.send(">>> " + res._id + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
+                    .then(function (message, callback){
+                    const filter = (reaction, user) => {
+                        return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
+                    };   
+
+                    message.react("👍")
+                    message.react("👎")
+
+                    message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
+                        .then(collected => {
+                        const reaction = collected.first();
+
+                        if (reaction.emoji.name === '👍') {
+                            receivedMessage.reply("received confirmation for logging");
+                            arg = res._id.toString()
+                            gameObj.logLoser(arg, function(cb, err){
+                                cbArr.push(cb)
+                                if (cb == "Error: FAIL"){
+                                    callbackArr.push("Error: FAIL " + " " + loser)
+                                }
+                                else if (cb == "Error: NO-REGISTER"){
+                                    callbackArr.push("Error: NO-REGISTER " + " " + loser)
+                                }
+                                else {
+                                    callbackArr.push("LOSS: " + loser + ":" + " Current Points: " + cb)
+                                    if (callbackArr.length == 4){
+                                        callbackArr.forEach(cb => {
+                                                generalChannel.send(">>> " + cb)
+                                            });
+                                        }
+                                }
+                            })
+                        }
+                        else {
+                            receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
+                            return
+                        }
+                    })
                 })
-                
             }
             else {
                 callbackArr.push("USER NOT FOUND ", + " " + loser)
@@ -192,7 +213,36 @@ function logMatch(receivedMessage, args){
         }
         else {
             let sanitizedString = "<@!"+receivedMessage.author.id+">"
-            callbackArr.push("WIN: " + sanitizedString + ":" + " Current Points: " + cb)
+            generalChannel.send(">>> " + sanitizedString + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
+            .then(function (message, callback){
+                const filter = (reaction, user) => {
+                    return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
+                };   
+
+                message.react("👍")
+                message.react("👎")
+                // @TODO: 
+                // Look into time of awaitReactions (configurable?)
+                // Log points only after upvotes are seen. Right now we are logging THEN checking upvotes
+                message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
+                    .then(collected => {
+                        const reaction = collected.first();
+
+                        if (reaction.emoji.name === '👍') {
+                            receivedMessage.reply("received confirmation for logging");
+                            callbackArr.push("WIN: " + sanitizedString + ":" + " Current Points: " + cb)
+                            if (callbackArr.length == 4){
+                                callbackArr.forEach(cb => {
+                                        generalChannel.send(">>> " + cb)
+                                    });
+                            }
+                        }
+                        else {
+                            receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
+                            return
+                        }
+                    })
+            })
         }
     })
 }
