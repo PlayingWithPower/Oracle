@@ -14,6 +14,7 @@ const botListeningPrefix = "!";
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
+const { currentDeck } = require('./objects/User')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -74,8 +75,11 @@ function processCommand(receivedMessage){
         case "profile":
             profile(receivedMessage, arguments)
             break;
-        case "adddeck":
-            addDeck(receivedMessage, arguments)
+        case "use":
+            use(receivedMessage, arguments)
+            break;
+        case "current":
+            current(receivedMessage, arguments)
             break;
         case "credits":
             credits(receivedMessage, arguments)
@@ -84,16 +88,52 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-function addDeck(receivedMessage, args){
+function use(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.addDeckList(receivedMessage, args);
-    generalChannel.send(">>> Listed decklist in console")
+    userObj.useDeck(receivedMessage, args, function(callback, err){
+        if (callback == "Error"){
+            generalChannel.send("Unknown error, try again.")
+        }
+        else{
+            generalChannel.send(">>> Deck set to " + "**" + callback + "**" + " for " + receivedMessage.author.username)
+        }
+    });
+}
+function current(receivedMessage, args){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    var callBackArray = new Array();
+    userObj.currentDeck(receivedMessage, args, function(callback, err){
+        if (callback == "Error: 1"){
+            generalChannel.send(">>> User not found.")
+        }
+        else if (callback == "Error: 2"){
+            generalChannel.send(">>> No deck found for that user")
+        }
+        else{
+            callback.forEach(item => {
+                callBackArray.push(item)
+            });
+
+            var grabURL = callBackArray[0].toString()
+            var grabName = callBackArray[1].toString()
+            
+            const exampleEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setURL('')
+            .addFields(
+                { name: 'Name', value: grabName},
+                { name: 'Decklist', value: "[Link]("+grabURL+")"},
+            )
+            generalChannel.send("Current Deck:")
+            generalChannel.send(exampleEmbed)
+        }
+    })
 }
 function profile(receivedMessage, args){
     // @TODO
     // Send this information in a nicer format to discord
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.profile(receivedMessage, args);
+    userObj.profile(receivedMessage, args);
     generalChannel.send(">>> Listed profile in console")
 }
 async function logLosers(receivedMessage, args){
