@@ -60,27 +60,31 @@ module.exports = {
         const callBackArray = new Array();
 
         let urlArg;
-        let aliasArg;
+        let nameArg;
+        let aliasArg
         try{
             urlArg = args[0].toString()
-            aliasArg = (args.slice(1)).toString();
+            nameArg = (args.slice(1)).toString();
+            
+            var lower = nameArg.toLowerCase();
+            aliasArg = lower
 
-            var newStr = aliasArg.replace(/,/g, ' ');
-            aliasArg = newStr
+            var newStr = nameArg.replace(/,/g, ' ');
+            nameArg = newStr
         }
         catch{
             console.log("Url or alias failed to cast to Strings")
         }
 
         let deckAliasQuery = {'_alias': aliasArg}
-        let deckQuery = {'_name': urlArg, '_alias': aliasArg, '_user': receivedMessage.author.username, '_server': "PWP", '_season': "1"}
-        let aliasQuery = {'_name': aliasArg}
+        let deckQuery = {'_link': urlArg, '_name': nameArg, '_alias': aliasArg, '_user': receivedMessage.author.username, '_server': "PWP", '_season': "1"}
+        let nameQuery = {'_name': nameArg}
 
         if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
             //console.log("DEBUG: User succesfully entered a URL")
             deck.findOne(deckAliasQuery, function(err, res){
                 if (res){
-                    callback("Error: Alias already used")
+                    callback("Error: Deck name already used")
                 }
                 else{
                     deck(deckQuery).save(function(err, res){
@@ -92,9 +96,9 @@ module.exports = {
                             callback("Error: Unable to save to Database, please try again")
                         }
                     })
-                    alias(aliasQuery).save(function(err, res){
+                    alias(nameQuery).save(function(err, res){
                         if (res){
-                            callBackArray.push(aliasArg)
+                            callBackArray.push(nameArg)
                             callback(callBackArray)
                             //console.log("DEBUG: Successfully saved to ALIAS DB")
                         }
@@ -133,13 +137,13 @@ module.exports = {
         
         for (i = 0; i < deckListArray.length; i++){
 
-            let deckAliasQuery = {'_alias': aliasListArray[i]}
+            let deckAliasQuery = {'_alias': aliasListArray[i].toLowerCase()}
             deck.findOne(deckAliasQuery, function(err, res){
                 if (res){
                     //console.log("Populate already ran... ignore this if NOT first set up. Large error if this prints out on first set up. Will print out a few times")
                 }
                 else{
-                        let deckQuery = {'_name': deckListArray[internalIndex], '_alias': aliasListArray[internalIndex], '_user': "Discord Bot", '_server': "PWP", '_season': "1"}
+                        let deckQuery = {'_link': deckListArray[internalIndex], '_name': aliasListArray[internalIndex], '_alias': aliasListArray[internalIndex].toLowerCase(), '_user': "Discord Bot", '_server': "PWP", '_season': "1"}
                         deck(deckQuery).save(function(err, res){
                             if (res){
                                 //console.log(deckListArray[i])
@@ -148,7 +152,7 @@ module.exports = {
                                 console.log("Error: Unable to save to Database, please try again")
                             }
                         })
-                        let aliasQuery = {'_name': aliasListArray[internalIndex]}
+                        let aliasQuery = {'_link': aliasListArray[internalIndex]}
                         alias(aliasQuery).save(function(err, res){
                             if (res){
                                 //console.log(aliasListArray[i])

@@ -90,25 +90,25 @@ function addDeck(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     
     deckObj.addDeck(receivedMessage, args, function(callback,err){
-        if ((callback != ("Error: Alias already used"))&& 
+        if ((callback != ("Error: Deck name already used"))&& 
         (callback != ("Error: Unable to save to Database, please try again"))&&
-        (callback != ("Error: Not a valid URL, please follow the format !adddeck <url> <alias>"))
+        (callback != ("Error: Not a valid URL, please follow the format !adddeck <url> <name>"))
         ){
             callback.forEach(item => {
                 callBackArray.push(item)
             });
 
             var grabURL = callBackArray[0].toString()
-            var grabAlias = callBackArray[1].toString()
+            var grabName = callBackArray[1].toString()
             
             const exampleEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
             .setURL('')
             .addFields(
                 { name: 'Decklist', value: "[Link]("+grabURL+")"},
-                { name: 'Alias', value: grabAlias},
+                { name: 'Name', value: grabName},
             )
-            generalChannel.send("Successfully uploaded new Decklist to Decklists and Aliases!")
+            generalChannel.send("Successfully uploaded new Decklist to Decklists!")
             generalChannel.send(exampleEmbed)
         }
         else{
