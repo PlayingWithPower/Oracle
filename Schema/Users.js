@@ -9,6 +9,12 @@ var user = new mongoose.Schema({
     _elo: Number,
     _wins: Number,
     _losses: Number
+
+    //_deck: 2D Array
+    //!listdecks shows all names of decks
+    //!addcollection adds to your deck array ^
+    //!collection lists your deck array ^
+    //!use gitrog grabs from your collection
 });
 
 module.exports = mongoose.model('Users', user);
