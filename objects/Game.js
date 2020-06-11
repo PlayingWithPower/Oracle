@@ -13,6 +13,7 @@ module.exports = {
 
     /**
      * Logs a new match to the season.
+     * TODO: Test for when bot is awaiting reaction + other commmand. What happens?
      */
     logMatch() {
 
