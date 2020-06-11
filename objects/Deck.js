@@ -50,6 +50,7 @@ module.exports = {
      * Adds a new User deck to the server.
      * TODO: ****Case Sensitivity*** godo vs Godo are different decks right now
      * TODO: Change receivedmessage.author.username to reference ID instead of username, IDs are absolute
+     * TODO: Add react to messages to confirm your deck and alias 
      * TODO: Command only checks DB vs other aliases, not vs other URLS. AKA you can have two decklist URLs on the DB if they have different aliases
      */
     addDeck(receivedMessage, args, callback) {
