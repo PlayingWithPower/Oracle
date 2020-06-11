@@ -150,7 +150,7 @@ function users(receivedMessage, args){
 }
 function register(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.registerFunc(receivedMessage, function(callback,err){
+    leagueObj.register(receivedMessage, function(callback,err){
         //Case 1: User is not registered and becomes registered
         if (callback == "1"){ 
             generalChannel.send(">>> " + receivedMessage.author.username + " is now registered.")
