@@ -27,6 +27,7 @@ client.on('ready', (on) =>{
         },
         status: 'online'
     })
+    deckObj.populateDecks()
     
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
@@ -85,9 +86,35 @@ function processCommand(receivedMessage){
     }
 }
 function addDeck(receivedMessage, args){
+    var callBackArray = new Array();
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.addDeckList(receivedMessage, args);
-    generalChannel.send(">>> Listed decklist in console")
+    
+    deckObj.addDeck(receivedMessage, args, function(callback,err){
+        if ((callback != ("Error: Deck name already used"))&& 
+        (callback != ("Error: Unable to save to Database, please try again"))&&
+        (callback != ("Error: Not a valid URL, please follow the format !adddeck <url> <name>"))
+        ){
+            callback.forEach(item => {
+                callBackArray.push(item)
+            });
+
+            var grabURL = callBackArray[0].toString()
+            var grabName = callBackArray[1].toString()
+            
+            const exampleEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setURL('')
+            .addFields(
+                { name: 'Decklist', value: "[Link]("+grabURL+")"},
+                { name: 'Name', value: grabName},
+            )
+            generalChannel.send("Successfully uploaded new Decklist to Decklists!")
+            generalChannel.send(exampleEmbed)
+        }
+        else{
+            generalChannel.send(callback)
+        }
+    });
 }
 function profile(receivedMessage, args){
     // @TODO
