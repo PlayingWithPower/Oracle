@@ -99,7 +99,7 @@ module.exports = {
     logLoser(args, callback){
         const user = require('./Schema/Users')
 
-        findQuery = {_name: args}
+        findQuery = {_id: args}
         user.findOne(findQuery, function(err, res){
             if (res){
                 var newElo = {$set: {_elo: Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose)), _wins: Number(res._wins) + 1}}
@@ -119,7 +119,8 @@ module.exports = {
     },
     logWinner(args, callback){
         const user = require('./Schema/Users')
-        findQuery = {_name: args}
+        findQuery = {_id: "<@!"+args+">"}
+        console.log(findQuery)
         user.findOne(findQuery, function(err, res){
             if (res){
                 var newElo = {$set: {_elo: Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain)), _losses: Number(res._wins) + 1}}

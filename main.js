@@ -148,9 +148,10 @@ function logMatch(receivedMessage, args){
 
     args.forEach(loser =>{
         let findQuery = {_id: loser.toString()}
+        console.log(findQuery)
         user.findOne(findQuery, function(err, res){
             if (res){
-                arg = res._name.toString()
+                arg = res._id.toString()
                 Module.logLoser(arg, function(cb, err){
                     cbArr.push(cb)
                     if (cb == "Error: FAIL"){
@@ -175,7 +176,7 @@ function logMatch(receivedMessage, args){
             }
         })
     });
-    arg = receivedMessage.author.username.toString()
+    arg = receivedMessage.author.id.toString()
     Module.logWinner(arg, function(cb, err){
         cbArr.push(cb)
         if (cb == "Error: FAIL"){
