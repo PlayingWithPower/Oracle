@@ -9,6 +9,9 @@
  * 3. Commit Match (this puts the match into an accepted status and performs match calculations)
  */
 
+const percentageToLose = 0.010
+const percentageToGain = 0.030
+
 module.exports = {
 
     /**
@@ -66,6 +69,55 @@ module.exports = {
      */
     createMatchNumber() {
 
-    }
+    },
+    /*
+    Single User elo modifiers, 
+    :param: args should be user discord id
+    */
+    logLoser(args, callback){
+        const user = require('../Schema/Users')
 
+        findQuery = {_id: args}
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                var newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
+                var change = Number(res._elo)*(percentageToGain)
+                var newElo = {$set: {_elo: newVal, _losses: Number(res._losses) + 1}}
+                user.updateOne(findQuery, newElo, function(err, res){
+                    if (res){
+                        callback(newVal + " (-" + change + ")")
+                    }
+                    else{
+                        callback("Error: FAIL")
+                    }
+                })        
+            }
+            else{
+                callback("Error: NO-REGISTER")
+            }
+        })
+    },
+    logWinner(args, callback){
+        const user = require('../Schema/Users')
+        findQuery = {_id: "<@!"+args+">"}
+        console.log(findQuery)
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                var newVal = Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain))
+                var change = Number(res._elo)*(percentageToGain)
+                var newElo = {$set: {_elo: newVal, _wins: Number(res._wins) + 1}}
+                user.updateOne(findQuery, newElo, function(err, res){
+                    if (res){
+                        callback(newVal + " (+" + change + ")")
+                    }
+                    else{
+                        callback("Error: FAIL")
+                    }
+                })        
+            }
+            else{
+                callback("Error: NO-REGISTER")
+            }
+        })
+    }
 }

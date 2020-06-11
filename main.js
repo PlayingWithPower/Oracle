@@ -146,13 +146,18 @@ function logMatch(receivedMessage, args){
     callbackArr = new Array()
     cbArr = new Array()
 
+    if (args.length < 3 || args.length > 3) {
+        generalChannel.send(">>> **Error**: Submit only the 3 players who lost in the pod")
+        return
+    }
+
     args.forEach(loser =>{
         let findQuery = {_id: loser.toString()}
         console.log(findQuery)
         user.findOne(findQuery, function(err, res){
             if (res){
                 arg = res._id.toString()
-                Module.logLoser(arg, function(cb, err){
+                gameObj.logLoser(arg, function(cb, err){
                     cbArr.push(cb)
                     if (cb == "Error: FAIL"){
                         callbackArr.push("Error: FAIL " + " " + loser)
@@ -161,7 +166,7 @@ function logMatch(receivedMessage, args){
                         callbackArr.push("Error: NO-REGISTER " + " " + loser)
                     }
                     else {
-                        callbackArr.push("LOSER:" + " " + loser)
+                        callbackArr.push("LOSS " + loser + ":" + " Current Points: " + cb)
                         if (callbackArr.length == 4){
                             callbackArr.forEach(cb => {
                                     generalChannel.send(">>> " + cb)
@@ -177,7 +182,7 @@ function logMatch(receivedMessage, args){
         })
     });
     arg = receivedMessage.author.id.toString()
-    Module.logWinner(arg, function(cb, err){
+    gameObj.logWinner(arg, function(cb, err){
         cbArr.push(cb)
         if (cb == "Error: FAIL"){
             callbackArr.push("Error: FAIL " + " " + receivedMessage.author.id)
@@ -187,13 +192,9 @@ function logMatch(receivedMessage, args){
         }
         else {
             let sanitizedString = "<@!"+receivedMessage.author.id+">"
-            callbackArr.push("WINNER:" + " " + sanitizedString)
+            callbackArr.push("WIN: " + sanitizedString + ":" + " Current Points: " + cb)
         }
     })
-    
-    
-
-    
 }
 function users(receivedMessage, args){
     /* @TODO
