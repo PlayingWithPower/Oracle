@@ -140,7 +140,7 @@ async function logLosers(receivedMessage, args){
    
 }
 function logMatch(receivedMessage, args){
-    const user = require ('../DiscordBot/Schema/Users')
+    const user = require('./Schema/Users')
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     let arg
     callbackArr = new Array()
@@ -160,16 +160,22 @@ function logMatch(receivedMessage, args){
                         callbackArr.push("Error: NO-REGISTER " + " " + loser)
                     }
                     else {
-                        callbackArr.push("SUCCESS" + " " + loser)
+                        callbackArr.push("LOSER:" + " " + loser)
+                        if (callbackArr.length == 4){
+                            callbackArr.forEach(cb => {
+                                    generalChannel.send(">>> " + cb)
+                                });
+                            }
                     }
                 })
+                
             }
             else {
                 callbackArr.push("USER NOT FOUND ", + " " + loser)
             }
         })
     });
-    arg = receivedMessage.author.id.toString()
+    arg = receivedMessage.author.username.toString()
     Module.logWinner(arg, function(cb, err){
         cbArr.push(cb)
         if (cb == "Error: FAIL"){
@@ -179,15 +185,14 @@ function logMatch(receivedMessage, args){
             callbackArr.push("Error: NO-REGISTER " + " " + receivedMessage.author.id)
         }
         else {
-            callbackArr.push("SUCCESS" + " " + receivedMessage.author.id)
+            let sanitizedString = "<@!"+receivedMessage.author.id+">"
+            callbackArr.push("WINNER:" + " " + sanitizedString)
         }
     })
     
-    console.log(callbackArr)
-    console.log(cbArr)
-    callbackArr.forEach(cb => {
-        generalChannel.send(">>> " + cb)
-    });
+    
+
+    
 }
 function users(receivedMessage, args){
     /* @TODO
