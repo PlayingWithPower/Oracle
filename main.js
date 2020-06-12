@@ -52,18 +52,33 @@ client.on('message', (receivedMessage) =>{
         let currentChannel =  client.channels.cache.get()
     }
 })
+/**
+ * TODO: Change username checking with bot to ID checking
+ * TODO: Add functionality if a reaction is removed before match checking is finished
+ */
 client.on('messageReactionAdd', (reaction, user) => {
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    if (reaction.message.author.username == "PWP Bot"){
+    manageMatch(reaction, user)
+    /*
+    if (reaction.message.author.username == "Discord Elo Bot"){
         const msg = reaction.message.content.toString().split(' ');
-        if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.username != "PWP Bot") {
+        if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.username != "Discord Elo Bot") {
             console.log("Reaction recieved")
             let sanitizedString = "<@!"+user.id+">"
-            gameObj.confirmMatch(msg[3], sanitizedString, function(cb, err){
+            gameObj.confirmMatch(msg[3], sanitizedString).then((result) => {
+                console.log("Promise Success")
+                gameObj.checkMatch(msg[3]).then((result) => {
+                    console.log("Match Finished")
+                }).catch((error) => {
+                    console.log(error)
+                })
+            }).catch((error) => {
+                console.log(error)
+            })
                 //ugly
                 /**For some reason this isn't continuing past this point despite it sending the right callback, idk how
                 * these promise things work
-                */
+                
                 if (cb == "SUCCESS") {
                     console.log("Cont")
                     gameObj.checkMatch(msg[3], function(callback, err){
@@ -83,11 +98,48 @@ client.on('messageReactionAdd', (reaction, user) => {
                 else {
                     console.log("Match isn't confirmed")
                 }
-            })
-        }
-        
-    }
+                */
 })
+async function manageMatch(reaction, user) {
+    const msg = reaction.message.content.toString().split(' ');
+    let sanitizedString = "<@!"+user.id+">"
+    let limit = 0
+
+    if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.id != "717073766030508072") {
+        console.log(user.id, msg[5])
+        if (sanitizedString !=  msg[5]){
+            console.log("not the right user")
+            return
+        }
+        const result = await gameObj.confirmMatch(msg[3], sanitizedString).catch((message) => {
+        })
+        if (result == "SUCCESS"){
+            const next = await gameObj.checkMatch(msg[3]).catch((message) => {
+            })
+            if (next == "SUCCESS") {
+                const final = await gameObj.logMatch(msg[3]).catch((message) => {
+                    console.log("PROBLEM: " + message)
+                })
+                console.log(final)
+                let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+
+                final.forEach(message => {
+                    generalChannel.send(">>> " + message)
+                })
+                return
+            }
+            else {
+                return
+            }
+        }
+        else {
+            return
+        }
+    }
+    else {
+        return
+    }
+}
 function processCommand(receivedMessage){
     let fullCommand = receivedMessage.content.substr(1)
     let splitCommand = fullCommand.split(" ")
