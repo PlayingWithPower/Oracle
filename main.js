@@ -81,7 +81,7 @@ function processCommand(receivedMessage){
         case "current":
             current(receivedMessage, arguments)
             break;
-        case "addToCollection":
+        case "addtoprofile":
             addToCollection(receivedMessage, arguments)
         case "credits":
             credits(receivedMessage, arguments)
@@ -93,7 +93,7 @@ function processCommand(receivedMessage){
 function addToCollection(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.addToCollection(receivedMessage, args, function(callback, err){
-
+        generalChannel.send(">>> " + callback)
     })
 }
 function use(receivedMessage, args){

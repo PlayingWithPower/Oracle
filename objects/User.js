@@ -4,6 +4,8 @@
  * All user based functionality.
  */
 
+const Alias = require('../Schema/Alias')
+
 module.exports = {
 
     /**
@@ -27,26 +29,37 @@ module.exports = {
      * Adds a deck to your deck collection
      */
     addToCollection(receivedMessage, args, callback){
+        //will add to my account even if I change the find query... weird
         const user = require('../Schema/Users')
+        const deck = require('../Schema/Deck')
+
+        let argString = args.toString()
 
         let findQuery = {_id: "<@!"+receivedMessage.author.id+">"}
-        let updateQuery = {_deck: [[args.toString(),0,0]]}
-        user.findOne(findQuery, function(err, res){
-            if (res) {
-                let findQuery = {_alias: res._currentDeck.toLowerCase()}
-                user.updateOne(findQuery, function(err, res){
+        let updateQuery = {$addToSet: {_deck: [[args.toString(),0,0]]}}
+        let aliasCheckQuery = {_alias: argString.toLowerCase()}
+
+        deck.findOne(aliasCheckQuery, function(err, res){
+            if (res){
+                user.findOne(findQuery, function(err, res){
                     if (res) {
-                        callBackArray.push(res._link)
-                        callBackArray.push(res._name)
-                        callback(callBackArray)
+                        user.updateOne(updateQuery, function(err, res){
+                            if (res) {
+                                callback("Successfully added " + "**"+args.toString()+"**"
+                                + " to " + "**"+receivedMessage.author.username+"**" + "'s profile")
+                            }
+                            else {
+                                callback("Error: 2")
+                            }
+                        })
                     }
                     else {
-                        callback("Error: 2")
+                        callback("User not found. Try registering first !register")
                     }
                 })
             }
-            else {
-                callback("Error: 1")
+            else{
+                callback("Alias not registered. Try !listdecks to see available decks")
             }
         })
     },
