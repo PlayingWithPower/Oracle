@@ -14,7 +14,6 @@ const botListeningPrefix = "!";
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
-const { currentDeck } = require('./objects/User')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -70,7 +69,7 @@ function processCommand(receivedMessage){
             users(receivedMessage, arguments)
             break;
         case "log":
-            logLosers(receivedMessage, arguments)
+            //logLosers(receivedMessage, arguments)
             break;
         case "profile":
             profile(receivedMessage, arguments)
@@ -83,12 +82,46 @@ function processCommand(receivedMessage){
             break;
         case "addtoprofile":
             addToCollection(receivedMessage, arguments)
+            break;
+        case "listmydecks":
+            listCollection(receivedMessage,arguments)
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
+}
+async function listCollection(receivedMessage, args){
+    var callbackName = new Array();
+    var callbackWins = new Array();
+    var callbackLosses = new Array();
+    const profileEmbed = new Discord.MessageEmbed()
+        .setColor('#0099ff')
+            .setURL('')
+
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    userObj.profile(receivedMessage, args, function(callback, err){
+            callback._deck.forEach(callbackItem =>{
+                callbackName.push(callbackItem[0])
+                callbackWins.push(callbackItem[1])
+                callbackLosses.push(callbackItem[2])
+            })
+        })
+        for (i=0; i <callbackName.length; i++){
+            profileEmbed.addFields(
+                { name: 'Deck Name', value: "some name", inline: true }
+            )
+            //     { name: 'Wins', value: array[1], inline: true },
+            //     { name: 'Losses', value: array[2], inline: true },
+            // )
+           
+        }
+        generalChannel.send(profileEmbed).then(function(callback,err){
+            
+        }).then(function(callback,err){
+            generalChannel.send(profileEmbed)
+        })
 }
 function addToCollection(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
@@ -138,11 +171,23 @@ function current(receivedMessage, args){
     })
 }
 function profile(receivedMessage, args){
-    // @TODO
-    // Send this information in a nicer format to discord
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    userObj.profile(receivedMessage, args);
-    generalChannel.send(">>> Listed profile in console")
+    userObj.profile(receivedMessage, args, function(callback, err){
+        const profileEmbed = new Discord.MessageEmbed()
+        .setColor('#0099ff')
+            .setURL('')
+            .addFields(
+                { name: 'User', value: callback._id, inline: true },
+                { name: 'Server', value: callback._server, inline: true },
+                { name: 'Season', value: callback._season, inline: true },
+                { name: 'Current Deck', value: callback._currentDeck, inline: true },
+                { name: 'Current Rating', value: callback._elo, inline: true },
+                { name: 'Wins', value:  callback._wins, inline: true },
+                { name: 'Losses', value:  callback._losses, inline: true },
+            )
+        generalChannel.send(profileEmbed)
+    });
+    
 }
 async function logLosers(receivedMessage, args){
     var callBackArray = new Array();

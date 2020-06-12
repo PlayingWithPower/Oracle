@@ -11,11 +11,11 @@ module.exports = {
     /**
      * Get user league profile
      */
-    profile(receivedMessage, args) {
+    profile(receivedMessage, args, callback) {
         const user = require('../Schema/Users')
-        let query = {_name: receivedMessage.author.username}
+        let query = {_id: "<@!"+receivedMessage.author.id+">"}
         user.findOne(query, function(err, res){
-            console.log(res)
+            callback(res)
         })
     },
   
@@ -27,25 +27,31 @@ module.exports = {
     },
     /**
      * Adds a deck to your deck collection
-     */
+     * TODO: Output spits out like "kess storm" instead of "Kess Storm"... small but if someone has time
+     */ 
     addToCollection(receivedMessage, args, callback){
         //will add to my account even if I change the find query... weird
         const user = require('../Schema/Users')
         const deck = require('../Schema/Deck')
 
-        let argString = args.toString()
+        var sanitizedString = ""
+        var cleanedArg = ""
+        args.forEach(arg => {
+            sanitizedString = sanitizedString + " " + arg
+        });
+        cleanedArg = sanitizedString.slice(1)
 
         let findQuery = {_id: "<@!"+receivedMessage.author.id+">"}
-        let updateQuery = {$addToSet: {_deck: [[args.toString(),0,0]]}}
-        let aliasCheckQuery = {_alias: argString.toLowerCase()}
+        let updateQuery = {$addToSet: {_deck: [[cleanedArg,0,0]]}}
+        let aliasCheckQuery = {_alias: cleanedArg}
 
         deck.findOne(aliasCheckQuery, function(err, res){
             if (res){
                 user.findOne(findQuery, function(err, res){
                     if (res) {
-                        user.updateOne(updateQuery, function(err, res){
+                        user.updateOne(findQuery,updateQuery, function(err, res){
                             if (res) {
-                                callback("Successfully added " + "**"+args.toString()+"**"
+                                callback("Successfully added " + "**"+cleanedArg+"**"
                                 + " to " + "**"+receivedMessage.author.username+"**" + "'s profile")
                             }
                             else {
@@ -67,12 +73,17 @@ module.exports = {
     /** 
      * Lists your deck collection
     */
-    listCollection(){
-
+    listCollection(receivedMessage, args, callback){
+        const user = require('../Schema/Users')
+        let query = {_name: receivedMessage.author.username}
+        user.findOne(query, function(err, res){
+            callback(res)
+        })
     },
 
     /**
      * Returns currently registered Deck name
+     * TODO: Check against user's collection of decks! You can !use gitrog if it's not in your collection
      */
     currentDeck(receivedMessage, args, callback) {
         /**
