@@ -30,10 +30,11 @@ module.exports = {
         const user = require('../Schema/Users')
 
         let findQuery = {_id: "<@!"+receivedMessage.author.id+">"}
+        let updateQuery = {_deck: [[args.toString(),0,0]]}
         user.findOne(findQuery, function(err, res){
             if (res) {
                 let findQuery = {_alias: res._currentDeck.toLowerCase()}
-                deck.findOne(findQuery, function(err, res){
+                user.updateOne(findQuery, function(err, res){
                     if (res) {
                         callBackArray.push(res._link)
                         callBackArray.push(res._name)
