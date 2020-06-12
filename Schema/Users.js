@@ -8,9 +8,8 @@ var user = new mongoose.Schema({
     _currentDeck: String,
     _elo: Number,
     _wins: Number,
-    _losses: Number
-
-    //_deck: 2D Array
+    _losses: Number,
+    _deck: Array
     //!listdecks shows all names of decks
     //!addcollection adds to your deck array ^
     //!collection lists your deck array ^
