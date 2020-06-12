@@ -18,17 +18,145 @@ module.exports = {
      * Logs a new match to the season.
      * TODO: Test for when bot is awaiting reaction + other commmand. What happens?
      */
-    logMatch() {
+    logMatch(id, callback) {
+        const games = require('../Schema/Games')
+        const users = require('../Schema/Users')
 
+        var loserArr = new Array()
+        var callbackArr = new Array()
+
+        let findQuery = {'_match_id': id}
+        games.findOne(findQuery, function(err, res){
+            if (res) {
+                // Deal with Winner
+                let findQuery = {'_match_id': res._player1}
+                loserArr.push(res._player2)
+                loserArr.push(res._player3)
+                loserArr.push(res._player4)
+
+                user.findOne(findQuery, function(err, res){
+                    if (res){
+                        var newVal = Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain))
+                        var change = Number(res._elo)*(percentageToGain)
+                        var newElo = {$set: {_elo: newVal, _wins: Number(res._wins) + 1}}
+                        user.updateOne(findQuery, newElo, function(err, res){
+                            if (res){
+                                callbackArr.push(newVal + " (+" + change + ")")
+
+                                //Deal with Losers
+                                loserArr.forEach(loser =>{
+                                    findQuery = {_id: loser}
+                                    user.findOne(findQuery, function(err, res){
+                                        if (res){
+                                            var newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
+                                            var change = Number(res._elo)*(percentageToGain)
+                                            var newElo = {$set: {_elo: newVal, _losses: Number(res._losses) + 1}}
+                                            user.updateOne(findQuery, newElo, function(err, res){
+                                                if (res){
+                                                    callbackArr.push(newVal + " (-" + change + ")")
+                                                    callback(callbackArr)
+                                                }
+                                                else{
+                                                    callbackArr.push("Error: FAIL")
+                                                }
+                                            })        
+                                        }
+                                        else{
+                                            callbackArr.push("Error: NO-REGISTER")
+                                        }
+                                    })
+                                })
+                            }
+                            else{
+                                callbackArr.push("Error: FAIL")
+                            }
+                        })        
+                    }
+                    else{
+                        callbackArr.push("Error: NO-REGISTER")
+                    }
+                })
+
+
+            }
+        })
     },
 
     /**
-     * Confirms match against a user.
+     * Confirms match against for user.
      */
-    confirmMatch() {
-
+    confirmMatch(id, player, callback) {
+        const games = require('../Schema/Games')
+        let findQuery = {'_match_id': id}
+        games.findOne(findQuery, function(err, res){
+            if (res) {
+                if (res._player1Confirmed == "N" && res._player1 == player){
+                    games.updateOne(findQuery, {$set: {_player1Confirmed: "Y"}}, function(err,result){
+                        if (result){
+                            callback("SUCCESS")
+                        }
+                        else{
+                            callback("FAILURE 1")
+                        }
+                    })
+                }
+                else if (res._player2Confirmed == "N" && res._player2 == player){
+                    games.updateOne(findQuery, {$set: {_player2Confirmed: "Y"}}, function(err,result){
+                        if (result){
+                            callback("SUCCESS")
+                        }
+                        else{
+                            callback("FAILURE 2")
+                        }
+                    })
+                }
+                else if (res._player3Confirmed == "N" && res._player3 == player){
+                    games.updateOne(findQuery, {$set: {_player3Confirmed: "Y"}}, function(err,result){
+                        if (result){
+                            callback("SUCCESS")
+                        }
+                        else{
+                            callback("FAILURE 3")
+                        }
+                    })
+                }
+                else if (res._player4Confirmed == "N" && res._player4 == player){
+                    games.updateOne(findQuery, {$set: {_player4Confirmed: "Y"}}, function(err,result){
+                        if (result){
+                            callback("SUCCESS")
+                        }
+                        else{
+                            callback("FAILURE 4")
+                        }
+                    })
+                }
+                else {
+                    callback(player)
+                }
+            }
+            else {
+                callback("NO PLAYER FOUND")
+            }
+        })
     },
-
+    /**
+     * Check if all players have confirmed
+     * 
+     */
+    checkMatch(id, callback){
+        const game = require('../Schema/Games')
+        let findQuery = {'_id': id}
+        game.findOne(findQuery, function(err, res){
+            if (res) {
+                if (res._player1Confirmed == "Y" && res._player2Confirmed == "Y" && res._player3Confirmed == "Y" && res._player4Confirmed == "Y" ) {
+                    callback("Y")
+                }
+                else {
+                    callback("N")
+                }
+            }
+        })
+    },
     /**
      * Creates match
      */

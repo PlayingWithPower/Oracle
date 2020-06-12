@@ -52,6 +52,42 @@ client.on('message', (receivedMessage) =>{
         let currentChannel =  client.channels.cache.get()
     }
 })
+client.on('messageReactionAdd', (reaction, user) => {
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    if (reaction.message.author.username == "PWP Bot"){
+        const msg = reaction.message.content.toString().split(' ');
+        if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.username != "PWP Bot") {
+            console.log("Reaction recieved")
+            let sanitizedString = "<@!"+user.id+">"
+            gameObj.confirmMatch(msg[3], sanitizedString, function(cb, err){
+                //ugly
+                /**For some reason this isn't continuing past this point despite it sending the right callback, idk how
+                * these promise things work
+                */
+                if (cb == "SUCCESS") {
+                    console.log("Cont")
+                    gameObj.checkMatch(msg[3], function(callback, err){
+                        if (callback == "Y") {
+                            console.log("Match Finished")
+                            gameObj.logMatch(msg[3], function(callback, err){
+                                callback.forEach(line => {
+                                    generalChannel.send(line)
+                                })
+                            })
+                        }
+                        else {
+                            console.log("Match isn't finished")
+                        }
+                    })
+                }
+                else {
+                    console.log("Match isn't confirmed")
+                }
+            })
+        }
+        
+    }
+})
 function processCommand(receivedMessage){
     let fullCommand = receivedMessage.content.substr(1)
     let splitCommand = fullCommand.split(" ")
