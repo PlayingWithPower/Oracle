@@ -78,9 +78,10 @@ module.exports = {
         let query = {_name: receivedMessage.author.username}
         user.findOne(query, function(err, res){
             callback(res)
+            
         })
     },
-
+    
     /**
      * Returns currently registered Deck name
      * TODO: Check against user's collection of decks! You can !use gitrog if it's not in your collection

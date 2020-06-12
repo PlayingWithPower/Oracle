@@ -14,6 +14,7 @@ const botListeningPrefix = "!";
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
+const { Cipher } = require('crypto')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -83,7 +84,7 @@ function processCommand(receivedMessage){
         case "addtoprofile":
             addToCollection(receivedMessage, arguments)
             break;
-        case "listmydecks":
+        case "mydecks":
             listCollection(receivedMessage,arguments)
         case "credits":
             credits(receivedMessage, arguments)
@@ -92,7 +93,19 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-async function listCollection(receivedMessage, args){
+function toUpper(str) {
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map(function(word) {
+            // console.log("First capital letter: "+word[0]);
+            // console.log("remain letters: "+ word.substr(1));
+            return word[0].toUpperCase() + word.substr(1);
+        })
+        .join(' ');
+}
+/**  */
+function listCollection(receivedMessage, args){
     var callbackName = new Array();
     var callbackWins = new Array();
     var callbackLosses = new Array();
@@ -103,25 +116,36 @@ async function listCollection(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.profile(receivedMessage, args, function(callback, err){
             callback._deck.forEach(callbackItem =>{
+                callbackItem[0].toString()
+                .toLowerCase()
+                .split(' ')
+                .map(function(word) {
+                    console.log(word)
+                    return word[0].toUpperCase() + word.substr(1);
+                })
+                .join(' ');
                 callbackName.push(callbackItem[0])
                 callbackWins.push(callbackItem[1])
                 callbackLosses.push(callbackItem[2])
             })
-        })
-        for (i=0; i <callbackName.length; i++){
-            profileEmbed.addFields(
-                { name: 'Deck Name', value: "some name", inline: true }
-            )
+            for (i = 1; i < callbackName.length; i++){
+
+                profileEmbed.addFields(
+                    { name: 'Deck Name', value: callbackName[i], inline: true },
+                    { name: 'Wins', value: callbackWins[i], inline: true },
+                    { name: 'Losses', value: callbackLosses[i], inline: true }
+                )
+            }
             //     { name: 'Wins', value: array[1], inline: true },
             //     { name: 'Losses', value: array[2], inline: true },
             // )
-           
-        }
         generalChannel.send(profileEmbed).then(function(callback,err){
             
         }).then(function(callback,err){
-            generalChannel.send(profileEmbed)
         })
+        })
+        
+            
 }
 function addToCollection(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
@@ -160,12 +184,12 @@ function current(receivedMessage, args){
             
             const exampleEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
+            .setTitle('Current Deck')
             .setURL('')
             .addFields(
                 { name: 'Name', value: grabName},
                 { name: 'Decklist', value: "[Link]("+grabURL+")"},
             )
-            generalChannel.send("Current Deck:")
             generalChannel.send(exampleEmbed)
         }
     })
@@ -173,6 +197,7 @@ function current(receivedMessage, args){
 function profile(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.profile(receivedMessage, args, function(callback, err){
+        var calculatedWinrate = (callback._wins/((callback._losses)+(callback._wins)))*100
         const profileEmbed = new Discord.MessageEmbed()
         .setColor('#0099ff')
             .setURL('')
@@ -184,6 +209,7 @@ function profile(receivedMessage, args){
                 { name: 'Current Rating', value: callback._elo, inline: true },
                 { name: 'Wins', value:  callback._wins, inline: true },
                 { name: 'Losses', value:  callback._losses, inline: true },
+                { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
             )
         generalChannel.send(profileEmbed)
     });
