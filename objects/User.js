@@ -23,6 +23,39 @@ module.exports = {
     recent() {
 
     },
+    /**
+     * Adds a deck to your deck collection
+     */
+    addToCollection(receivedMessage, args, callback){
+        const user = require('../Schema/Users')
+
+        let findQuery = {_id: "<@!"+receivedMessage.author.id+">"}
+        user.findOne(findQuery, function(err, res){
+            if (res) {
+                let findQuery = {_alias: res._currentDeck.toLowerCase()}
+                deck.findOne(findQuery, function(err, res){
+                    if (res) {
+                        callBackArray.push(res._link)
+                        callBackArray.push(res._name)
+                        callback(callBackArray)
+                    }
+                    else {
+                        callback("Error: 2")
+                    }
+                })
+            }
+            else {
+                callback("Error: 1")
+            }
+        })
+    },
+    
+    /** 
+     * Lists your deck collection
+    */
+    listCollection(){
+
+    },
 
     /**
      * Returns currently registered Deck name
@@ -35,8 +68,7 @@ module.exports = {
         const alias = require('../Schema/Alias')
         const callBackArray = new Array()
 
-        let findQuery = {_name: receivedMessage.author.username.toString()}
-
+        let findQuery = {_id: "<@!"+receivedMessage.author.id+">"}
         user.findOne(findQuery, function(err, res){
             if (res) {
                 let findQuery = {_alias: res._currentDeck.toLowerCase()}

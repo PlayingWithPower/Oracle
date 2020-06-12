@@ -81,12 +81,20 @@ function processCommand(receivedMessage){
         case "current":
             current(receivedMessage, arguments)
             break;
+        case "addToCollection":
+            addToCollection(receivedMessage, arguments)
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
+}
+function addToCollection(receivedMessage, args){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    userObj.addToCollection(receivedMessage, args, function(callback, err){
+
+    })
 }
 function use(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
