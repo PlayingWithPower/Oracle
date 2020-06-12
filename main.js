@@ -59,11 +59,22 @@ client.on('message', (receivedMessage) =>{
 client.on('messageReactionAdd', (reaction, user) => {
     manageReaction(reaction, user)
 })
+/**
+ * 
+ * @param {*} reaction - discord reaction obj
+ * @param {*} user  - discord user obj
+ * 
+ * This is the async manager function for whenever a reaction is submitted. 
+ * Atm it only cares about upvotes and downvotes on Game messages
+ */
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
     let sanitizedString = "<@!"+user.id+">"
     let limit = 0
-
+    // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
+    if (reaction.message.author.id != "717073766030508072") {
+        return
+    }
     if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.id != "717073766030508072") {
         if (sanitizedString !=  msg[5]){
             console.log("not the right user")
