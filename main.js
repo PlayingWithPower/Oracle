@@ -116,24 +116,21 @@ function listCollection(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.profile(receivedMessage, args, function(callback, err){
             callback._deck.forEach(callbackItem =>{
-                callbackItem[0].toString()
-                .toLowerCase()
-                .split(' ')
-                .map(function(word) {
-                    console.log(word)
-                    return word[0].toUpperCase() + word.substr(1);
-                })
-                .join(' ');
-                callbackName.push(callbackItem[0])
+                callbackName.push(toUpper(callbackItem[0]))
                 callbackWins.push(callbackItem[1])
                 callbackLosses.push(callbackItem[2])
             })
-            for (i = 1; i < callbackName.length; i++){
+            for (i = 0; i < callbackName.length; i++){
+                var calculatedWinrate = (callbackWins[i]/((callbackLosses[i])+(callbackWins[i])))*100
+                if (isNaN(calculatedWinrate)){
+                    calculatedWinrate = 0;
+                }
 
                 profileEmbed.addFields(
-                    { name: 'Deck Name', value: callbackName[i], inline: true },
+                    { name: 'Deck Name', value: callbackName[i]},
                     { name: 'Wins', value: callbackWins[i], inline: true },
-                    { name: 'Losses', value: callbackLosses[i], inline: true }
+                    { name: 'Losses', value: callbackLosses[i], inline: true },
+                    { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
                 )
             }
             //     { name: 'Wins', value: array[1], inline: true },
@@ -198,6 +195,9 @@ function profile(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.profile(receivedMessage, args, function(callback, err){
         var calculatedWinrate = (callback._wins/((callback._losses)+(callback._wins)))*100
+        if (isNaN(calculatedWinrate)){
+            calculatedWinrate = 0;
+        }
         const profileEmbed = new Discord.MessageEmbed()
         .setColor('#0099ff')
             .setURL('')
