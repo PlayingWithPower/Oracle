@@ -30,10 +30,56 @@ module.exports = {
     },
 
     /**
-     * Commits match, and performs all point calculations
+     * Creates match
      */
-    commitMatch() {
+    createMatch(player1, player2, player3, player4, id, callback) {
+        const game = require('../Schema/Games')
+        const user = require('../Schema/Users')
 
+        let deck1
+        let deck2
+        let deck3
+        let deck4
+
+        //Get Decks
+        //Player 1
+        findQuery = {'_id': player1}
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                deck1 = res._currentDeck
+            }
+        })
+        //Player 2
+        findQuery = {'_id': player2}
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                deck2 = res._currentDeck
+            }
+        })
+        //Player 3
+        findQuery = {'_id': player3}
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                deck3 = res._currentDeck
+            }
+        })
+        //Player 4
+        findQuery = {'_id': player4}
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                deck4 = res._currentDeck
+            }
+        })
+        game({'_match_id': id, '_server': "PWP", '_season': "1", '_player1': player1, '_player2': player2, '_player3': player3, '_player4': player4, '_player1Deck': deck1, '_player2Deck': deck2, '_player3Deck': deck3, '_player4Deck': deck4, '_Status': "STARTED", '_player1Confirmed': "N", '_player2Confirmed': "N", '_player3Confirmed': "N", '_player4Confirmed': "N"}).save(function(err, result){
+            if (result){
+                console.log("Successfully created Game #" + id)
+                callback("SUCCESS")
+            }
+            else {
+                console.log("Game creation failed")
+                callback("FAILURE")
+            }
+        })
     },
 
     /**

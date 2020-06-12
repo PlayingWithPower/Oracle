@@ -70,7 +70,8 @@ function processCommand(receivedMessage){
             break;
         case "log":
             //logLosers(receivedMessage, arguments)
-            logMatch(receivedMessage, arguments)
+            //logMatch(receivedMessage, arguments)
+            startMatch(receivedMessage, arguments)
             break;
         case "profile":
             profile(receivedMessage, arguments)
@@ -139,6 +140,90 @@ async function logLosers(receivedMessage, args){
     })
    
 }
+function startMatch(receivedMessage, args){
+    const user = require('./Schema/Users')
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+
+    const UserIDs = new Array()
+
+    //Generates random 8 char string
+    let s4 = () => {
+        return Math.floor((1 + Math.random()) * 0x10000000).toString(16).substring(1);
+    }
+    let id = s4() + s4()
+
+    // Check to make sure the right amount of users tagged
+    if (args.length < 3 || args.length > 3) {
+        generalChannel.send(">>> **Error**: Submit only the 3 players who lost in the pod")
+        return
+    }
+
+    // Check if User who sent the message is registered
+    let sanitizedString = "<@!"+receivedMessage.author.id+">"
+    let findQuery = {'_id': sanitizedString}
+    user.findOne(findQuery, function(err, res){
+        if (res){
+            UserIDs.push(sanitizedString)
+            console.log("Winner Found")
+
+            // Check if Users tagged are registered
+            let ConfirmedUsers = 0
+            args.forEach(loser =>{
+                let findQuery = {_id: loser.toString()}
+                user.findOne(findQuery, function(err, res){
+                    if (res){
+                        console.log("Loser Found")
+                        UserIDs.push(loser)
+                        ConfirmedUsers++
+                        if (ConfirmedUsers == 3){
+                            // Double check UserID Array then create match and send messages
+                            if (UserIDs.length != 4){
+                                console.log("Not enough Players")
+                                return
+                            }
+                            else{
+                                gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, function(cb, err){
+                                    if (cb == "FAILURE"){
+                                        console.log("Game creation failed")
+                                        return
+                                    }
+                                    else {
+                                        console.log("Game Created")
+                                        UserIDs.forEach(player => {
+                                            findQuery = {'_id': player}
+                                            user.findOne(findQuery, function(err, res){
+                                                generalChannel.send(">>> Game ID: " + id + " - " + res._id + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
+                                                    .then(function (message, callback){
+                                                    const filter = (reaction, user) => {
+                                                        return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
+                                                    };   
+
+                                                    message.react("👍")
+                                                    message.react("👎")
+                                                })
+                                            })
+                                        })
+                                    }
+                                })
+                            }
+                        }
+                    }
+                    else{
+                        console.log("Loser not found")
+                        console.log(loser)
+                        return
+                    }
+                })
+            })
+        }
+        else{
+            console.log("Winner not found")
+            console.log(sanitizedString)
+            return
+        }
+    })
+}
+
 function logMatch(receivedMessage, args){
     const user = require('./Schema/Users')
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
