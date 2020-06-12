@@ -53,8 +53,7 @@ client.on('message', (receivedMessage) =>{
     }
 })
 /**
- * TODO: Change username checking with bot to ID checking
- * TODO: Add functionality if a reaction is removed before match checking is finished
+ * TODO: 
  */
 client.on('messageReactionAdd', (reaction, user) => {
     manageReaction(reaction, user)
