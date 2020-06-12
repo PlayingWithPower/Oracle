@@ -26,7 +26,7 @@ module.exports = {
         var callbackArr = new Array()
 
         return new Promise((resolve, reject) => {
-            let findQuery = {'_match_id': id}
+            let findQuery = {_match_id: id, _Status: "STARTED"}
             games.findOne(findQuery, function(err, res){
                 if (res) {
                     // Deal with Winner
@@ -124,7 +124,7 @@ module.exports = {
                             reject('Error: NO-REGISTER')
                         }
                     })
-
+                    
 
                 }
             })
@@ -203,7 +203,7 @@ module.exports = {
             game.findOne(findQuery, function(err, res){
                 if (res) {
                     if (res._player1Confirmed == "Y" && res._player2Confirmed == "Y" && res._player3Confirmed == "Y" && res._player4Confirmed == "Y" ) {
-                        resolve('SUCCESS')
+                        resolve("SUCCESS")
                     }
                     else {
                         reject('Player Not Found')
@@ -295,7 +295,56 @@ module.exports = {
     updateDeck() {
 
     },
-
+    finishMatch(id) {
+        return new Promise((resolve, reject) => {
+            const games = require('../Schema/Games')
+            findQuery = {_match_id: id}
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    if (res._Status == "STARTED") {
+                        var newStatus = {$set: {_Status: "FINISHED"}}
+                        games.updateOne(findQuery, newStatus, function(err, result){
+                            if (result) {
+                                resolve('SUCCESS')
+                            }
+                            else {
+                                reject('FAIL FINISH')
+                            }
+                        })
+                    }
+                    else {
+                        resolve('CLOSED')
+                    }
+                }
+                else {
+                    reject('FAIL FIND')
+                }
+            })
+        })
+    },
+    closeMatch(id) {
+        return new Promise((resolve, reject) => {
+            const games = require('../Schema/Games')
+            console.log(id)
+            let findQuery = {_match_id: id, _Status: "STARTED"}
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    var newStatus = {$set: {'_Status': "CLOSED"}}
+                    games.updateOne(findQuery, newStatus, function(err, result){
+                        if (result) {
+                            resolve('SUCCESS')
+                        }
+                        else {
+                            reject('FAIL CLOSE')
+                        }
+                    })
+                }
+                else {
+                    reject('FAIL FIND')
+                }
+            })
+        })
+    },
     /**
      * Creates a unique 6 digit alphanumeric match number
      */

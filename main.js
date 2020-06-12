@@ -57,56 +57,14 @@ client.on('message', (receivedMessage) =>{
  * TODO: Add functionality if a reaction is removed before match checking is finished
  */
 client.on('messageReactionAdd', (reaction, user) => {
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    manageMatch(reaction, user)
-    /*
-    if (reaction.message.author.username == "Discord Elo Bot"){
-        const msg = reaction.message.content.toString().split(' ');
-        if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.username != "Discord Elo Bot") {
-            console.log("Reaction recieved")
-            let sanitizedString = "<@!"+user.id+">"
-            gameObj.confirmMatch(msg[3], sanitizedString).then((result) => {
-                console.log("Promise Success")
-                gameObj.checkMatch(msg[3]).then((result) => {
-                    console.log("Match Finished")
-                }).catch((error) => {
-                    console.log(error)
-                })
-            }).catch((error) => {
-                console.log(error)
-            })
-                //ugly
-                /**For some reason this isn't continuing past this point despite it sending the right callback, idk how
-                * these promise things work
-                
-                if (cb == "SUCCESS") {
-                    console.log("Cont")
-                    gameObj.checkMatch(msg[3], function(callback, err){
-                        if (callback == "Y") {
-                            console.log("Match Finished")
-                            gameObj.logMatch(msg[3], function(callback, err){
-                                callback.forEach(line => {
-                                    generalChannel.send(line)
-                                })
-                            })
-                        }
-                        else {
-                            console.log("Match isn't finished")
-                        }
-                    })
-                }
-                else {
-                    console.log("Match isn't confirmed")
-                }
-                */
+    manageReaction(reaction, user)
 })
-async function manageMatch(reaction, user) {
+async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
     let sanitizedString = "<@!"+user.id+">"
     let limit = 0
 
     if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.id != "717073766030508072") {
-        console.log(user.id, msg[5])
         if (sanitizedString !=  msg[5]){
             console.log("not the right user")
             return
@@ -115,14 +73,23 @@ async function manageMatch(reaction, user) {
         })
         if (result == "SUCCESS"){
             const next = await gameObj.checkMatch(msg[3]).catch((message) => {
+                console.log("Game #" + msg[3] + " not finished")
             })
+            console.log(next)
             if (next == "SUCCESS") {
+                console.log(next)
                 const final = await gameObj.logMatch(msg[3]).catch((message) => {
                     console.log("PROBLEM: " + message)
+                    return
                 })
                 console.log(final)
                 let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+                
+                const result = await gameObj.finishMatch(msg[3]).catch((message) => {
+                    console.log("Finishing Game #" + msg[3] + " failed.")
+                })
 
+                generalChannel.send(">>> Match logged!")
                 final.forEach(message => {
                     generalChannel.send(">>> " + message)
                 })
@@ -131,6 +98,22 @@ async function manageMatch(reaction, user) {
             else {
                 return
             }
+        }
+        else {
+            return
+        }
+    }
+    else if ((msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+        if (sanitizedString !=  msg[5]){
+            console.log("not the right user")
+            return
+        }
+        const result = await gameObj.closeMatch(msg[3]).catch((message) => {
+            console.log("Closing Game #" + msg[3] + " failed.")
+        })
+        if (result == 'SUCCESS'){
+            let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+            generalChannel.send(">>> " + msg[5] + " cancelled the Match Log")
         }
         else {
             return
@@ -228,6 +211,9 @@ async function logLosers(receivedMessage, args){
     })
    
 }
+/**
+ * TODO: Make sure there are no duplicate users in message
+ */
 function startMatch(receivedMessage, args){
     const user = require('./Schema/Users')
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
