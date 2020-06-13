@@ -21,7 +21,10 @@ module.exports = {
      * Returns a list of all User submitted decks registered to the server.
      */
     listUserDecks() {
-
+        const deck = require('../Schema/Deck')
+        deck.find({'_server' : "PWP"}, function(err, res){
+            console.log(res)
+        })
     },
 
     /**
@@ -76,7 +79,14 @@ module.exports = {
             var newStr = nameArg.replace(/,/g, ' ');
 
             aliasArg = newStr
-            nameArg = newStr
+            nameArg = newStr.toLowerCase()
+            .split(' ')
+            .map(function(word) {
+                // console.log("First capital letter: "+word[0]);
+                // console.log("remain letters: "+ word.substr(1));
+                return word[0].toUpperCase() + word.substr(1);
+            })
+            .join(' ');
         }
         catch{
             console.log("Url or alias failed to cast to Strings")
@@ -84,7 +94,6 @@ module.exports = {
 
         let deckAliasQuery = {'_alias': aliasArg}
         let deckQuery = {'_link': urlArg, '_name': nameArg, '_alias': aliasArg, '_user': "<@!"+receivedMessage.author.id+">", '_server': "PWP", '_season': "1"}
-        let nameQuery = {'_name': nameArg}
 
         if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
             //console.log("DEBUG: User succesfully entered a URL")
@@ -119,8 +128,7 @@ module.exports = {
      */
     populateDecks() {
         const deck = require('../Schema/Deck')
-        const alias = require('../Schema/Alias')
-
+        
         var deckListArray = new Array();
         var aliasListArray = new Array();
 
@@ -134,7 +142,6 @@ module.exports = {
         var internalIndex = 0;
         
         for (i = 0; i < deckListArray.length; i++){
-
             let deckAliasQuery = {'_alias': aliasListArray[i].toLowerCase()}
             deck.findOne(deckAliasQuery, function(err, res){
                 if (res){
