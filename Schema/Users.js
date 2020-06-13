@@ -9,7 +9,12 @@ var user = new mongoose.Schema({
     _elo: Number,
     _wins: Number,
     _losses: Number,
-    _deck: Array
+    _deck: [{
+        _id: Number,
+        Deck: String,
+        Wins: Number,
+        Losses: Number
+    }]
     //!listdecks shows all names of decks
     //!addcollection adds to your deck array ^
     //!collection lists your deck array ^
