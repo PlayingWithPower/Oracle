@@ -62,7 +62,6 @@ module.exports = {
      */
     addDeck(receivedMessage, args, callback) {
         const deck = require('../Schema/Deck')
-        const alias = require('../Schema/Alias')
 
         const callBackArray = new Array();
 
@@ -84,7 +83,7 @@ module.exports = {
         }
 
         let deckAliasQuery = {'_alias': aliasArg}
-        let deckQuery = {'_link': urlArg, '_name': nameArg, '_alias': aliasArg, '_user': receivedMessage.author.username, '_server': "PWP", '_season': "1"}
+        let deckQuery = {'_link': urlArg, '_name': nameArg, '_alias': aliasArg, '_user': "<@!"+receivedMessage.author.id+">", '_server': "PWP", '_season': "1"}
         let nameQuery = {'_name': nameArg}
 
         if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
