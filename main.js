@@ -28,7 +28,7 @@ client.on('ready', (on) =>{
         status: 'online'
     })
 
-    //deckObj.populateDecks()
+    deckObj.populateDecks()
 
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {

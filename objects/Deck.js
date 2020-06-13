@@ -42,13 +42,6 @@ module.exports = {
     },
 
     /**
-     * Registers a new Deck Alias into the server.
-     */
-    registerAlias() {
-        
-    },
-
-    /**
      * Updates the URL or Alias of a deck
      */
     updateDeck(){
