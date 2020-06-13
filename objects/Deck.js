@@ -78,7 +78,7 @@ module.exports = {
             //var lower = nameArg.toLowerCase();
             var newStr = nameArg.replace(/,/g, ' ');
 
-            aliasArg = newStr
+            aliasArg = newStr.toLowerCase()
             nameArg = newStr.toLowerCase()
             .split(' ')
             .map(function(word) {
@@ -105,9 +105,9 @@ module.exports = {
                     deck(deckQuery).save(function(err, res){
                         if (res){
                             callBackArray.push(urlArg)
-                            callBackArray.push(nameArg)
+                            callBackArray.push(aliasArg)
                             callback(callBackArray)
-                            //console.log("DEBUG: Successfully saved to DECK DB")
+                            console.log("DEBUG: Successfully saved to DECK DB")
                         }
                         else{
                             callback("Error: Unable to save to Database, please try again")
@@ -117,7 +117,7 @@ module.exports = {
             })   
         }
         else{
-            callback("Error: Not a valid URL, please follow the format !adddeck <url> <alias>")
+            callback("Error: Not a valid URL, please follow the format !adddeck <url> <name>")
         }
         
         

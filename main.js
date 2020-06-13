@@ -98,14 +98,14 @@ function listDecks(){
             .setColor('#0099ff')
             .setURL('')
        for(i = 0; i < callback.length; i++){
-            listedDecksEmbed
-            .addFields(
-                { name: 'Deck Name', value: "test"},
-                { name: 'User', value: "test"},
+            listedDecksEmbed.addFields(
+                { name: " \u200b",value: callback[i]._name},
+                { name: 'User', value: callback[i]._user, inline: true},
+                { name: 'Wins', value: "Update me", inline: true},
+                { name: 'Losses', value: "Update me", inline: true},
             )
-            generalChannel.send(">>> " + listedDecksEmbed)
         }
-        
+        generalChannel.send(listedDecksEmbed)        
         
     });
 }
