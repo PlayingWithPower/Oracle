@@ -42,7 +42,7 @@ module.exports = {
         cleanedArg = sanitizedString.slice(1)
 
         let findQuery = {_id: "<@!"+receivedMessage.author.id+">"}
-        let updateQuery = {$addToSet: {_deck: [[cleanedArg,0,0]]}}
+        let updateQuery = {$addToSet: {_deck: [{'_id': 0,'Deck': cleanedArg, "Wins":0, "Losses":0}]}}
         let aliasCheckQuery = {_alias: cleanedArg}
 
         deck.findOne(aliasCheckQuery, function(err, res){
@@ -75,10 +75,9 @@ module.exports = {
     */
     listCollection(receivedMessage, args, callback){
         const user = require('../Schema/Users')
-        let query = {_name: receivedMessage.author.username}
+        let query = {_name: receivedMessage.author.id}
         user.findOne(query, function(err, res){
             callback(res)
-            
         })
     },
     
@@ -122,16 +121,14 @@ module.exports = {
          * TODO: Basic checking against the alias DB is being made, but more work needs to be done
          */
         const user = require('../Schema/Users')
-        const alias = require('../Schema/Alias')
         const deck = require('../Schema/Deck')
         
-
         let argsWithCommas = args.toString()
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
 
         let deckQuery = {_alias: argsWithSpaces.toLowerCase()}
-        let userQuery = {_deck: {0:'gitrog'}}
-        let updateQuery = {_name: receivedMessage.author.username}
+        let userQuery = {_deck: {$elemMatch:{Deck:argsWithSpaces}}}
+        let updateQuery = {_id: "<@!"+receivedMessage.author.id+">"}
         
 
         // console.log("DEBUG: \nargs as entered: " + args + '\n' + "args with commas to string: " + argsWithCommas
@@ -147,17 +144,17 @@ module.exports = {
                                 callback(name)
                             }
                             else{
-                                callback("Error user update")
+                                callback("Error: 3")
                             }
                         })
                     }
                     else{
-                        callback("Error user findone")
+                        callback("Error: 2")
                     }
                 })
             }
             else{
-                callback("Error deck findone")
+                callback("Error: 1")
             }
         })
     }

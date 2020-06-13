@@ -81,7 +81,7 @@ function processCommand(receivedMessage){
         case "current":
             current(receivedMessage, arguments)
             break;
-        case "addtoprofile":
+        case "add":
             addToCollection(receivedMessage, arguments)
             break;
         case "mydecks":
@@ -116,30 +116,29 @@ function listCollection(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.profile(receivedMessage, args, function(callback, err){
             callback._deck.forEach(callbackItem =>{
-                callbackName.push(toUpper(callbackItem[0]))
-                callbackWins.push(callbackItem[1])
-                callbackLosses.push(callbackItem[2])
+                callbackName.push(toUpper(callbackItem.Deck))
+                callbackWins.push(callbackItem.Wins)
+                callbackLosses.push(callbackItem.Losses)
             })
-            for (i = 0; i < callbackName.length; i++){
-                var calculatedWinrate = (callbackWins[i]/((callbackLosses[i])+(callbackWins[i])))*100
-                if (isNaN(calculatedWinrate)){
-                    calculatedWinrate = 0;
-                }
+            if (callbackName.length > 1){
+                for (i = 1; i < callbackName.length; i++){
+                    var calculatedWinrate = (callbackWins[i]/((callbackLosses[i])+(callbackWins[i])))*100
+                    if (isNaN(calculatedWinrate)){
+                        calculatedWinrate = 0;
+                    }
 
-                profileEmbed.addFields(
-                    { name: 'Deck Name', value: callbackName[i]},
-                    { name: 'Wins', value: callbackWins[i], inline: true },
-                    { name: 'Losses', value: callbackLosses[i], inline: true },
-                    { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
-                )
+                    profileEmbed.addFields(
+                        { name: 'Deck Name', value: callbackName[i]},
+                        { name: 'Wins', value: callbackWins[i], inline: true },
+                        { name: 'Losses', value: callbackLosses[i], inline: true },
+                        { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
+                    )
+                }
+                generalChannel.send(profileEmbed)
             }
-            //     { name: 'Wins', value: array[1], inline: true },
-            //     { name: 'Losses', value: array[2], inline: true },
-            // )
-        generalChannel.send(profileEmbed).then(function(callback,err){
-            
-        }).then(function(callback,err){
-        })
+            else{
+                generalChannel.send(">>> No decks in "+"<@!"+receivedMessage.author.id+">"+"'s collection. Please add decks using !addtoprofile <deckname>")
+            }
         })
         
             
@@ -153,8 +152,16 @@ function addToCollection(receivedMessage, args){
 function use(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.useDeck(receivedMessage, args, function(callback, err){
-            generalChannel.send(">>> Deck set to " + "**" + callback + "**" + " for " + receivedMessage.author.username)
-        
+            if (callback == "Error: 1"){
+                generalChannel.send(">>> Deck not found in Deckname Database. Check !help")
+            }else if (callback == "Error: 2"){
+                generalChannel.send(">>> Deck not found in your collection. Make sure to !register and then add it using !add <deckname>. ")
+            }else if (callback == "Error: 3"){
+                generalChannel.send(">>> Unable to find user. Please register first with !register")
+            }
+            else{
+                generalChannel.send(">>> Deck set to " + "**" + callback + "**" + " for " + receivedMessage.author.username)
+            }
     });
 }
 function current(receivedMessage, args){
