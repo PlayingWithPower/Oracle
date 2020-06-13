@@ -28,7 +28,7 @@ client.on('ready', (on) =>{
         status: 'online'
     })
 
-    deckObj.populateDecks()
+    //deckObj.populateDecks()
 
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
@@ -93,12 +93,18 @@ function processCommand(receivedMessage){
 function listDecks(){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     var callBackArray = new Array();
-    var betterString = String;
+    const listedDecksEmbed = new Discord.MessageEmbed()
     deckObj.listDecks(function(callback,err){
         callback.forEach(item =>{
             callBackArray.push(item.toString())
         })
         var callBackArrayNoCommas = callBackArray.join(' ')
+        listedDecksEmbed.setColor('#0099ff')
+            .setURL('')
+            .addFields(
+                { name: 'Decklist', value: "[Link]("+grabURL+")"},
+                { name: 'Name', value: grabName},
+            )
         generalChannel.send(">>> " + callBackArrayNoCommas)
     });
 }
