@@ -1,4 +1,5 @@
 const { db } = require('../Schema/Deck')
+const { resolve } = require('dns')
 
 /**
  * Deck Object
@@ -12,9 +13,8 @@ module.exports = {
      */
     listDecks(callback) {
         const deck = require('../Schema/Deck')
-        deck.find({}, {_name:"",_id:0}, function(err, res){
-            callback(res.map(user=> user._name))
-            console.log(res.map(user=> user._name))
+        deck.find({},{_name:"", _user:"",_id:0},function(err, res){
+            callback(res)
         })
     },
     /**

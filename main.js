@@ -93,19 +93,20 @@ function processCommand(receivedMessage){
 function listDecks(){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     var callBackArray = new Array();
-    const listedDecksEmbed = new Discord.MessageEmbed()
     deckObj.listDecks(function(callback,err){
-        callback.forEach(item =>{
-            callBackArray.push(item.toString())
-        })
-        var callBackArrayNoCommas = callBackArray.join(' ')
-        listedDecksEmbed.setColor('#0099ff')
+        const listedDecksEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
             .setURL('')
+       for(i = 0; i < callback.length; i++){
+            listedDecksEmbed
             .addFields(
-                { name: 'Decklist', value: "[Link]("+grabURL+")"},
-                { name: 'Name', value: grabName},
+                { name: 'Deck Name', value: "test"},
+                { name: 'User', value: "test"},
             )
-        generalChannel.send(">>> " + callBackArrayNoCommas)
+            generalChannel.send(">>> " + listedDecksEmbed)
+        }
+        
+        
     });
 }
 function addDeck(receivedMessage, args){
