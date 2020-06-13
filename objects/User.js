@@ -129,27 +129,35 @@ module.exports = {
         let argsWithCommas = args.toString()
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
 
-        let findQuery = {_alias: argsWithSpaces.toLowerCase()}
+        let deckQuery = {_alias: argsWithSpaces.toLowerCase()}
+        let userQuery = {_deck: {0:'gitrog'}}
         let updateQuery = {_name: receivedMessage.author.username}
         
 
         // console.log("DEBUG: \nargs as entered: " + args + '\n' + "args with commas to string: " + argsWithCommas
         // + '\n' + "args with spaces to string " + argsWithSpaces)
-        deck.findOne(findQuery, function(err, res){
-            if (res){
-                name = res._name.toString()
-                let toSave = {$set: {_currentDeck: name}}
-                user.updateOne(updateQuery, toSave, function(err, res){
+        deck.findOne(deckQuery, function(err, firstres){
+            if (firstres){
+                user.findOne(userQuery, function(err, res){
                     if (res){
-                        callback(name)
+                        name = firstres._name.toString()
+                        let toSave = {$set: {_currentDeck: name}}
+                        user.updateOne(updateQuery, toSave, function(err, res){
+                            if (res){
+                                callback(name)
+                            }
+                            else{
+                                callback("Error user update")
+                            }
+                        })
                     }
                     else{
-                        callback("Error")
+                        callback("Error user findone")
                     }
                 })
             }
             else{
-                callback("Error")
+                callback("Error deck findone")
             }
         })
     }

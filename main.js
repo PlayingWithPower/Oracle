@@ -153,12 +153,8 @@ function addToCollection(receivedMessage, args){
 function use(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.useDeck(receivedMessage, args, function(callback, err){
-        if (callback == "Error"){
-            generalChannel.send("Unknown error, try again.")
-        }
-        else{
             generalChannel.send(">>> Deck set to " + "**" + callback + "**" + " for " + receivedMessage.author.username)
-        }
+        
     });
 }
 function current(receivedMessage, args){
