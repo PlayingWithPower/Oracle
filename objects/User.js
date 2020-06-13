@@ -83,11 +83,8 @@ module.exports = {
     
     /**
      * Returns currently registered Deck name
-     * TODO: Check against user's collection of decks! You can !use gitrog if it's not in your collection
      */
     currentDeck(receivedMessage, args, callback) {
-        /**
-         */
         const user = require('../Schema/Users')
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
@@ -117,17 +114,15 @@ module.exports = {
      * Sets the users current Deck
      */
     useDeck(receivedMessage, args, callback){
-        /**
-         * TODO: Basic checking against the alias DB is being made, but more work needs to be done
-         */
         const user = require('../Schema/Users')
         const deck = require('../Schema/Deck')
         
         let argsWithCommas = args.toString()
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+        let argsLowerCase = argsWithSpaces.toLowerCase()
 
-        let deckQuery = {_alias: argsWithSpaces.toLowerCase()}
-        let userQuery = {_deck: {$elemMatch:{Deck:argsWithSpaces}}}
+        let deckQuery = {_alias: argsLowerCase}
+        let userQuery = {_deck: {$elemMatch:{Deck:argsLowerCase}}}
         let updateQuery = {_id: "<@!"+receivedMessage.author.id+">"}
         
 
