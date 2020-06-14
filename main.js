@@ -28,9 +28,14 @@ client.on('ready', (on) =>{
         status: 'online'
     })
     
+    // getServerID(){
+    //     client.guilds.cache.forEach((guild) =>{
+
+    //     })
+    // }
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
-    //     console.log(guild.name)
+    //     console.log(guild.id)
     //     guild.channels.cache.forEach((channel) =>{
     //         console.log(` - ${channel.name} ${channel.type} ${channel.id}`)
     //     })
@@ -45,7 +50,7 @@ client.on('message', (receivedMessage) =>{
         let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
         generalChannel.channel.send("text")
     }
-    if (receivedMessage.content.startsWith(botListeningPrefix) && receivedMessage.channel == (client.channels.cache.get(generalID.getGeneralChatID()))){
+    if (receivedMessage.content.startsWith(botListeningPrefix)){
         processCommand(receivedMessage)
     }
     else{
@@ -57,6 +62,11 @@ function processCommand(receivedMessage){
     let splitCommand = fullCommand.split(" ")
     let primaryCommand = splitCommand[0]
     let arguments = splitCommand.slice(1)
+
+    let channel = receivedMessage.channel.id
+    let channelResponseFormatted = client.channels.cache.get(channel)
+
+    let server = receivedMessage.guild.id
 
     switch(primaryCommand){
         case "help":
@@ -148,7 +158,7 @@ function users(receivedMessage, args){
         generalChannel.send(">>> There are " + callback + " registered users in this league.")
     })
 }
-function register(receivedMessage, args){
+function register(receivedMessage, args, channel){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     leagueObj.register(receivedMessage, function(callback,err){
         //Case 1: User is not registered and becomes registered
