@@ -30,7 +30,6 @@ module.exports = {
      * TODO: Output spits out like "kess storm" instead of "Kess Storm"... small but if someone has time
      */ 
     addToCollection(receivedMessage, args, callback){
-        //will add to my account even if I change the find query... weird
         const user = require('../Schema/Users')
         const deck = require('../Schema/Deck')
 
@@ -55,7 +54,7 @@ module.exports = {
                                 + " to " + "**"+receivedMessage.author.username+"**" + "'s profile")
                             }
                             else {
-                                callback("Error: 2")
+                                callback("Error. Unable to update collection. Please try again.")
                             }
                         })
                     }
