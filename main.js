@@ -60,6 +60,9 @@ function processCommand(receivedMessage){
     let primaryCommand = splitCommand[0]
     let arguments = splitCommand.slice(1)
 
+    let channel = receivedMessage.channel.id
+    let responseFormatted = client.channels.cache.get(channel)
+
     switch(primaryCommand){
         case "help":
             helpCommand(receivedMessage, arguments)
@@ -80,8 +83,14 @@ function processCommand(receivedMessage){
         case "adddeck":
             addDeck(receivedMessage, arguments)
             break;
-        case "listdecks":
-            listDecks();
+        case "decks":
+            listDecks(responseFormatted)
+            break;
+        case "decksdetailed":
+            listDecksDetailed(responseFormatted);
+            break;
+        case "userdecks":
+            listUserDecks(responseFormatted);
             break;
         case "credits":
             credits(receivedMessage, arguments)
@@ -90,9 +99,12 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-function listDecks(){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    var callBackArray = new Array();
+function listUserDecks(channel){
+
+    channel.send(">>> ")
+
+}
+function listDecks(channel){
     deckObj.listDecks(function(callback,err){
         const listedDecksEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
@@ -100,13 +112,25 @@ function listDecks(){
        for(i = 0; i < callback.length; i++){
             listedDecksEmbed.addFields(
                 { name: " \u200b",value: callback[i]._name},
+            )
+        }
+        channel.send(listedDecksEmbed)
+    });
+}
+function listDecksDetailed(channel){
+    deckObj.listDecks(function(callback,err){
+        const listedDecksEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setURL('')
+       for(i = 0; i < callback.length; i++){
+            listedDecksEmbed.addFields(
+                { name: " \a",value: callback[i]._name},
                 { name: 'User', value: callback[i]._user, inline: true},
                 { name: 'Wins', value: "Update me", inline: true},
                 { name: 'Losses', value: "Update me", inline: true},
             )
         }
-        generalChannel.send(listedDecksEmbed)        
-        
+        channel.send(listedDecksEmbed)
     });
 }
 function addDeck(receivedMessage, args){
