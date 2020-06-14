@@ -10,6 +10,7 @@ module.exports = {
 
     /**
      * Returns a list of all Deck Aliases registered to the server
+     * TODO: Filter by server 
      */
     listDecks(callback) {
         const deck = require('../Schema/Deck')
@@ -19,6 +20,7 @@ module.exports = {
     },
     /**
      * Returns a list of all User submitted decks registered to the server.
+     * TODO: filters by server, add in restrictions from above ^ 
      */
     listUserDecks() {
         const deck = require('../Schema/Deck')
@@ -31,13 +33,6 @@ module.exports = {
      * Returns stats about a deck alias
      */
     deckStats() {
-
-    },
-
-    /**
-     * Returns stats about a user submitted deck.
-     */
-    userDeckStats() {
 
     },
 
@@ -147,15 +142,6 @@ module.exports = {
                                 console.log("Error: Unable to save to Database, please try again")
                             }
                         })
-                        // let aliasQuery = {'_link': aliasListArray[internalIndex]}
-                        // alias(aliasQuery).save(function(err, res){
-                        //     if (res){
-                        //         console.log(aliasListArray[i])
-                        //     }
-                        //     else{
-                        //         console.log("Error: Unable to save to Database, please try again")
-                        //     }
-                        // })
                     internalIndex++
                 }
             })
