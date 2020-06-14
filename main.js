@@ -124,7 +124,7 @@ function listDecksDetailed(channel){
             .setURL('')
        for(i = 0; i < callback.length; i++){
             listedDecksEmbed.addFields(
-                { name: " \a",value: callback[i]._name},
+                { name: " \u200b",value: callback[i]._name},
                 { name: 'User', value: callback[i]._user, inline: true},
                 { name: 'Wins', value: "Update me", inline: true},
                 { name: 'Losses', value: "Update me", inline: true},
