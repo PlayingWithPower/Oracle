@@ -107,7 +107,12 @@ module.exports = {
         
         
     },
+    /**
+     * Removes a User deck from the server. 
+     */
+    removeDeck(){
 
+    },
     /**
      * Seed the server with an initial list of Deck Aliases.
      */
