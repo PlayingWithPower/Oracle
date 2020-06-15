@@ -15,15 +15,6 @@ module.exports = {
             reject("1")
         })
     },
-    profile(receivedMessage, args){
-        MongoClient.connect(url, { useUnifiedTopology: true }, function (err, db){
-            var dbo = db.db("UserData")
-            let query = {_name: receivedMessage.author.username}
-            dbo.collection("users").findOne(query, function(err, res){
-                console.log(res)
-            })
-        });
-    },
     //Test by typing in !addelo and @ing someone who is registered.
     //There are 2 queries being made: A query to lookup the losers' information and one to look up the winners' information.
     //dbo connects to "UserData" db(not sure what to call this in Mongo?) and then makes a call to the "users" collection. FindOne returns a single entry when provided a query. The query is the
@@ -97,12 +88,14 @@ module.exports = {
     :param: args should be user discord id
     */
     logLoser(args, callback){
-        const user = require ('../DiscordBot/Schema/Users')
+        const user = require('./Schema/Users')
 
         findQuery = {_id: args}
         user.findOne(findQuery, function(err, res){
             if (res){
-                var newElo = {$set: {_elo: Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose)), _wins: Number(res._wins) + 1}}
+
+                var newElo = {$set: {_elo: Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose)), _losses: Number(res._losses) + 1}}
+
                 user.updateOne(findQuery, newElo, function(err, res){
                     if (res){
                         callback("SUCCESS")
@@ -118,8 +111,10 @@ module.exports = {
         })
     },
     logWinner(args, callback){
-        const user = require ('../DiscordBot/Schema/Users')
-        findQuery = {_id: args}
+        const user = require('./Schema/Users')
+        findQuery = {_id: "<@!"+args+">"}
+        console.log(findQuery)
+
         user.findOne(findQuery, function(err, res){
             if (res){
                 var newElo = {$set: {_elo: Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain)), _wins: Number(res._wins) + 1}}
@@ -137,6 +132,11 @@ module.exports = {
             }
         })
     },
+    logResults(callbackArr,cbArr){
+        console.log(callbackArr)
+        console.log(cbArr)
+    },
+
     
     //this function will count the number of users and return that value, useful for adminstrative and stats
     listAll(receivedMessage, callback){
@@ -149,6 +149,6 @@ module.exports = {
               }
             
             });
-            
+  
     }
 } 
