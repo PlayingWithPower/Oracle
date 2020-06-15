@@ -124,7 +124,6 @@ module.exports = {
         let userQuery = {_deck: {$elemMatch:{Deck:argsLowerCase}}}
         let updateQuery = {_id: "<@!"+receivedMessage.author.id+">"}
         
-
         // console.log("DEBUG: \nargs as entered: " + args + '\n' + "args with commas to string: " + argsWithCommas
         // + '\n' + "args with spaces to string " + argsWithSpaces)
         deck.findOne(deckQuery, function(err, firstres){

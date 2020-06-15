@@ -187,6 +187,9 @@ function processCommand(receivedMessage){
         case "userdecks":
             listUserDecks(responseFormatted);
             break;
+        case "adddeck":
+            addDeck(receivedMessage, arguments);
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -205,7 +208,7 @@ function toUpper(str) {
         })
         .join(' ');
 }
-/**  */
+
 function listCollection(receivedMessage, args){
     var callbackName = new Array();
     var callbackWins = new Array();
@@ -268,6 +271,10 @@ function use(receivedMessage, args){
 function current(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     var callBackArray = new Array();
+    const profileEmbed = new Discord.MessageEmbed()
+    .setColor('#5fff00')
+        .setURL('')
+
     userObj.currentDeck(receivedMessage, args, function(callback, err){
         if (callback == "Error: 1"){
             generalChannel.send(">>> User not found.")
@@ -276,7 +283,18 @@ function current(receivedMessage, args){
             generalChannel.send(">>> No deck found for that user")
         }
         else{
+            callback.forEach(item =>{
+                callBackArray.push(item)
+            })
+            profileEmbed.addFields(
+                { name: 'Deck Name', value: callBackArray[1]},
+                { name: 'URL', value: callBackArray[0], inline: true },
 
+            )
+            generalChannel.send(profileEmbed)
+        }
+    })
+}
 function listUserDecks(channel){
 
     channel.send(">>> ")
@@ -303,7 +321,7 @@ function listDecksDetailed(channel){
        for(i = 0; i < callback.length; i++){
             listedDecksEmbed.addFields(
                 { name: " \u200b",value: callback[i]._name},
-                { name: 'User', value: callback[i]._user, inline: true},
+                { name: 'Created By', value: callback[i]._user, inline: true},
                 { name: 'Wins', value: "Update me", inline: true},
                 { name: 'Losses', value: "Update me", inline: true},
             )
@@ -677,51 +695,3 @@ function credits(argument, receivedMessage){
     */
 }
 client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
-
-
-
-
-
-//Outdated or old testing commands. Not commented out so they can be collapsed.
-
-//Sends a message to a user. Mention them and then your message and the bot will
-//   take the mentioned person and repeat your message to them
-function sendMessage(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    let count = 0
-    msg = receivedMessage.content.toLowerCase();
-    mention = receivedMessage.mentions.users
-    if (mention == null){ return; }
-    if (msg.startsWith (prefix + "send")){
-        mention.forEach((users) => {
-            count++;
-        }) 
-    }
-    if (count > 1){ 
-        generalChannel.send(">>> Error, try again and only mention 1 person.")
-        generalChannel.send(">>> Try: !send @Username Hello my dear friend!")
-        return; 
-    }
-    else{
-        mention.forEach((users) => {
-            let fullMessage =  receivedMessage.content.substr(6)
-            let splitCommand = fullMessage.split(" ")
-            let mentionedAndMessage = splitCommand.slice(1)
-            let finishedString = mentionedAndMessage.join(" ");
-            generalChannel.send(">>> **psst " + users.toString() + " " + receivedMessage.author.toString() + " says: **")
-            generalChannel.send(">>> " + finishedString)
-        }) 
-    }
-}
-//Multiplies two numbers. Tutorial stuff 
-function multiplyCommand(arguments, receivedMessage){
-    if (arguments.length < 2){
-        receivedMessage.channel.send("Not enough arguments. Try '!multiply 2 10'")
-        return
-    }
-    let product = 1
-    arguments.forEach((value) =>{
-        product = product * parseFloat(value)
-    })
-    receivedMessage.channel.send("The product of " + arguments + " is " + product.toString())
-}
