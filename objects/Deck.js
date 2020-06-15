@@ -108,6 +108,12 @@ module.exports = {
         
     },
     /**
+     * Adds a new User deck to the server.
+     * 
+     */
+    addDeck() {
+        
+    },
      * Removes a User deck from the server. 
      */
     removeDeck(){
@@ -152,4 +158,5 @@ module.exports = {
             })
         }
     }
+    // Test comment
 }

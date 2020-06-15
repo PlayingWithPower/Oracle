@@ -14,6 +14,7 @@ const botListeningPrefix = "!";
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
+const { Cipher } = require('crypto')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -166,9 +167,17 @@ function processCommand(receivedMessage){
         case "profile":
             profile(receivedMessage, arguments)
             break;
-        case "adddeck":
-            addDeck(receivedMessage, arguments)
+        case "use":
+            use(receivedMessage, arguments)
             break;
+        case "current":
+            current(receivedMessage, arguments)
+            break;
+        case "add":
+            addToCollection(receivedMessage, arguments)
+            break;
+        case "mydecks":
+            listCollection(receivedMessage,arguments)
         case "decks":
             listDecks(responseFormatted)
             break;
@@ -185,6 +194,89 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+function toUpper(str) {
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map(function(word) {
+            // console.log("First capital letter: "+word[0]);
+            // console.log("remain letters: "+ word.substr(1));
+            return word[0].toUpperCase() + word.substr(1);
+        })
+        .join(' ');
+}
+/**  */
+function listCollection(receivedMessage, args){
+    var callbackName = new Array();
+    var callbackWins = new Array();
+    var callbackLosses = new Array();
+    const profileEmbed = new Discord.MessageEmbed()
+        .setColor('#0099ff')
+            .setURL('')
+
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    userObj.profile(receivedMessage, args, function(callback, err){
+            callback._deck.forEach(callbackItem =>{
+                callbackName.push(toUpper(callbackItem.Deck))
+                callbackWins.push(callbackItem.Wins)
+                callbackLosses.push(callbackItem.Losses)
+            })
+            if (callbackName.length > 1){
+                for (i = 1; i < callbackName.length; i++){
+                    var calculatedWinrate = (callbackWins[i]/((callbackLosses[i])+(callbackWins[i])))*100
+                    if (isNaN(calculatedWinrate)){
+                        calculatedWinrate = 0;
+                    }
+
+                    profileEmbed.addFields(
+                        { name: 'Deck Name', value: callbackName[i]},
+                        { name: 'Wins', value: callbackWins[i], inline: true },
+                        { name: 'Losses', value: callbackLosses[i], inline: true },
+                        { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
+                    )
+                }
+                generalChannel.send(profileEmbed)
+            }
+            else{
+                generalChannel.send(">>> No decks in "+"<@!"+receivedMessage.author.id+">"+"'s collection. Please add decks using !addtoprofile <deckname>")
+            }
+        })
+        
+            
+}
+function addToCollection(receivedMessage, args){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    userObj.addToCollection(receivedMessage, args, function(callback, err){
+        generalChannel.send(">>> " + callback)
+    })
+}
+function use(receivedMessage, args){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    userObj.useDeck(receivedMessage, args, function(callback, err){
+            if (callback == "Error: 1"){
+                generalChannel.send(">>> Deck not found in Deckname Database. Check !help")
+            }else if (callback == "Error: 2"){
+                generalChannel.send(">>> Deck not found in your collection. Make sure to !register and then add it using !add <deckname>. ")
+            }else if (callback == "Error: 3"){
+                generalChannel.send(">>> Unable to find user. Please register first with !register")
+            }
+            else{
+                generalChannel.send(">>> Deck set to " + "**" + callback + "**" + " for " + receivedMessage.author.username)
+            }
+    });
+}
+function current(receivedMessage, args){
+    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    var callBackArray = new Array();
+    userObj.currentDeck(receivedMessage, args, function(callback, err){
+        if (callback == "Error: 1"){
+            generalChannel.send(">>> User not found.")
+        }
+        else if (callback == "Error: 2"){
+            generalChannel.send(">>> No deck found for that user")
+        }
+        else{
+
 function listUserDecks(channel){
 
     channel.send(">>> ")
@@ -251,11 +343,28 @@ function addDeck(receivedMessage, args){
     });
 }
 function profile(receivedMessage, args){
-    // @TODO
-    // Send this information in a nicer format to discord
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.profile(receivedMessage, args);
-    generalChannel.send(">>> Listed profile in console")
+    userObj.profile(receivedMessage, args, function(callback, err){
+        var calculatedWinrate = (callback._wins/((callback._losses)+(callback._wins)))*100
+        if (isNaN(calculatedWinrate)){
+            calculatedWinrate = 0;
+        }
+        const profileEmbed = new Discord.MessageEmbed()
+        .setColor('#0099ff')
+            .setURL('')
+            .addFields(
+                { name: 'User', value: callback._id, inline: true },
+                { name: 'Server', value: callback._server, inline: true },
+                { name: 'Season', value: callback._season, inline: true },
+                { name: 'Current Deck', value: callback._currentDeck, inline: true },
+                { name: 'Current Rating', value: callback._elo, inline: true },
+                { name: 'Wins', value:  callback._wins, inline: true },
+                { name: 'Losses', value:  callback._losses, inline: true },
+                { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
+            )
+        generalChannel.send(profileEmbed)
+    });
+    
 }
 async function logLosers(receivedMessage, args){
     var callBackArray = new Array();
