@@ -114,6 +114,7 @@ module.exports = {
     addDeck() {
         
     },
+    /** 
      * Removes a User deck from the server. 
      */
     removeDeck(){
