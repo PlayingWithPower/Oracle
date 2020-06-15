@@ -5,6 +5,7 @@ const MongoClient = require('mongodb').MongoClient;
 const user = require('./Schema/Users')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 const percentageToLose = 0.010
+const percentageToGain = 0.030
 
 module.exports = {
     //function to change elo
@@ -82,6 +83,52 @@ module.exports = {
                     })
             })
     },
+    /*
+    Single User elo modifiers, 
+    :param: args should be user discord id
+    */
+    logLoser(args, callback){
+        const user = require ('../DiscordBot/Schema/Users')
+
+        findQuery = {_id: args}
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                var newElo = {$set: {_elo: Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose)), _wins: Number(res._wins) + 1}}
+                user.updateOne(findQuery, newElo, function(err, res){
+                    if (res){
+                        callback("SUCCESS")
+                    }
+                    else{
+                        callback("Error: FAIL")
+                    }
+                })        
+            }
+            else{
+                callback("Error: NO-REGISTER")
+            }
+        })
+    },
+    logWinner(args, callback){
+        const user = require ('../DiscordBot/Schema/Users')
+        findQuery = {_id: args}
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                var newElo = {$set: {_elo: Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain)), _wins: Number(res._wins) + 1}}
+                user.updateOne(findQuery, newElo, function(err, res){
+                    if (res){
+                        callback("SUCCESS")
+                    }
+                    else{
+                        callback("Error: FAIL")
+                    }
+                })        
+            }
+            else{
+                callback("Error: NO-REGISTER")
+            }
+        })
+    },
+    
     //this function will count the number of users and return that value, useful for adminstrative and stats
     listAll(receivedMessage, callback){
             user.countDocuments(function(err, result){

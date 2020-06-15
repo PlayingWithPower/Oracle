@@ -6,7 +6,7 @@ var deck = new mongoose.Schema({
     _alias: String,
     _user: String,
     _server: String,
-    _season: String,
+    _season: String
 });
 
 module.exports = mongoose.model('Decks', deck);
