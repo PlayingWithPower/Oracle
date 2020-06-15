@@ -16,7 +16,7 @@ module.exports = {
             console.log(res)
         })
     },
-    
+  
     /**
      * Shows recent matches
      */

@@ -102,7 +102,9 @@ module.exports = {
         findQuery = {_id: args}
         user.findOne(findQuery, function(err, res){
             if (res){
+
                 var newElo = {$set: {_elo: Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose)), _losses: Number(res._losses) + 1}}
+
                 user.updateOne(findQuery, newElo, function(err, res){
                     if (res){
                         callback("SUCCESS")
@@ -121,6 +123,7 @@ module.exports = {
         const user = require('./Schema/Users')
         findQuery = {_id: "<@!"+args+">"}
         console.log(findQuery)
+
         user.findOne(findQuery, function(err, res){
             if (res){
                 var newElo = {$set: {_elo: Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain)), _wins: Number(res._wins) + 1}}
@@ -142,6 +145,7 @@ module.exports = {
         console.log(callbackArr)
         console.log(cbArr)
     },
+
     
     //this function will count the number of users and return that value, useful for adminstrative and stats
     listAll(receivedMessage, callback){

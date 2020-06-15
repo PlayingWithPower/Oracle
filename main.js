@@ -27,7 +27,8 @@ client.on('ready', (on) =>{
         },
         status: 'online'
     })
-
+  
+    deckObj.populateDecks()
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.id)
@@ -144,6 +145,8 @@ function processCommand(receivedMessage){
 
     let server = receivedMessage.guild.id
     //console.log(server)
+    let responseFormatted = client.channels.cache.get(channel)
+
 
     switch(primaryCommand){
         case "help":
@@ -166,6 +169,15 @@ function processCommand(receivedMessage){
         case "adddeck":
             addDeck(receivedMessage, arguments)
             break;
+        case "decks":
+            listDecks(responseFormatted)
+            break;
+        case "decksdetailed":
+            listDecksDetailed(responseFormatted);
+            break;
+        case "userdecks":
+            listUserDecks(responseFormatted);
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -173,10 +185,70 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+function listUserDecks(channel){
+
+    channel.send(">>> ")
+
+}
+function listDecks(channel){
+    deckObj.listDecks(function(callback,err){
+        const listedDecksEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setURL('')
+       for(i = 0; i < callback.length; i++){
+            listedDecksEmbed.addFields(
+                { name: " \u200b",value: callback[i]._name},
+            )
+        }
+        channel.send(listedDecksEmbed)
+    });
+}
+function listDecksDetailed(channel){
+    deckObj.listDecks(function(callback,err){
+        const listedDecksEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setURL('')
+       for(i = 0; i < callback.length; i++){
+            listedDecksEmbed.addFields(
+                { name: " \u200b",value: callback[i]._name},
+                { name: 'User', value: callback[i]._user, inline: true},
+                { name: 'Wins', value: "Update me", inline: true},
+                { name: 'Losses', value: "Update me", inline: true},
+            )
+        }
+        channel.send(listedDecksEmbed)
+    });
+}
 function addDeck(receivedMessage, args){
+    var callBackArray = new Array();
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.addDeckList(receivedMessage, args);
-    generalChannel.send(">>> Listed decklist in console")
+    
+    deckObj.addDeck(receivedMessage, args, function(callback,err){
+        if ((callback != ("Error: Deck name already used"))&& 
+        (callback != ("Error: Unable to save to Database, please try again"))&&
+        (callback != ("Error: Not a valid URL, please follow the format !adddeck <url> <name>"))
+        ){
+            callback.forEach(item => {
+                callBackArray.push(item)
+            });
+
+            var grabURL = callBackArray[0].toString()
+            var grabName = callBackArray[1].toString()
+            
+            const exampleEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setURL('')
+            .addFields(
+                { name: 'Decklist', value: "[Link]("+grabURL+")"},
+                { name: 'Name', value: grabName},
+            )
+            generalChannel.send("Successfully uploaded new Decklist to Decklists!")
+            generalChannel.send(exampleEmbed)
+        }
+        else{
+            generalChannel.send(callback)
+        }
+    });
 }
 function profile(receivedMessage, args){
     // @TODO
@@ -320,6 +392,7 @@ function logMatch(receivedMessage, args){
     let arg
     callbackArr = new Array()
     cbArr = new Array()
+
 
     if (args.length < 3 || args.length > 3) {
         generalChannel.send(">>> **Error**: Submit only the 3 players who lost in the pod")
