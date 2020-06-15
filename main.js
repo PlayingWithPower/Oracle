@@ -700,7 +700,7 @@ function credits(argument, receivedMessage){
  * 
  * @returns Discord Channel obj to send message to
  */
-function getChannel(receivedMessage) {
+function getChannelID(receivedMessage) {
     return client.channels.cache.get(receivedMessage.channel.id)
 }
 client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
