@@ -187,6 +187,9 @@ function processCommand(receivedMessage){
         case "userdecks":
             listUserDecks(responseFormatted);
             break;
+        case "adddeck":
+            addDeck(receivedMessage, arguments);
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -268,12 +271,27 @@ function use(receivedMessage, args){
 function current(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     var callBackArray = new Array();
+    const profileEmbed = new Discord.MessageEmbed()
+    .setColor('#5fff00')
+        .setURL('')
+
     userObj.currentDeck(receivedMessage, args, function(callback, err){
         if (callback == "Error: 1"){
             generalChannel.send(">>> User not found.")
         }
         else if (callback == "Error: 2"){
             generalChannel.send(">>> No deck found for that user")
+        }
+        else{
+            callback.forEach(item =>{
+                callBackArray.push(item)
+            })
+            profileEmbed.addFields(
+                { name: 'Deck Name', value: callBackArray[1]},
+                { name: 'URL', value: callBackArray[0], inline: true },
+
+            )
+            generalChannel.send(profileEmbed)
         }
     })
 }
@@ -303,7 +321,7 @@ function listDecksDetailed(channel){
        for(i = 0; i < callback.length; i++){
             listedDecksEmbed.addFields(
                 { name: " \u200b",value: callback[i]._name},
-                { name: 'User', value: callback[i]._user, inline: true},
+                { name: 'Created By', value: callback[i]._user, inline: true},
                 { name: 'Wins', value: "Update me", inline: true},
                 { name: 'Losses', value: "Update me", inline: true},
             )
