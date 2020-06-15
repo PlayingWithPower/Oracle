@@ -67,15 +67,18 @@ client.on('messageReactionAdd', (reaction, user) => {
  * 
  * This is the async manager function for whenever a reaction is submitted. 
  * Atm it only cares about upvotes and downvotes on Game messages
+ * 
+ * TODO: Confirm with current deck user is using
  */
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
     let sanitizedString = "<@!"+user.id+">"
-    let limit = 0
+    
     // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
     if (reaction.message.author.id != "717073766030508072") {
         return
     }
+
     if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.id != "717073766030508072") {
         if (sanitizedString !=  msg[5]){
             console.log("not the right user")
@@ -427,19 +430,20 @@ async function logLosers(receivedMessage, args){
    
 }
 /**
- * TODO: Make sure there are no duplicate users in message
+ * TODO: 
  */
 function startMatch(receivedMessage, args){
     const user = require('./Schema/Users')
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    let generalChannel = client.channels.cache.get(receivedMessage.channel.id)
 
+    let sanitizedString = "<@!"+receivedMessage.author.id+">"
     const UserIDs = new Array()
 
-    //Generates random 8 char string
+    //Generates random 4 char string for id
     let s4 = () => {
-        return Math.floor((1 + Math.random()) * 0x10000000).toString(16).substring(1);
+        return Math.floor((1 + Math.random()) * 0x1000).toString(16).substring(1);
     }
-    let id = s4() + s4()
+    let id = s4() + s4() + s4() + s4()
 
     // Check to make sure the right amount of users tagged
     if (args.length < 3 || args.length > 3) {
@@ -447,13 +451,24 @@ function startMatch(receivedMessage, args){
         return
     }
 
+    // Make sure every user in message (and message sender) are different users [Block out if testing]
+    var tempArr = args
+    tempArr.push(sanitizedString)
+    if (gameObj.hasDuplicates(tempArr)){
+        generalChannel.send(">>> **Error**: You can't log a match with duplicate players")
+        return
+    }
+
     // Check if User who sent the message is registered
-    let sanitizedString = "<@!"+receivedMessage.author.id+">"
     let findQuery = {'_id': sanitizedString}
     user.findOne(findQuery, function(err, res){
         if (res){
+            // Check if user who sent the message has a deck used
+            if (res._currentDeck == "None") {
+                generalChannel.send(">>> **Error**: " + res._id + " doesn't have a deck in use, type !use <deckname>")
+                return
+            }
             UserIDs.push(sanitizedString)
-            console.log("Winner Found")
 
             // Check if Users tagged are registered
             let ConfirmedUsers = 0
@@ -461,19 +476,23 @@ function startMatch(receivedMessage, args){
                 let findQuery = {_id: loser.toString()}
                 user.findOne(findQuery, function(err, res){
                     if (res){
-                        console.log("Loser Found")
+                        // Check if users tagged have a deck used
+                        if (res._currentDeck == "None") {
+                            generalChannel.send(">>> **Error**: " + res._id + " doesn't have a deck in use, type !use <deckname>")
+                            return
+                        }
                         UserIDs.push(loser)
                         ConfirmedUsers++
                         if (ConfirmedUsers == 3){
                             // Double check UserID Array then create match and send messages
                             if (UserIDs.length != 4){
-                                console.log("Not enough Players")
+                                generalChannel.send(">>> **Error:** Code 300")
                                 return
                             }
                             else{
                                 gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, function(cb, err){
                                     if (cb == "FAILURE"){
-                                        console.log("Game creation failed")
+                                        generalChannel.send(">>> **Error:** Code 301")
                                         return
                                     }
                                     else {
@@ -481,7 +500,7 @@ function startMatch(receivedMessage, args){
                                         UserIDs.forEach(player => {
                                             findQuery = {'_id': player}
                                             user.findOne(findQuery, function(err, res){
-                                                generalChannel.send(">>> Game ID: " + id + " - " + res._id + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
+                                                generalChannel.send(">>> Game ID: " + id + " - " + res._id + " used **" + res._currentDeck + "**, upvote to confirm this game or downvote to contest. ")
                                                     .then(function (message, callback){
                                                     const filter = (reaction, user) => {
                                                         return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
@@ -498,16 +517,14 @@ function startMatch(receivedMessage, args){
                         }
                     }
                     else{
-                        console.log("Loser not found")
-                        console.log(loser)
+                        generalChannel.send(">>> **Error**: " + loser + " isn't registered, type !register")
                         return
                     }
                 })
             })
         }
         else{
-            console.log("Winner not found")
-            console.log(sanitizedString)
+            generalChannel.send(">>> **Error**: " + sanitizedString + " isn't registered, type !register")
             return
         }
     })
