@@ -205,7 +205,7 @@ function toUpper(str) {
         })
         .join(' ');
 }
-/**  */
+
 function listCollection(receivedMessage, args){
     var callbackName = new Array();
     var callbackWins = new Array();
@@ -275,8 +275,8 @@ function current(receivedMessage, args){
         else if (callback == "Error: 2"){
             generalChannel.send(">>> No deck found for that user")
         }
-        else{
-
+    })
+}
 function listUserDecks(channel){
 
     channel.send(">>> ")
@@ -677,51 +677,3 @@ function credits(argument, receivedMessage){
     */
 }
 client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
-
-
-
-
-
-//Outdated or old testing commands. Not commented out so they can be collapsed.
-
-//Sends a message to a user. Mention them and then your message and the bot will
-//   take the mentioned person and repeat your message to them
-function sendMessage(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    let count = 0
-    msg = receivedMessage.content.toLowerCase();
-    mention = receivedMessage.mentions.users
-    if (mention == null){ return; }
-    if (msg.startsWith (prefix + "send")){
-        mention.forEach((users) => {
-            count++;
-        }) 
-    }
-    if (count > 1){ 
-        generalChannel.send(">>> Error, try again and only mention 1 person.")
-        generalChannel.send(">>> Try: !send @Username Hello my dear friend!")
-        return; 
-    }
-    else{
-        mention.forEach((users) => {
-            let fullMessage =  receivedMessage.content.substr(6)
-            let splitCommand = fullMessage.split(" ")
-            let mentionedAndMessage = splitCommand.slice(1)
-            let finishedString = mentionedAndMessage.join(" ");
-            generalChannel.send(">>> **psst " + users.toString() + " " + receivedMessage.author.toString() + " says: **")
-            generalChannel.send(">>> " + finishedString)
-        }) 
-    }
-}
-//Multiplies two numbers. Tutorial stuff 
-function multiplyCommand(arguments, receivedMessage){
-    if (arguments.length < 2){
-        receivedMessage.channel.send("Not enough arguments. Try '!multiply 2 10'")
-        return
-    }
-    let product = 1
-    arguments.forEach((value) =>{
-        product = product * parseFloat(value)
-    })
-    receivedMessage.channel.send("The product of " + arguments + " is " + product.toString())
-}
