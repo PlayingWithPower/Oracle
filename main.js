@@ -27,10 +27,10 @@ client.on('ready', (on) =>{
         },
         status: 'online'
     })
-    
+
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
-    //     console.log(guild.name)
+    //     console.log(guild.id)
     //     guild.channels.cache.forEach((channel) =>{
     //         console.log(` - ${channel.name} ${channel.type} ${channel.id}`)
     //     })
@@ -45,7 +45,7 @@ client.on('message', (receivedMessage) =>{
         let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
         generalChannel.channel.send("text")
     }
-    if (receivedMessage.content.startsWith(botListeningPrefix) && receivedMessage.channel == (client.channels.cache.get(generalID.getGeneralChatID()))){
+    if (receivedMessage.content.startsWith(botListeningPrefix)){
         processCommand(receivedMessage)
     }
     else{
@@ -58,12 +58,18 @@ function processCommand(receivedMessage){
     let primaryCommand = splitCommand[0]
     let arguments = splitCommand.slice(1)
 
+    let channel = receivedMessage.channel.id
+    let channelResponseFormatted = client.channels.cache.get(channel)
+
+    let server = receivedMessage.guild.id
+    //console.log(server)
+
     switch(primaryCommand){
         case "help":
             helpCommand(receivedMessage, arguments)
             break;
         case "register":
-            register(receivedMessage, arguments)
+            register(receivedMessage, arguments, channelResponseFormatted)
             break;
         case "users":
             users(receivedMessage, arguments)
@@ -199,16 +205,26 @@ function users(receivedMessage, args){
         generalChannel.send(">>> There are " + callback + " registered users in this league.")
     })
 }
-function register(receivedMessage, args){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+function register(receivedMessage, args, channel){
     leagueObj.register(receivedMessage, function(callback,err){
-        //Case 1: User is not registered and becomes registered
+        const messageEmbed = new Discord.MessageEmbed()
         if (callback == "1"){ 
-            generalChannel.send(">>> " + receivedMessage.author.username + " is now registered.")
+            messageEmbed
+            .setColor("#5fff00")
+            .setDescription(receivedMessage.author.username + " is now registered.")
+            channel.send(messageEmbed)
         }
-        //Case 2: User is already registered and the bot tells the user they are already registered
-        else{
-            generalChannel.send(">>> " + receivedMessage.author.username + " is already registered.")
+        else if (callback == "3"){
+            messageEmbed
+            .setColor("#af0000")
+            .setDescription(receivedMessage.author.username + " is already registered.")
+            channel.send(messageEmbed)
+        }
+        else if (callback == "2"){
+            messageEmbed
+            .setColor("#af0000")
+            .setDescription("Critical Error. Try again. If problem persists, please reach out to developers.")
+            channel.send(messageEmbed)
         }
     })
 }
