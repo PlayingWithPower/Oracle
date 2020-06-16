@@ -12,6 +12,7 @@ var user = new mongoose.Schema({
     _deck: [{
         _id: Number,
         Deck: String,
+        Alias: String,
         Wins: Number,
         Losses: Number
     }]
