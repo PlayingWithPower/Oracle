@@ -29,7 +29,7 @@ client.on('ready', (on) =>{
         status: 'online'
     })
   
-    deckObj.populateDecks()
+    
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.id)
@@ -53,6 +53,7 @@ client.on('message', (receivedMessage) =>{
     else{
         let currentChannel =  client.channels.cache.get()
     }
+    deckObj.populateDecks(getChannelID(receivedMessage).id)
 })
 /**
  * TODO: 

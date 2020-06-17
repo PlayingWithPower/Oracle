@@ -123,8 +123,9 @@ module.exports = {
     /**
      * Seed the server with an initial list of Deck Aliases.
      */
-    populateDecks() {
+    populateDecks(serverID) {
         const deck = require('../Schema/Deck')
+        const alias = require('../Schema/Alias')
         
         var deckListArray = new Array();
         var aliasListArray = new Array();
@@ -145,8 +146,17 @@ module.exports = {
                     //console.log("Populate already ran... ignore this if NOT first set up. Large error if this prints out on first set up. Will print out a few times")
                 }
                 else{
-                        let deckQuery = {'_link': deckListArray[internalIndex], '_name': aliasListArray[internalIndex], '_alias': aliasListArray[internalIndex].toLowerCase(), '_user': "Discord Bot", '_server': "PWP", '_season': "1"}
-                        deck(deckQuery).save(function(err, res){
+                        let deckSave = {'_link': deckListArray[internalIndex], '_name': aliasListArray[internalIndex], '_alias': aliasListArray[internalIndex].toLowerCase(), '_user': "Discord Bot", '_server': "PWP", '_season': "1"}
+                        deck(deckSave).save(function(err, res){
+                            if (res){
+                                //console.log(deckListArray[i])
+                            }
+                            else{
+                                console.log("Error: Unable to save to Database, please try again")
+                            }
+                        })
+                        let aliasSave = {'_name': aliasListArray[internalIndex], '_server': serverID}
+                        alias(aliasSave).save(function(err, res){
                             if (res){
                                 //console.log(deckListArray[i])
                             }
