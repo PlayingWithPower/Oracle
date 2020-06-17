@@ -35,7 +35,7 @@ module.exports = {
                     let player3_id = res._player3
                     let player4_id = res._player4
 
-                    let findQuery = {_id: res._player1}
+                    let findQuery = {_mentionValue: res._player1}
                     loserArr.push(res._player2)
                     loserArr.push(res._player3)
                     loserArr.push(res._player4)
@@ -51,7 +51,7 @@ module.exports = {
 
                                     //Deal with Losers **Yes I know this could be solved better with a loop but that would require a completely different implementation shhhhh
                                     //loser 1
-                                    findQuery = {_id: loserArr[0]}
+                                    findQuery = {_mentionValue: loserArr[0]}
                                     users.findOne(findQuery, function(err, res){
                                         if (res){
                                             var newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
@@ -62,7 +62,7 @@ module.exports = {
                                                     callbackArr.push("**" + player2_id + "**'s Score " + newVal + " (-" + change + ")")
                                                     
                                                     //loser 2
-                                                    findQuery = {_id: loserArr[1]}
+                                                    findQuery = {_mentionValue: loserArr[1]}
                                                     users.findOne(findQuery, function(err, res){
                                                         if (res){
                                                             var newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
@@ -73,7 +73,7 @@ module.exports = {
                                                                     callbackArr.push("**" + player3_id + "**'s Score " + newVal + " (-" + change + ")")
                                                                     
                                                                     //loser 3
-                                                                    findQuery = {_id: loserArr[2]}
+                                                                    findQuery = {_mentionValue: loserArr[2]}
                                                                     users.findOne(findQuery, function(err, res){
                                                                         if (res){
                                                                             var newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
@@ -210,7 +210,7 @@ module.exports = {
                     }
                 }
                 else {
-                    console.log ("Match not found")
+                    console.log ("Match #:" + id + " not found")
                 }
             })
         })
@@ -229,40 +229,40 @@ module.exports = {
 
         //Get Decks
         //Player 1
-        findQuery = {'_id': player1}
+        findQuery = {_mentionValue: player1}
         user.findOne(findQuery, function(err, res){
             if (res){
                 deck1 = res._currentDeck
             }
         })
         //Player 2
-        findQuery = {'_id': player2}
+        findQuery = {_mentionValue: player2}
         user.findOne(findQuery, function(err, res){
             if (res){
                 deck2 = res._currentDeck
             }
         })
         //Player 3
-        findQuery = {'_id': player3}
+        findQuery = {_mentionValue: player3}
         user.findOne(findQuery, function(err, res){
             if (res){
                 deck3 = res._currentDeck
             }
         })
         //Player 4
-        findQuery = {'_id': player4}
+        findQuery = {_mentionValue: player4}
         user.findOne(findQuery, function(err, res){
             if (res){
                 deck4 = res._currentDeck
             }
         })
-        game({'_match_id': id, '_server': "PWP", '_season': "1", '_player1': player1, '_player2': player2, '_player3': player3, '_player4': player4, '_player1Deck': deck1, '_player2Deck': deck2, '_player3Deck': deck3, '_player4Deck': deck4, '_Status': "STARTED", '_player1Confirmed': "N", '_player2Confirmed': "N", '_player3Confirmed': "N", '_player4Confirmed': "N"}).save(function(err, result){
+        game({_match_id: id, _server: "PWP", _season: "1", _player1: player1, _player2: player2, _player3: player3, _player4: player4, _player1Deck: deck1, _player2Deck: deck2, _player3Deck: deck3, _player4Deck: deck4, _Status: "STARTED", _player1Confirmed: "N", _player2Confirmed: "N", _player3Confirmed: "N", _player4Confirmed: "N"}).save(function(err, result){
             if (result){
                 console.log("Successfully created Game #" + id)
                 callback("SUCCESS")
             }
             else {
-                console.log("Game creation failed")
+                console.log("Game creation failed for Game #" + id)
                 callback("FAILURE")
             }
         })
@@ -325,7 +325,6 @@ module.exports = {
     closeMatch(id) {
         return new Promise((resolve, reject) => {
             const games = require('../Schema/Games')
-            console.log(id)
             let findQuery = {_match_id: id, _Status: "STARTED"}
             games.findOne(findQuery, function(err, res) {
                 if (res) {
@@ -351,20 +350,36 @@ module.exports = {
     createMatchNumber() {
 
     },
-    /*
-    Single User elo modifiers, 
-    :param: args should be user discord id
-    */
+    /**
+     * @param {discord user id} args 
+     * @param {*} callback 
+     */
     logLoser(args, callback){
         const user = require('../Schema/Users')
 
-        findQuery = {_id: args}
+        findQuery = {_mentionValue: args}
         user.findOne(findQuery, function(err, res){
             if (res){
+                // elo stuff
                 var newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
-                var change = Number(res._elo)*(percentageToGain)
-                var newElo = {$set: {_elo: newVal, _losses: Number(res._losses) + 1}}
-                user.updateOne(findQuery, newElo, function(err, res){
+                var change = Number(res._elo)*(percentageToLose)
+                
+
+                // deck stuff
+                let tempArray = res._deck
+                const deckFind = (element) => element == res._currentDeck
+                tempArray.forEach(arr => {
+                    if (arr.findIndex(deckFind) != -1) {
+                        tempArray[arr.findIndex(deckFind)][4] += 1
+                    }
+                    else {
+                        callback("Error: FAIL")
+                    }
+                })
+
+                var newSet = {$set: {_elo: newVal, _losses: Number(res._losses) + 1, _deck: tempArray}}
+
+                user.updateOne(findQuery, newSet, function(err, res){
                     if (res){
                         callback(newVal + " (-" + change + ")")
                     }
@@ -380,14 +395,27 @@ module.exports = {
     },
     logWinner(args, callback){
         const user = require('../Schema/Users')
-        findQuery = {_id: "<@!"+args+">"}
-        console.log(findQuery)
+        findQuery = {_mentionValue: "<@!"+args+">"}
         user.findOne(findQuery, function(err, res){
             if (res){
                 var newVal = Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain))
                 var change = Number(res._elo)*(percentageToGain)
-                var newElo = {$set: {_elo: newVal, _wins: Number(res._wins) + 1}}
-                user.updateOne(findQuery, newElo, function(err, res){
+
+                // deck stuff
+                let tempArray = res._deck
+                const deckFind = (element) => element == res._currentDeck
+                tempArray.forEach(arr => {
+                    if (arr.findIndex(deckFind) != -1) {
+                        tempArray[arr.findIndex(deckFind)][3] += 1
+                    }
+                    else {
+                        callback("Error: FAIL")
+                    }
+                })
+
+                var newSet = {$set: {_elo: newVal, _losses: Number(res._losses) + 1, _deck: tempArray}}
+
+                user.updateOne(findQuery, newSet, function(err, res){
                     if (res){
                         callback(newVal + " (+" + change + ")")
                     }
