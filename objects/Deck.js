@@ -136,10 +136,11 @@ module.exports = {
         aliasListArray.push("Gitrog")
         deckListArray.push("https://cedh-decklist-database.xyz/primary.html")
         aliasListArray.push("Kess Storm")
+        aliasListArray.push("Rogue")
 
         var internalIndex = 0;
         
-        for (i = 0; i < deckListArray.length; i++){
+        for (i = 0; i < aliasListArray.length; i++){
             let deckAliasQuery = {'_alias': aliasListArray[i].toLowerCase()}
             deck.findOne(deckAliasQuery, function(err, res){
                 if (res){
