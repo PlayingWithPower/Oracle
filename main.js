@@ -634,13 +634,13 @@ function register(receivedMessage, args, channel){
             .setDescription(receivedMessage.author.username + " is now registered.")
             channel.send(messageEmbed)
         }
-        else if (callback == "3"){
+        else if (callback == "2"){
             messageEmbed
             .setColor("#af0000")
             .setDescription(receivedMessage.author.username + " is already registered.")
             channel.send(messageEmbed)
         }
-        else if (callback == "2"){
+        else if (callback == "3"){
             messageEmbed
             .setColor("#af0000")
             .setDescription("Critical Error. Try again. If problem persists, please reach out to developers.")
