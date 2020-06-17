@@ -178,6 +178,7 @@ function processCommand(receivedMessage){
             break;
         case "mydecks":
             listCollection(receivedMessage,arguments)
+            break;
         case "decks":
             listDecks(responseFormatted)
             break;
@@ -371,14 +372,14 @@ function profile(receivedMessage, args){
         .setColor('#0099ff')
             .setURL('')
             .addFields(
-                { name: 'User', value: callback._id, inline: true },
-                { name: 'Server', value: callback._server, inline: true },
+                { name: 'User', value: callback._mentionValue, inline: true },
                 { name: 'Season', value: callback._season, inline: true },
                 { name: 'Current Deck', value: callback._currentDeck, inline: true },
                 { name: 'Current Rating', value: callback._elo, inline: true },
                 { name: 'Wins', value:  callback._wins, inline: true },
                 { name: 'Losses', value:  callback._losses, inline: true },
                 { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
+                { name: 'Favorite Deck', value: "Update Me", inline: true },
             )
         generalChannel.send(profileEmbed)
     });

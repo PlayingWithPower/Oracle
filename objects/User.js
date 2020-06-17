@@ -13,8 +13,13 @@ module.exports = {
      */
     profile(receivedMessage, args, callback) {
         const user = require('../Schema/Users')
-        let query = {_id: "<@!"+receivedMessage.author.id+">"}
+        let query = {
+            _mentionValue: "<@!"+receivedMessage.author.id+">",
+            _server: receivedMessage.guild.id
+        }
+        console.log(query)
         user.findOne(query, function(err, res){
+            //console.log(res)
             callback(res)
         })
     },
@@ -89,7 +94,10 @@ module.exports = {
         const alias = require('../Schema/Alias')
         const callBackArray = new Array()
 
-        let findQuery = {_id: "<@!"+receivedMessage.author.id+">"}
+        let findQuery = {
+            _mentionValue: "<@!"+receivedMessage.author.id+">",
+            _server: receivedMessage.guild.id
+        }
         user.findOne(findQuery, function(err, res){
             if (res) {
                 let findQuery = {_alias: res._currentDeck.toLowerCase()}
