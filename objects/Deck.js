@@ -131,9 +131,9 @@ module.exports = {
         var aliasListArray = new Array();
 
         deckListArray.push("https://tappedout.net/mtg-decks/waiting-for-godo-cedh-primer/")
-        aliasListArray.push("Godo")
+        aliasListArray.push("Godo Helm")
         deckListArray.push("https://tappedout.net/mtg-decks/the-gitfrog-1/")
-        aliasListArray.push("Gitrog")
+        aliasListArray.push("Gitrog Dredge")
         deckListArray.push("https://cedh-decklist-database.xyz/primary.html")
         aliasListArray.push("Kess Storm")
         aliasListArray.push("Rogue")
