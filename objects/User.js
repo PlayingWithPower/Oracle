@@ -147,7 +147,14 @@ module.exports = {
             let deckname = splitArgs[0]
             let aliasName = splitArgs[1]
 
-            alias.findOne({_name: aliasName, _server: server})
+            alias.findOne({_name: aliasName, _server: server}, function(err, aliasRes){
+                if (aliasRes){
+
+                }
+                else{
+                    callback("Can't find Alias Res")
+                }
+            })
         }
         deck.findOne(deckQuery, function(err, firstres){
             if (firstres){

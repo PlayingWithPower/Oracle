@@ -254,18 +254,9 @@ function addToCollection(receivedMessage, args){
     })
 }
 function use(receivedMessage, args){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    let generalChannel = getChannelID()
     userObj.useDeck(receivedMessage, args, getChannelID(receivedMessage), function(callback, err){
-            if (callback == "Error: 1"){
-                generalChannel.send(">>> Deck not found in Deckname Database. Check !help")
-            }else if (callback == "Error: 2"){
-                generalChannel.send(">>> Deck not found in your collection. Make sure to !register and then add it using !add <deckname>. ")
-            }else if (callback == "Error: 3"){
-                generalChannel.send(">>> Unable to find user. Please register first with !register")
-            }
-            else{
-                generalChannel.send(">>> Deck set to " + "**" + callback + "**" + " for " + receivedMessage.author.username)
-            }
+            generalChannel.send(callback)
     });
 }
 function current(receivedMessage, args){
