@@ -5,6 +5,7 @@
  */
 
 const Alias = require('../Schema/Alias')
+const Deck = require('../Schema/Deck')
 
 module.exports = {
 
@@ -120,18 +121,36 @@ module.exports = {
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let argsLowerCase = argsWithSpaces.toLowerCase()
 
+        let splitArgs = argsLowerCase.split(" | ")
+
         let deckQuery = {_alias: argsLowerCase}
         let userQuery = {_deck: {$elemMatch:{Deck:argsLowerCase}}}
         let updateQuery = {_id: "<@!"+receivedMessage.author.id+">"}
+
+
+        // .toLowerCase()
+        // .split(' ')
+        // .map(function(word) {
+            
+        //     return word[0].toUpperCase() + word.substr(1);
+        // })
+        // .join(' ');
+
+        // let saveToDeck = {_name: }
         
-        // console.log("DEBUG: \nargs as entered: " + args + '\n' + "args with commas to string: " + argsWithCommas
-        // + '\n' + "args with spaces to string " + argsWithSpaces)
+        if (splitArgs[1] == undefined || splitArgs.length > 2){
+            callback("Incorrect format")
+        }
+        else{
+            
+        }
         deck.findOne(deckQuery, function(err, firstres){
             if (firstres){
                 user.findOne(userQuery, function(err, res){
                     if (res){
                         name = firstres._name.toString()
-                        let toSave = {$set: {_currentDeck: name}}
+                        let toSet = {$set: {_currentDeck: name}}
+                        let addToArray = {$addToSet: {_deck: [{'_id': 0,'Deck': cleanedArg, "Wins":0, "Losses":0}]}}
                         user.updateOne(updateQuery, toSave, function(err, res){
                             if (res){
                                 callback(name)
@@ -147,6 +166,7 @@ module.exports = {
                 })
             }
             else{
+                var deckSave = new deck()
                 callback("Error: 1")
             }
         })
