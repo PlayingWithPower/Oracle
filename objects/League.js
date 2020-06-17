@@ -1,4 +1,5 @@
 const { User } = require('discord.js')
+const { find } = require('../Schema/Users')
 
 /**
  * League Object
@@ -27,13 +28,12 @@ module.exports = {
     register(receivedMessage, callback) {
         const user = require('../Schema/Users')
 
-        let qwe = {
-            _id: "",
+        let findQuery = {
             _mentionValue: "<@!" + receivedMessage.author.id+ ">",
             _server: receivedMessage.guild.id,
         }
-        let findQuery = {
-            _id: "123",
+        let toSave = {
+            _mentionValue: "<@!" + receivedMessage.author.id+ ">",
             _server: receivedMessage.guild.id,
             _season: "1", 
             _name : receivedMessage.author.username, 
@@ -46,26 +46,13 @@ module.exports = {
                 Losses:1
             }
         }
-        let otherQuery = {
-            _mentionValue: "!",
-            _server: "1",
-            _season: "!",
-            _name: "!",
-            _currentDeck: "!",
-            _elo: 1,
-            _wins: 1,
-            _losses: 1
-        }
         //console.log(receivedMessage.guild.id)
         user.findOne(findQuery, function(err, res){
-            console.log(res)
             if (res){
                 callback("2")
             }
             else{
-                let someuser = new user
-               someuser.save(otherQuery, function(err, result){
-                    console.log(result)
+               user(toSave).save(function(error, result){
                     if(result){
                         callback("1")
                     }
