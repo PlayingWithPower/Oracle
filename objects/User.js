@@ -153,35 +153,65 @@ module.exports = {
         }
 
         //Queries
-        let deckQuery = {_alias: argsLowerCase}
-        let aliasQuery = {_name: ""}
+
+        let aliasFindQuery = {_name: aliasNameFormatted, _server: receivedMessage.guild.id}
+        let singleArgAliasFindQuery = {_name: deckNameFormatted, _server: receivedMessage.guild.id}
 
         let findingUserQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">", _server: receivedMessage.guild.id}
         let idQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">"}
+
         let addToSet = {$addToSet: {_deck: [{'_id': 0,'Deck': deckNameFormatted, "Alias": aliasNameFormatted, "Wins":0, "Losses":0}]}}
         let singleArgAddToSett = {_currentDeck:deckNameFormatted, $addToSet: {_deck: [{'_id': 1,'Deck': deckNameFormatted, "Alias": deckNameFormatted, "Wins":0, "Losses":0}]}}
+
+        let updateCurrent = {_currentDeck: aliasNameFormatted}
+        let singleArgUpdateCurrent = {_currentDeck: deckNameFormatted}
+
         let dupQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">", _server: receivedMessage.guild.id, _deck: {$elemMatch:{Alias:aliasNameFormatted}}}
+        let singleArgDupQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">", _server: receivedMessage.guild.id, _deck: {$elemMatch:{Alias:deckNameFormatted}}}
 
         if (splitArgs.length == 1){
-            alias.findOne({_name: deckNameFormatted, _server: receivedMessage.guild.id}, function(err, deckSearchRes){
-                if (deckSearchRes){
-                    callback("Found from deck name")
-                    user.find(findingUserQuery, function(err, userResult){
-                        if (userResult){
-                            user.updateOne(idQuery, singleArgAddToSett, function(err, addingResult){
-                                if (addingResult){
-                                    callback("Successfully added " + "**"+deckNameFormatted+"**"
-                                    + " to " + "**"+receivedMessage.author.username+"**" + "'s profile")
-                                }else{
-                                    callback("Error adding deck")
+            user.findOne(findingUserQuery, function(err, userResult){
+                if (userResult){
+                    alias.findOne(singleArgAliasFindQuery, function(err, aliasSearchRes){
+                        if (aliasSearchRes){
+                            user.findOne(singleArgDupQuery, function(err, checkDupResult){
+                                if (checkDupResult){
+                                    user.updateOne(idQuery, singleArgUpdateCurrent, function(err, addingResult){
+                                        if (addingResult){
+                                            let callBackArray = new Array();
+                                            callBackArray.push("4")
+                                            callBackArray.push(deckNameFormatted)
+                                            callback(callBackArray)
+                                        }else{
+                                            callback("3")
+                                        }
+                                    }) 
+                                }
+                                else{
+                                    user.updateOne(idQuery, singleArgAddToSett, function(err, addingResult){
+                                        if (addingResult){
+                                            let callBackArray = new Array();
+                                            callBackArray.push("4")
+                                            callBackArray.push(deckNameFormatted)
+                                            callback(callBackArray)
+                                        }else{
+                                            callback("3")
+                                        }
+                                    }) 
                                 }
                             })
-                        }else{
-                            callback("Error finding user")
+                             
+                        }
+                        else{
+                            let callBackArray = new Array();
+                            callBackArray.push("2")
+                            callBackArray.push(deckNameFormatted)
+                            callback(callBackArray)
                         }
                     })
+                    
                 }else{
-                    callback("Error. Try again with the format !use <DeckName> | <Alias>. Ex: !use Godo | Godo.")
+                    callback("1")
                 }
             })
         }
@@ -190,22 +220,31 @@ module.exports = {
         }
         else{
             user.findOne(findingUserQuery, function(err, userResult){
-                console.log(userResult)
-                console.log(findingUserQuery)
                 if (userResult){
-                    alias.find({_name: aliasNameFormatted, _server: receivedMessage.guild.id}, function(err, aliasSearchRes){
+                    alias.findOne(aliasFindQuery, function(err, aliasSearchRes){
                         if (aliasSearchRes){
                             user.findOne(dupQuery, function(err, checkDupResult){
                                 if (checkDupResult){
-                                    callback(aliasNameFormatted + " already exists")
+                                    user.updateOne(idQuery, updateCurrent, function(err, addingResult){
+                                        if (addingResult){
+                                            let callBackArray = new Array();
+                                            callBackArray.push("4")
+                                            callBackArray.push(aliasNameFormatted)
+                                            callback(callBackArray)
+                                        }else{
+                                            callback("3")
+                                        }
+                                    }) 
                                 }
                                 else{
                                     user.updateOne(idQuery, addToSet, function(err, addingResult){
                                         if (addingResult){
-                                            callback("Successfully added " + "**"+aliasNameFormatted+"**"
-                                            + " to " + "**"+receivedMessage.author.username+"**" + "'s profile1")
+                                            let callBackArray = new Array();
+                                            callBackArray.push("4")
+                                            callBackArray.push(aliasNameFormatted)
+                                            callback(callBackArray)
                                         }else{
-                                            callback("Error adding deck1")
+                                            callback("3")
                                         }
                                     }) 
                                 }
@@ -213,40 +252,18 @@ module.exports = {
                              
                         }
                         else{
-                            callback("Not found in alias1")
+                            let callBackArray = new Array();
+                            callBackArray.push("2")
+                            callBackArray.push(aliasNameFormatted)
+                            callback(callBackArray)
                         }
                     })
                     
                 }else{
-                    callback("Error finding user1")
+                    callback("1")
                 }
             })
             
         }
-        // deck.findOne(deckQuery, function(err, firstres){
-        //     if (firstres){
-        //         user.findOne(userQuery, function(err, res){
-        //             if (res){
-        //                 name = firstres._name.toString()
-        //                 let toSet = {$set: {_currentDeck: name}}
-        //                 let addToArray = {$addToSet: {_deck: [{'_id': 0,'Deck': cleanedArg, "Wins":0, "Losses":0}]}}
-        //                 user.updateOne(updateQuery, toSave, function(err, res){
-        //                     if (res){
-        //                         callback(name)
-        //                     }
-        //                     else{
-        //                         callback("Error: 3")
-        //                     }
-        //                 })
-        //             }
-        //             else{
-        //                 callback("Error: 2")
-        //             }
-        //         })
-        //     }
-        //     else{
-        //         callback("Error: 1")
-        //     }
-        // })
     }
 }

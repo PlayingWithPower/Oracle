@@ -256,15 +256,41 @@ function addToCollection(receivedMessage, args){
 }
 function use(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
+    const useEmbed = new Discord.MessageEmbed()
+    .setColor('#5fff00')
+        .setURL('')
     userObj.useDeck(receivedMessage, args, function(callback, err){
-            generalChannel.send(callback)
+            if (callback == "1"){
+                useEmbed
+                .setColor("#af0000") //red
+                .setDescription(receivedMessage.author.username + " is not registered. Register with !register")
+                generalChannel.send(useEmbed)
+            }
+            else if (callback[0] == "2"){
+                useEmbed
+                .setColor("#af0000")
+                .setDescription("**"+callback[1]+"**" + " is not a registered alias. \n Try !decks and choose an alias or !use <deckname> | Rogue ")
+                generalChannel.send(useEmbed)
+            }
+            else if (callback == "3"){
+                useEmbed
+                .setColor("#af0000")
+                .setDescription("Error setting deck. Please try again.")
+                generalChannel.send(useEmbed)
+            }
+            else if (callback[0] == "4"){
+                useEmbed
+                .setColor("#5fff00") //green
+                .setDescription("Successfully set " + "**"+callback[1]+"**"+ " as the Current Deck for " + "<@!" + receivedMessage.author.id + ">")
+                generalChannel.send(useEmbed)
+            }
     });
 }
 function current(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     var callBackArray = new Array();
     const profileEmbed = new Discord.MessageEmbed()
-    .setColor('#5fff00')
+    .setColor('#0099ff')
         .setURL('')
 
     userObj.currentDeck(receivedMessage, args, function(callback, err){
