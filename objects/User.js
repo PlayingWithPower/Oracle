@@ -157,10 +157,10 @@ module.exports = {
         let aliasQuery = {_name: ""}
 
         let userQuery = {_deck: {$elemMatch:{Deck:argsLowerCase}}}
-        let findingUserQuery = {_id: "<@!"+receivedMessage.author.id+">", _server: server}
-        let idQuery = {_id: "<@!"+receivedMessage.author.id+">"}
+        let findingUserQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">", _server: server}
+        let idQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">"}
         let addToSet = {$addToSet: {_deck: [{'_id': 0,'Deck': deckNameFormatted, "Alias": aliasNameFormatted, "Wins":0, "Losses":0}]}}
-        let singleArgAddToSett = {$addToSet: {_deck: [{'_id': 1,'Deck': deckNameFormatted, "Alias": deckNameFormatted, "Wins":0, "Losses":0}]}}
+        let singleArgAddToSett = {_currentDeck:deckNameFormatted, $addToSet: {_deck: [{'_id': 1,'Deck': deckNameFormatted, "Alias": deckNameFormatted, "Wins":0, "Losses":0}]}}
 
         if (splitArgs.length == 1){
             alias.findOne({_name: deckNameFormatted, _server: server}, function(err, deckSearchRes){
@@ -197,6 +197,7 @@ module.exports = {
                     callback("Found from alias name")
                 }
                 else{
+                    callback("Not found in alias")
                 }
             })
         }
