@@ -256,7 +256,7 @@ function addToCollection(receivedMessage, args){
 }
 function use(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-    userObj.useDeck(receivedMessage, args, getChannelID(receivedMessage).id, function(callback, err){
+    userObj.useDeck(receivedMessage, args, function(callback, err){
             generalChannel.send(callback)
     });
 }
