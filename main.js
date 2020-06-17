@@ -255,7 +255,7 @@ function addToCollection(receivedMessage, args){
 }
 function use(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    userObj.useDeck(receivedMessage, args, function(callback, err){
+    userObj.useDeck(receivedMessage, args, getChannelID(receivedMessage), function(callback, err){
             if (callback == "Error: 1"){
                 generalChannel.send(">>> Deck not found in Deckname Database. Check !help")
             }else if (callback == "Error: 2"){
@@ -701,6 +701,6 @@ function credits(argument, receivedMessage){
  * @returns Discord Channel obj to send message to
  */
 function getChannelID(receivedMessage) {
-    return client.channels.cache.get(receivedMessage.channel.id)
+    return client.channels.cache.get(receivedMessage.channel.id).id
 }
 client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")

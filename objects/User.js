@@ -113,20 +113,22 @@ module.exports = {
     /**
      * Sets the users current Deck
      */
-    useDeck(receivedMessage, args, callback){
+    useDeck(receivedMessage, args, server, callback){
         const user = require('../Schema/Users')
         const deck = require('../Schema/Deck')
+        const alias = require('../Schema/Alias')
         
+        console.log(server)
+
         let argsWithCommas = args.toString()
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let argsLowerCase = argsWithSpaces.toLowerCase()
-
         let splitArgs = argsLowerCase.split(" | ")
 
         let deckQuery = {_alias: argsLowerCase}
         let userQuery = {_deck: {$elemMatch:{Deck:argsLowerCase}}}
         let updateQuery = {_id: "<@!"+receivedMessage.author.id+">"}
-
+        let aliasQuery = {_name: ""}
 
         // .toLowerCase()
         // .split(' ')
@@ -142,7 +144,10 @@ module.exports = {
             callback("Incorrect format")
         }
         else{
-            
+            let deckname = splitArgs[0]
+            let aliasName = splitArgs[1]
+
+            alias.findOne({_name: aliasName, _server: server})
         }
         deck.findOne(deckQuery, function(err, firstres){
             if (firstres){
