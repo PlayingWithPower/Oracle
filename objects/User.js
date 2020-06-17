@@ -6,6 +6,7 @@
 
 const Alias = require('../Schema/Alias')
 const Deck = require('../Schema/Deck')
+const { User } = require('discord.js')
 
 module.exports = {
 
@@ -117,70 +118,104 @@ module.exports = {
         const user = require('../Schema/Users')
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
-        
-        console.log(server)
 
+        //Cleaning arguments and testing if they exist
         let argsWithCommas = args.toString()
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let argsLowerCase = argsWithSpaces.toLowerCase()
         let splitArgs = argsLowerCase.split(" | ")
 
+        //Cleaning up deckname and aliasname
+        let deckname = splitArgs[0]
+        let deckNameFormatted = deckname.toLowerCase().split(' ').map(function(word) {
+            return word[0].toUpperCase() + word.substr(1);
+        }).join(' ');
+
+        let aliasName
+        let aliasNameFormatted
+        try {
+            aliasName = splitArgs[1]
+
+            aliasNameFormatted = aliasName.toLowerCase().split(' ').map(function(word) {
+                return word[0].toUpperCase() + word.substr(1);
+            }).join(' ');
+        }catch{
+            aliasName = ""
+            aliasNameFormatted = ""
+        }
+
+        //Queries
         let deckQuery = {_alias: argsLowerCase}
-        let userQuery = {_deck: {$elemMatch:{Deck:argsLowerCase}}}
-        let updateQuery = {_id: "<@!"+receivedMessage.author.id+">"}
         let aliasQuery = {_name: ""}
 
-        // .toLowerCase()
-        // .split(' ')
-        // .map(function(word) {
-            
-        //     return word[0].toUpperCase() + word.substr(1);
-        // })
-        // .join(' ');
+        let userQuery = {_deck: {$elemMatch:{Deck:argsLowerCase}}}
+        let findingUserQuery = {_id: "<@!"+receivedMessage.author.id+">", _server: server}
+        let idQuery = {_id: "<@!"+receivedMessage.author.id+">"}
+        let addToSet = {$addToSet: {_deck: [{'_id': 0,'Deck': deckNameFormatted, "Alias": aliasNameFormatted, "Wins":0, "Losses":0}]}}
+        let singleArgAddToSett = {$addToSet: {_deck: [{'_id': 1,'Deck': deckNameFormatted, "Alias": deckNameFormatted, "Wins":0, "Losses":0}]}}
 
-        // let saveToDeck = {_name: }
-        
-        if (splitArgs[1] == undefined || splitArgs.length > 2){
-            callback("Incorrect format")
-        }
-        else{
-            let deckname = splitArgs[0]
-            let aliasName = splitArgs[1]
-
-            alias.findOne({_name: aliasName, _server: server}, function(err, aliasRes){
-                if (aliasRes){
-
+        if (splitArgs.length == 1){
+            alias.findOne({_name: deckNameFormatted, _server: server}, function(err, deckSearchRes){
+                if (deckSearchRes){
+                    callback("Found from deck name")
+                    user.find(findingUserQuery, function(err, userResult){
+                        if (userResult){
+                            user.updateOne(idQuery, singleArgAddToSett, function(err, addingResult){
+                                if (addingResult){
+                                    callback("Successfully added " + "**"+deckNameFormatted+"**"
+                                    + " to " + "**"+receivedMessage.author.username+"**" + "'s profile")
+                                }
+                                else{
+                                    callback("Error adding deck")
+                                }
+                            })
+                        }
+                        else{
+                            callback("Error finding user")
+                        }
+                    })
                 }
                 else{
-                    callback("Can't find Alias Res")
+                    callback("Error. Try again with the format !use <DeckName> | <Alias>. Ex: !use Godo | Godo.")
                 }
             })
         }
-        deck.findOne(deckQuery, function(err, firstres){
-            if (firstres){
-                user.findOne(userQuery, function(err, res){
-                    if (res){
-                        name = firstres._name.toString()
-                        let toSet = {$set: {_currentDeck: name}}
-                        let addToArray = {$addToSet: {_deck: [{'_id': 0,'Deck': cleanedArg, "Wins":0, "Losses":0}]}}
-                        user.updateOne(updateQuery, toSave, function(err, res){
-                            if (res){
-                                callback(name)
-                            }
-                            else{
-                                callback("Error: 3")
-                            }
-                        })
-                    }
-                    else{
-                        callback("Error: 2")
-                    }
-                })
-            }
-            else{
-                var deckSave = new deck()
-                callback("Error: 1")
-            }
-        })
+        else if (splitArgs[1] == undefined || splitArgs.length > 2){
+            callback("Error. Try again with the format !use <DeckName> | <Alias>. Ex: !use Godo | Godo.")
+        }
+        else{
+            alias.findOne({_name: aliasNameFormatted, _server: server}, function(err, aliasSearchRes){
+                if (aliasSearchRes){
+                    callback("Found from alias name")
+                }
+                else{
+                }
+            })
+        }
+        // deck.findOne(deckQuery, function(err, firstres){
+        //     if (firstres){
+        //         user.findOne(userQuery, function(err, res){
+        //             if (res){
+        //                 name = firstres._name.toString()
+        //                 let toSet = {$set: {_currentDeck: name}}
+        //                 let addToArray = {$addToSet: {_deck: [{'_id': 0,'Deck': cleanedArg, "Wins":0, "Losses":0}]}}
+        //                 user.updateOne(updateQuery, toSave, function(err, res){
+        //                     if (res){
+        //                         callback(name)
+        //                     }
+        //                     else{
+        //                         callback("Error: 3")
+        //                     }
+        //                 })
+        //             }
+        //             else{
+        //                 callback("Error: 2")
+        //             }
+        //         })
+        //     }
+        //     else{
+        //         callback("Error: 1")
+        //     }
+        // })
     }
 }
