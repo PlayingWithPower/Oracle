@@ -1,3 +1,6 @@
+const { User } = require('discord.js')
+const { find } = require('../Schema/Users')
+
 /**
  * League Object
  *
@@ -26,8 +29,13 @@ module.exports = {
         const user = require('../Schema/Users')
 
         let findQuery = {
-            _id: "<@!" + receivedMessage.author.id+ ">",
-            _server: receivedMessage.guild.id, _season: "1", 
+            _mentionValue: "<@!" + receivedMessage.author.id+ ">",
+            _server: receivedMessage.guild.id,
+        }
+        let toSave = {
+            _mentionValue: "<@!" + receivedMessage.author.id+ ">",
+            _server: receivedMessage.guild.id,
+            _season: "1", 
             _name : receivedMessage.author.username, 
             _currentDeck: "None", 
             _elo : 1000, _wins : 0, _losses : 0,
@@ -39,13 +47,12 @@ module.exports = {
             }
         }
         //console.log(receivedMessage.guild.id)
-        user.findOne({findQuery}, function(err, res){
+        user.findOne(findQuery, function(err, res){
             if (res){
                 callback("2")
             }
             else{
-                var something = new user(findQuery)
-                something.save(function(err, result){
+               user(toSave).save(function(error, result){
                     if(result){
                         callback("1")
                     }
