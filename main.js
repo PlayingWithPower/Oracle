@@ -53,7 +53,7 @@ client.on('message', (receivedMessage) =>{
     else{
         let currentChannel =  client.channels.cache.get()
     }
-    deckObj.populateDecks(getChannelID(receivedMessage).id)
+    deckObj.populateDecks(getChannelID(receivedMessage))
 })
 /**
  * TODO: 

@@ -141,13 +141,13 @@ module.exports = {
         var internalIndex = 0;
         
         for (i = 0; i < aliasListArray.length; i++){
-            let deckAliasQuery = {'_alias': aliasListArray[i].toLowerCase()}
+            let deckAliasQuery = {'_alias': aliasListArray[i].toLowerCase(), '_server': serverID}
             deck.findOne(deckAliasQuery, function(err, res){
                 if (res){
                     //console.log("Populate already ran... ignore this if NOT first set up. Large error if this prints out on first set up. Will print out a few times")
                 }
                 else{
-                        let deckSave = {'_link': deckListArray[internalIndex], '_name': aliasListArray[internalIndex], '_alias': aliasListArray[internalIndex].toLowerCase(), '_user': "Discord Bot", '_server': "PWP", '_season': "1"}
+                        let deckSave = {'_link': deckListArray[internalIndex], '_name': aliasListArray[internalIndex], '_alias': aliasListArray[internalIndex].toLowerCase(), '_user': "Discord Bot", '_server': serverID, '_season': "1"}
                         deck(deckSave).save(function(err, res){
                             if (res){
                                 //console.log(deckListArray[i])
