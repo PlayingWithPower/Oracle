@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 var user = new mongoose.Schema({
-    _id: String,
+    _mentionValue: String,
     _server: String,
     _season: String,
     _name: String,
