@@ -467,7 +467,6 @@ function startMatch(receivedMessage, args){
         generalChannel.send(">>> **Error**: Submit only the 3 players who lost in the pod")
         return
     }
-    /**
     // Make sure every user in message (and message sender) are different users [Block out if testing]
     var tempArr = args
     tempArr.push(sanitizedString)
@@ -475,7 +474,6 @@ function startMatch(receivedMessage, args){
         generalChannel.send(">>> **Error**: You can't log a match with duplicate players")
         return
     }
-    */
 
     // Check if User who sent the message is registered
     let findQuery = {_mentionValue: sanitizedString}
