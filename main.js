@@ -84,35 +84,38 @@ async function manageReaction(reaction, user) {
         if (sanitizedString !=  msg[5]){
             return
         }
-        const result = await gameObj.confirmMatch(msg[3], sanitizedString).catch((message) => {
-        })
-        if (result == "SUCCESS"){
-            const next = await gameObj.checkMatch(msg[3]).catch((message) => {
-            })
-            if (next == "SUCCESS") {
-                const final = await gameObj.logMatch(msg[3]).catch((message) => {
-                    console.log("PROBLEM: " + message)
-                    return
-                })
-                let generalChannel = getChannelID(reaction.message)
-                
-                const result = await gameObj.finishMatch(msg[3]).catch((message) => {
-                    console.log("Finishing Game #" + msg[3] + " failed.")
-                })
+        //const result = await gameObj.confirmMatch(msg[3], sanitizedString).catch((message) => {
+        //})
+        gameObj.confirmMatch(msg[3], sanitizedString).then(function() {
+                gameObj.checkMatch(msg[3]).then(function(next) {
+                    if (next == "SUCCESS") {
+                        gameObj.logMatch(msg[3]).then(function(final) {
+                            gameObj.finishMatch(msg[3]).then(function(){
+                                let generalChannel = getChannelID(reaction.message)
 
-                generalChannel.send(">>> Match logged!")
-                final.forEach(message => {
-                    generalChannel.send(">>> " + message)
-                })
-                return
-            }
-            else {
-                return
-            }
-        }
-        else {
+                                generalChannel.send(">>> Match logged!")
+                                final.forEach(message => {
+                                    generalChannel.send(">>> " + message)
+                                })
+                                console.log("Game #" + msg[3] + " success")
+                                return
+                            }).catch((message) => {
+                                console.log("Finishing Game #" + msg[3] + " failed. ERROR:", message)
+                                })
+
+                        }).catch((message) => {
+                            console.log("ERROR: " + message)
+                            return
+                            })
+                    }
+                }).catch((message) => {
+                    console.log("ERROR: " + message)
+                    return
+                    })
+        }).catch((message) => {
+            console.log("ERROR: " + message)
             return
-        }
+            })
     }
     else if ((msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
         if (sanitizedString !=  msg[5]){
