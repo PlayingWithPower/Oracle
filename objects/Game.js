@@ -14,11 +14,93 @@ const percentageToGain = 0.030
 
 module.exports = {
 
+    logMatch(id) {
+        const games = require('../Schema/Games')
+        const users = require('../Schema/Users')
+
+        
+        let confirm = 0
+        let playerArr = []
+        let resolveArr = []
+
+        return new Promise((resolve, reject) => {
+            let findQuery = {_match_id: id, _Status: "STARTED"}
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    playerArr.push(res._player1)
+                    playerArr.push(res._player2)
+                    playerArr.push(res._player3)
+                    playerArr.push(res._player4)
+                    let playerTrack = 0
+
+                    playerArr.forEach(player => {
+                        playerTrack++
+                        findQuery = {_mentionValue: player}
+                        users.findOne(findQuery, function(err, res) {
+                            if (res) {
+                                // Deck W/L Handling
+                                tempArr = res._deck
+                                console.log(tempArr)
+                                tempArr.forEach(deck => {
+                                    if (deck.Deck == res._currentDeck){
+                                        if (playerTrack == 1) {
+                                            deck.Wins += 1
+                                        }
+                                        else {
+                                            deck.Losses += 1
+                                        }
+                                    }
+                                })
+
+                                // Elo Handling
+                                var newVal
+                                var change
+                                let newWins = res._wins
+                                let newLosses = res._losses
+                                if (playerTrack == 1) {
+                                    newWins += 1
+                                    newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
+                                    change = Math.round(Number(res._elo)*(percentageToLose))
+                                }
+                                else {
+                                    newLosses += 1
+                                    newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToGain))
+                                    change = Math.round(Number(res._elo)*(percentageToGain))
+                                }
+                                
+
+                                newInfo = { $set: {_elo: newVal, _wins: newWins, _losses: newLosses, _deck: tempArr}}
+                                users.updateOne(findQuery, newInfo, function(err, res) {
+                                    if (res) {
+                                        confirm += 1
+                                        resolveArr.push("**" + player + "**'s Score " + newVal + " (-" + change + ")")
+                                        if (confirm >= 4) {
+                                            resolve(resolveArr)
+                                        }
+                                    }
+                                    else {
+                                        reject('SET FAIL')
+                                    }
+                                })
+                            }
+                            else {
+                                reject('PLAYER NOT FOUND')
+                            }
+                        })
+                    })
+                }
+                else {
+                    reject('NO GAME')
+                }
+            })
+        })
+    },
+
     /**
      * Logs a new match to the season.
      * TODO: Change specific deck w/l
      */
-    logMatch(id) {
+    oldLogMatch(id) {
         const games = require('../Schema/Games')
         const users = require('../Schema/Users')
 
