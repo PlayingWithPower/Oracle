@@ -170,6 +170,9 @@ function processCommand(receivedMessage){
         case "profile":
             profile(receivedMessage, arguments)
             break;
+        case "recent":
+            recent(receivedMessage, arguments)
+            break;
         case "use":
             use(receivedMessage, arguments)
             break;
@@ -327,6 +330,9 @@ function current(receivedMessage, args){
             generalChannel.send(profileEmbed)
         }
     })
+}
+function recent(receivedMessage, args) {
+    userObj.recent(receivedMessage)
 }
 function listUserDecks(channel){
 
