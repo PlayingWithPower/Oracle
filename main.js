@@ -360,7 +360,11 @@ async function recent(receivedMessage, args) {
     let generalChannel = getChannelID(receivedMessage)
     let tempEmbed
 
+    //Log only 3 most recent matches
+    matches_arr = matches_arr.slice(0,3)
     matches_arr.forEach(async(match) => {
+        var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
+
         const bot = await getUserFromMention('<@!717073766030508072>')
         const winner = await getUserFromMention(match[4])
         const loser1 = await getUserFromMention(match[5])
@@ -368,10 +372,11 @@ async function recent(receivedMessage, args) {
         const loser3 = await getUserFromMention(match[7])
         tempEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
-            .setTitle('Game #' + match[1])
+            .setTitle('Game ID: ' + match[1])
             .setThumbnail(getUserAvatarUrl(winner))
-            .setDescription('Season: ' + match[3] + '.\n Time: ' + match[0])
             .addFields(
+                {name: 'Season: ', value: match[3], inline: true},
+                {name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
                 { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**'},
                 { name: 'Opponents:', value: 
                 '**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
