@@ -160,8 +160,8 @@ module.exports = {
         let findingUserQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">", _server: receivedMessage.guild.id}
         let idQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">"}
 
-        let addToSet = {$addToSet: {_deck: [{'_id': 0,'Deck': deckNameFormatted, "Alias": aliasNameFormatted, "Wins":0, "Losses":0}]}}
-        let singleArgAddToSett = {_currentDeck:deckNameFormatted, $addToSet: {_deck: [{'_id': 1,'Deck': deckNameFormatted, "Alias": deckNameFormatted, "Wins":0, "Losses":0}]}}
+        let addToSet = {_currentDeck: aliasNameFormatted, $addToSet: {_deck: [{'_id': 0,'Deck': deckNameFormatted, "Alias": aliasNameFormatted, "Wins":0, "Losses":0}]}}
+        let singleArgAddToSett = {_currentDeck: deckNameFormatted, $addToSet: {_deck: [{'_id': 1,'Deck': deckNameFormatted, "Alias": deckNameFormatted, "Wins":0, "Losses":0}]}}
 
         let updateCurrent = {_currentDeck: aliasNameFormatted}
         let singleArgUpdateCurrent = {_currentDeck: deckNameFormatted}
@@ -172,44 +172,46 @@ module.exports = {
         if (splitArgs.length == 1){
             user.findOne(findingUserQuery, function(err, userResult){
                 if (userResult){
-                    alias.findOne(singleArgAliasFindQuery, function(err, aliasSearchRes){
-                        if (aliasSearchRes){
-                            user.findOne(singleArgDupQuery, function(err, checkDupResult){
-                                if (checkDupResult){
-                                    user.updateOne(idQuery, singleArgUpdateCurrent, function(err, addingResult){
-                                        if (addingResult){
-                                            let callBackArray = new Array();
-                                            callBackArray.push("4")
-                                            callBackArray.push(deckNameFormatted)
-                                            callback(callBackArray)
-                                        }else{
-                                            callback("3")
-                                        }
-                                    }) 
-                                }
-                                else{
-                                    user.updateOne(idQuery, singleArgAddToSett, function(err, addingResult){
-                                        if (addingResult){
-                                            let callBackArray = new Array();
-                                            callBackArray.push("4")
-                                            callBackArray.push(deckNameFormatted)
-                                            callback(callBackArray)
-                                        }else{
-                                            callback("3")
-                                        }
-                                    }) 
-                                }
-                            })
-                             
-                        }
-                        else{
-                            let callBackArray = new Array();
-                            callBackArray.push("2")
-                            callBackArray.push(deckNameFormatted)
-                            callback(callBackArray)
-                        }
-                    })
-                    
+                    if (splitArgs[0] == "rogue"){
+                        callback("5")
+                    }else{
+                        alias.findOne(singleArgAliasFindQuery, function(err, aliasSearchRes){
+                            if (aliasSearchRes){
+                                user.findOne(singleArgDupQuery, function(err, checkDupResult){
+                                    if (checkDupResult){
+                                        user.updateOne(idQuery, singleArgUpdateCurrent, function(err, addingResult){
+                                            if (addingResult){
+                                                let callBackArray = new Array();
+                                                callBackArray.push("4")
+                                                callBackArray.push(deckNameFormatted)
+                                                callback(callBackArray)
+                                            }else{
+                                                callback("3")
+                                            }
+                                        }) 
+                                    }
+                                    else{
+                                        user.updateOne(idQuery, singleArgAddToSett, function(err, addingResult){
+                                            if (addingResult){
+                                                let callBackArray = new Array();
+                                                callBackArray.push("4")
+                                                callBackArray.push(deckNameFormatted)
+                                                callback(callBackArray)
+                                            }else{
+                                                callback("3")
+                                            }
+                                        }) 
+                                    }
+                                })
+                            }
+                            else{
+                                let callBackArray = new Array();
+                                callBackArray.push("2")
+                                callBackArray.push(deckNameFormatted)
+                                callback(callBackArray)
+                            }
+                        })
+                    }
                 }else{
                     callback("1")
                 }
@@ -224,7 +226,19 @@ module.exports = {
                     alias.findOne(aliasFindQuery, function(err, aliasSearchRes){
                         if (aliasSearchRes){
                             user.findOne(dupQuery, function(err, checkDupResult){
-                                if (checkDupResult){
+                                if (splitArgs[1] == "rogue"){
+                                    user.updateOne(idQuery, addToSet, function(err, addingResult){
+                                        if (addingResult){
+                                            let callBackArray = new Array();
+                                            callBackArray.push("4")
+                                            callBackArray.push(aliasNameFormatted)
+                                            callback(callBackArray)
+                                        }else{
+                                            callback("3")
+                                        }
+                                    }) 
+                                }
+                                else if (checkDupResult){
                                     user.updateOne(idQuery, updateCurrent, function(err, addingResult){
                                         if (addingResult){
                                             let callBackArray = new Array();
@@ -237,16 +251,10 @@ module.exports = {
                                     }) 
                                 }
                                 else{
-                                    user.updateOne(idQuery, addToSet, function(err, addingResult){
-                                        if (addingResult){
-                                            let callBackArray = new Array();
-                                            callBackArray.push("4")
+                                    let callBackArray = new Array();
+                                            callBackArray.push("5")
                                             callBackArray.push(aliasNameFormatted)
                                             callback(callBackArray)
-                                        }else{
-                                            callback("3")
-                                        }
-                                    }) 
                                 }
                             })
                              

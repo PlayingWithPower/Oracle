@@ -287,6 +287,18 @@ function use(receivedMessage, args){
                 .setDescription("Successfully set " + "**"+callback[1]+"**"+ " as the Current Deck for " + "<@!" + receivedMessage.author.id + ">")
                 generalChannel.send(useEmbed)
             }
+            else if (callback == "5"){
+                useEmbed
+                .setColor("#af0000") //green
+                .setDescription("Please provide a deck name to differentiate between your 'Rogue' decks. Try !use <deckname> | Rogue")
+                generalChannel.send(useEmbed)
+            }
+            else if (callback[0] == "5"){
+                useEmbed
+                .setColor("#af0000") //green
+                .setDescription("You are attempting to use a registered alias: " + "**" + callback[1] + "**" + ". Please try !use <deckname> | Rogue if your list deviates greatly from the primer. Otherwise, try !use " + "**" + callback[1]+"**")
+                generalChannel.send(useEmbed)
+            }
     });
 }
 function current(receivedMessage, args){
