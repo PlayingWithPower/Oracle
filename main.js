@@ -29,7 +29,7 @@ client.on('ready', (on) =>{
         status: 'online'
     })
   
-    deckObj.populateDecks()
+    
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.id)
@@ -53,6 +53,7 @@ client.on('message', (receivedMessage) =>{
     else{
         let currentChannel =  client.channels.cache.get()
     }
+    deckObj.populateDecks(receivedMessage)
 })
 /**
  * TODO: 
@@ -67,53 +68,55 @@ client.on('messageReactionAdd', (reaction, user) => {
  * 
  * This is the async manager function for whenever a reaction is submitted. 
  * Atm it only cares about upvotes and downvotes on Game messages
+ * 
+ * TODO: Confirm with current deck user is using
  */
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
     let sanitizedString = "<@!"+user.id+">"
-    let limit = 0
+    
     // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
     if (reaction.message.author.id != "717073766030508072") {
         return
     }
+
+    // Game Block
     if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.id != "717073766030508072") {
         if (sanitizedString !=  msg[5]){
-            console.log("not the right user")
             return
         }
-        const result = await gameObj.confirmMatch(msg[3], sanitizedString).catch((message) => {
-        })
-        if (result == "SUCCESS"){
-            const next = await gameObj.checkMatch(msg[3]).catch((message) => {
-                console.log("Game #" + msg[3] + " not finished")
-            })
-            console.log(next)
-            if (next == "SUCCESS") {
-                console.log(next)
-                const final = await gameObj.logMatch(msg[3]).catch((message) => {
-                    console.log("PROBLEM: " + message)
-                    return
-                })
-                console.log(final)
-                let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-                
-                const result = await gameObj.finishMatch(msg[3]).catch((message) => {
-                    console.log("Finishing Game #" + msg[3] + " failed.")
-                })
+        //const result = await gameObj.confirmMatch(msg[3], sanitizedString).catch((message) => {
+        //})
+        gameObj.confirmMatch(msg[3], sanitizedString).then(function() {
+                gameObj.checkMatch(msg[3]).then(function(next) {
+                    if (next == "SUCCESS") {
+                        gameObj.logMatch(msg[3]).then(function(final) {
+                            gameObj.finishMatch(msg[3]).then(function(){
+                                let generalChannel = getChannelID(reaction.message)
 
-                generalChannel.send(">>> Match logged!")
-                final.forEach(message => {
-                    generalChannel.send(">>> " + message)
-                })
-                return
-            }
-            else {
-                return
-            }
-        }
-        else {
+                                generalChannel.send(">>> Match logged!")
+                                final.forEach(message => {
+                                    generalChannel.send(">>> " + message)
+                                })
+                                console.log("Game #" + msg[3] + " success")
+                                return
+                            }).catch((message) => {
+                                console.log("Finishing Game #" + msg[3] + " failed. ERROR:", message)
+                                })
+
+                        }).catch((message) => {
+                            console.log("ERROR: " + message)
+                            return
+                            })
+                    }
+                }).catch((message) => {
+                    console.log("ERROR: " + message)
+                    return
+                    })
+        }).catch((message) => {
+            console.log("ERROR: " + message)
             return
-        }
+            })
     }
     else if ((msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
         if (sanitizedString !=  msg[5]){
@@ -124,13 +127,15 @@ async function manageReaction(reaction, user) {
             console.log("Closing Game #" + msg[3] + " failed.")
         })
         if (result == 'SUCCESS'){
-            let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+            let generalChannel = getChannelID(reaction.message)
             generalChannel.send(">>> " + msg[5] + " cancelled the Match Log")
         }
         else {
             return
         }
     }
+    //end of game block
+
     else {
         return
     }
@@ -160,8 +165,6 @@ function processCommand(receivedMessage){
             users(receivedMessage, arguments)
             break;
         case "log":
-            //logLosers(receivedMessage, arguments)
-            //logMatch(receivedMessage, arguments)
             startMatch(receivedMessage, arguments)
             break;
         case "profile":
@@ -457,61 +460,76 @@ async function logLosers(receivedMessage, args){
    
 }
 /**
- * TODO: Make sure there are no duplicate users in message
+ * TODO: 
  */
 function startMatch(receivedMessage, args){
     const user = require('./Schema/Users')
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    let generalChannel = client.channels.cache.get(receivedMessage.channel.id)
 
+    let sanitizedString = "<@!"+receivedMessage.author.id+">"
     const UserIDs = new Array()
 
-    //Generates random 8 char string
+    //Generates random 4 char string for id
     let s4 = () => {
-        return Math.floor((1 + Math.random()) * 0x10000000).toString(16).substring(1);
+        return Math.floor((1 + Math.random()) * 0x1000).toString(16).substring(1);
     }
-    let id = s4() + s4()
+    let id = s4() + s4() + s4() + s4()
 
     // Check to make sure the right amount of users tagged
     if (args.length < 3 || args.length > 3) {
         generalChannel.send(">>> **Error**: Submit only the 3 players who lost in the pod")
         return
     }
+    // Make sure every user in message (and message sender) are different users [Block out if testing]
+    var tempArr = args
+    tempArr.push(sanitizedString)
+    if (gameObj.hasDuplicates(tempArr)){
+        generalChannel.send(">>> **Error**: You can't log a match with duplicate players")
+        return
+    }
 
     // Check if User who sent the message is registered
-    let sanitizedString = "<@!"+receivedMessage.author.id+">"
-    let findQuery = {'_id': sanitizedString}
+    let findQuery = {_mentionValue: sanitizedString}
     user.findOne(findQuery, function(err, res){
         if (res){
+            // Check if user who sent the message has a deck used
+            if (res._currentDeck == "None") {
+                generalChannel.send(">>> **Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
+                return
+            }
             UserIDs.push(sanitizedString)
-            console.log("Winner Found")
 
             // Check if Users tagged are registered
             let ConfirmedUsers = 0
             args.forEach(loser =>{
-                let findQuery = {_id: loser.toString()}
+                let findQuery = {_mentionValue: loser.toString()}
                 user.findOne(findQuery, function(err, res){
                     if (res){
-                        console.log("Loser Found")
+                        // Check if users tagged have a deck used
+                        if (res._currentDeck == "None") {
+                            generalChannel.send(">>> **Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
+                            return
+                        }
                         UserIDs.push(loser)
                         ConfirmedUsers++
                         if (ConfirmedUsers == 3){
                             // Double check UserID Array then create match and send messages
                             if (UserIDs.length != 4){
-                                console.log("Not enough Players")
+                                generalChannel.send(">>> **Error:** Code 300")
                                 return
                             }
                             else{
                                 gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, function(cb, err){
                                     if (cb == "FAILURE"){
-                                        console.log("Game creation failed")
+                                        generalChannel.send(">>> **Error:** Code 301")
                                         return
                                     }
                                     else {
                                         console.log("Game Created")
                                         UserIDs.forEach(player => {
-                                            findQuery = {'_id': player}
+                                            findQuery = {_mentionValue: player}
                                             user.findOne(findQuery, function(err, res){
-                                                generalChannel.send(">>> Game ID: " + id + " - " + res._id + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
+                                                generalChannel.send(">>> Game ID: " + id + " - " + res._mentionValue + " used **" + res._currentDeck + "**, upvote to confirm this game or downvote to contest. ")
                                                     .then(function (message, callback){
                                                     const filter = (reaction, user) => {
                                                         return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
@@ -528,16 +546,14 @@ function startMatch(receivedMessage, args){
                         }
                     }
                     else{
-                        console.log("Loser not found")
-                        console.log(loser)
+                        generalChannel.send(">>> **Error**: " + loser + " isn't registered, type !register")
                         return
                     }
                 })
             })
         }
         else{
-            console.log("Winner not found")
-            console.log(sanitizedString)
+            generalChannel.send(">>> **Error**: " + sanitizedString + " isn't registered, type !register")
             return
         }
     })
