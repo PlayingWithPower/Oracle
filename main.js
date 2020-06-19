@@ -331,8 +331,55 @@ function current(receivedMessage, args){
         }
     })
 }
-function recent(receivedMessage, args) {
-    userObj.recent(receivedMessage)
+function getUserAvatarUrl(user) {
+    return "https://cdn.discordapp.com/avatars/" + user.id + "/" + user.avatar + ".png"
+}
+function getUserFromMention(mention) {
+	if (!mention) return;
+
+	if (mention.startsWith('<@') && mention.endsWith('>')) {
+		mention = mention.slice(2, -1);
+
+		if (mention.startsWith('!')) {
+			mention = mention.slice(1);
+		}
+		return client.users.fetch(mention)
+	}
+}
+/**
+ * 
+ * @param {Discord Message Obj} receivedMessage 
+ * @param {*} args
+ * 
+ * TODO: Fix date formatting
+ * TODO: Fix Bot avatar image
+ *  
+ */
+async function recent(receivedMessage, args) {
+    var matches_arr = await userObj.recent(receivedMessage)
+    let generalChannel = getChannelID(receivedMessage)
+    let tempEmbed
+
+    let winner
+
+    matches_arr.forEach(async(match) => {
+        const bot = await getUserFromMention('<@!717073766030508072>')
+        const winner = await getUserFromMention(match[4])
+        const loser1 = await getUserFromMention(match[5])
+        const loser2 = await getUserFromMention(match[6])
+        const loser3 = await getUserFromMention(match[7])
+        tempEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle('Game #' + match[1])
+            .setAuthor('PWP Bot', getUserAvatarUrl(bot))
+            .setThumbnail(getUserAvatarUrl(winner))
+            .setDescription('Season: ' + match[3] + '.\n Time: ' + match[0])
+            .addFields(
+                { name: 'Winner:', value: winner.username + ' piloting ' + match[8]},
+                { name: 'Opponents:', value: loser1.username + ' piloting ' + match[9] + '\n' + loser2.username + ' piloting ' + match[10] + '\n' + loser3.username + ' piloting ' + match[11] }
+            )
+        generalChannel.send(tempEmbed)
+    })
 }
 function listUserDecks(channel){
 

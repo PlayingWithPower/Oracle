@@ -25,41 +25,52 @@ module.exports = {
             callback(res)
         })
     },
+    sortFunction(a, b) {
+        if (a[0] === b[0]) {
+            return 0;
+        }
+        else {
+            return (a[0] < b[0]) ? -1 : 1;
+        }
+    },
   
     /**
      * 
      * @param {Discord Message Object} message 
      * 
-     * @returns {2D Array} Array of match Arrays.
+     * @returns {2D Array} Array of match Arrays sorted from most recent to least recent.
      * TODO: Server implementation
      */
     recent(message) {
         gameArr = []
         const games = require('../Schema/Games')
         id = "<@!"+message.author.id+">"
-        findQuery = {$and : [
+        return new Promise((resolve, reject) => {
+            findQuery = {$and : [
+                                    {
+                                        $or: [
+                                            {_player1: id},
+                                            {_player2: id},
+                                            {_player3: id},
+                                            {_player4: id}
+                                        ]
+                                },
                                 {
-                                    $or: [
-                                        {_player1: id},
-                                        {_player2: id},
-                                        {_player3: id},
-                                        {_player4: id}
-                                    ]
-                            },
-                            {
-                                _Status: "FINISHED"
-                            }
-                    ]
-        }
-        console.log("Search Started")
-        games.find(findQuery).then((docs) => {
-            docs.forEach((doc) => {
-                gameArr.push([doc._match_id, doc._server, doc._season, doc._player1, doc._player2, doc._player3, doc._player4, doc._player1Deck, doc._player2Deck, doc._player3Deck, doc._player4Deck, doc._Status, doc._player1Confirmed, doc._player2Confirmed, doc._player3Confirmed, doc._player4Confirmed,])
+                                    _Status: "FINISHED"
+                                }
+                        ]
+            }
+            games.find(findQuery).then((docs) => {
+                docs.forEach((doc) => {
+                    timestamp = doc._id.toString().substring(0,8)
+                    date = new Date( parseInt( timestamp, 16 ) * 1000)
+                    gameArr.push([date, doc._match_id, doc._server, doc._season, doc._player1, doc._player2, doc._player3, doc._player4, doc._player1Deck, doc._player2Deck, doc._player3Deck, doc._player4Deck, doc._Status, doc._player1Confirmed, doc._player2Confirmed, doc._player3Confirmed, doc._player4Confirmed,])
+                });
+            }).then(function() {
+                gameArr.sort(module.exports.sortFunction)
+                resolve(gameArr)
             });
-        }).then(function() {
-            return(gameArr)
-        });
-        console.log("Search ended")
+        })
 
     },
     /**
