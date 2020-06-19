@@ -360,8 +360,6 @@ async function recent(receivedMessage, args) {
     let generalChannel = getChannelID(receivedMessage)
     let tempEmbed
 
-    let winner
-
     matches_arr.forEach(async(match) => {
         const bot = await getUserFromMention('<@!717073766030508072>')
         const winner = await getUserFromMention(match[4])
@@ -371,12 +369,14 @@ async function recent(receivedMessage, args) {
         tempEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
             .setTitle('Game #' + match[1])
-            .setAuthor('PWP Bot', getUserAvatarUrl(bot))
             .setThumbnail(getUserAvatarUrl(winner))
             .setDescription('Season: ' + match[3] + '.\n Time: ' + match[0])
             .addFields(
-                { name: 'Winner:', value: winner.username + ' piloting ' + match[8]},
-                { name: 'Opponents:', value: loser1.username + ' piloting ' + match[9] + '\n' + loser2.username + ' piloting ' + match[10] + '\n' + loser3.username + ' piloting ' + match[11] }
+                { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**'},
+                { name: 'Opponents:', value: 
+                '**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
+                + '**'+loser2.username+'**'+ ' piloting ' + '**'+match[10]+'**' + '\n' 
+                + '**'+loser3.username+'**'+ ' piloting ' + '**'+match[11]+'**' }
             )
         generalChannel.send(tempEmbed)
     })
