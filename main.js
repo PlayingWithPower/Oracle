@@ -525,7 +525,6 @@ function startMatch(receivedMessage, args){
                                         return
                                     }
                                     else {
-                                        console.log("Game Created")
                                         UserIDs.forEach(player => {
                                             findQuery = {_mentionValue: player}
                                             user.findOne(findQuery, function(err, res){

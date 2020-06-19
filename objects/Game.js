@@ -328,7 +328,22 @@ module.exports = {
     },
     /**
      * Creates match
+     * TODO: Add server functionality
      */
+    findUserDeck(id){
+        const user = require('../Schema/Users')
+        return new Promise((resolve, reject) => {
+            findQuery = {_mentionValue: id}
+            user.findOne(findQuery, function(err, res) {
+                if (res) {
+                    resolve(res._currentDeck)
+                }
+                else {
+                    reject('ERROR')
+                }
+            })
+        })
+    },
     createMatch(player1, player2, player3, player4, id, callback) {
         const game = require('../Schema/Games')
         const user = require('../Schema/Users')
@@ -339,43 +354,45 @@ module.exports = {
         let deck4
 
         //Get Decks
-        //Player 1
-        findQuery = {_mentionValue: player1}
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                deck1 = res._currentDeck
-            }
-        })
-        //Player 2
-        findQuery = {_mentionValue: player2}
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                deck2 = res._currentDeck
-            }
-        })
-        //Player 3
-        findQuery = {_mentionValue: player3}
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                deck3 = res._currentDeck
-            }
-        })
-        //Player 4
-        findQuery = {_mentionValue: player4}
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                deck4 = res._currentDeck
-            }
-        })
-        game({_match_id: id, _server: "PWP", _season: "1", _player1: player1, _player2: player2, _player3: player3, _player4: player4, _player1Deck: deck1, _player2Deck: deck2, _player3Deck: deck3, _player4Deck: deck4, _Status: "STARTED", _player1Confirmed: "N", _player2Confirmed: "N", _player3Confirmed: "N", _player4Confirmed: "N"}).save(function(err, result){
-            if (result){
-                console.log("Successfully created Game #" + id)
-                callback("SUCCESS")
-            }
-            else {
-                console.log("Game creation failed for Game #" + id)
-                callback("FAILURE")
-            }
+        promiseArr = []
+
+        promiseArr.push(module.exports.findUserDeck(player1))
+        promiseArr.push(module.exports.findUserDeck(player2))
+        promiseArr.push(module.exports.findUserDeck(player3))
+        promiseArr.push(module.exports.findUserDeck(player4))
+
+        Promise.all(promiseArr).then(function() {
+            deck1 = arguments[0][0]
+            deck2 = arguments[0][1]
+            deck3 = arguments[0][2]
+            deck4 = arguments[0][3]
+            game({
+                    _match_id: id, 
+                    _server: "PWP Server", 
+                    _season: "1", 
+                    _player1: player1, 
+                    _player2: player2, 
+                    _player3: player3, 
+                    _player4: player4, 
+                    _player1Deck: deck1, 
+                    _player2Deck: deck2, 
+                    _player3Deck: deck3, 
+                    _player4Deck: deck4, 
+                    _Status: "STARTED", 
+                    _player1Confirmed: "N", 
+                    _player2Confirmed: "N", 
+                    _player3Confirmed: "N", 
+                    _player4Confirmed: "N"
+                }).save(function(err, result){
+                if (result){
+                    console.log("Successfully created Game #" + id)
+                    callback("SUCCESS")
+                }
+                else {
+                    console.log("Game creation failed for Game #" + id)
+                    callback("FAILURE")
+                }
+            })
         })
     },
 
