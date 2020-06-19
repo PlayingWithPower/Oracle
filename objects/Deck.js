@@ -25,7 +25,7 @@ module.exports = {
     listUserDecks() {
         const deck = require('../Schema/Deck')
         deck.find({'_server' : "PWP"}, function(err, res){
-            console.log(res)
+            //console.log(res)
         })
     },
 
@@ -170,5 +170,4 @@ module.exports = {
             })
         }
     }
-    // Test comment
 }
