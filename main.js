@@ -29,7 +29,7 @@ client.on('ready', (on) =>{
         status: 'online'
     })
   
-    deckObj.populateDecks()
+    
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.id)
@@ -53,6 +53,7 @@ client.on('message', (receivedMessage) =>{
     else{
         let currentChannel =  client.channels.cache.get()
     }
+    deckObj.populateDecks(receivedMessage)
 })
 /**
  * TODO: 
@@ -284,6 +285,18 @@ function use(receivedMessage, args){
                 useEmbed
                 .setColor("#5fff00") //green
                 .setDescription("Successfully set " + "**"+callback[1]+"**"+ " as the Current Deck for " + "<@!" + receivedMessage.author.id + ">")
+                generalChannel.send(useEmbed)
+            }
+            else if (callback == "5"){
+                useEmbed
+                .setColor("#af0000") //green
+                .setDescription("Please provide a deck name to differentiate between your 'Rogue' decks. Try !use <deckname> | Rogue")
+                generalChannel.send(useEmbed)
+            }
+            else if (callback[0] == "5"){
+                useEmbed
+                .setColor("#af0000") //green
+                .setDescription("You are attempting to use a registered alias: " + "**" + callback[1] + "**" + ". Please try !use <deckname> | Rogue if your list deviates greatly from the primer. Otherwise, try !use " + "**" + callback[1]+"**")
                 generalChannel.send(useEmbed)
             }
     });
