@@ -179,17 +179,14 @@ function processCommand(receivedMessage){
         case "add":
             addToCollection(receivedMessage, arguments)
             break;
-        case "mydecks":
-            listCollection(receivedMessage,arguments)
-            break;
         case "decks":
             listDecks(responseFormatted)
             break;
         case "decksdetailed":
             listDecksDetailed(responseFormatted);
             break;
-        case "userdecks":
-            listUserDecks(responseFormatted);
+        case "mydecks":
+            listUserDecks(receivedMessage, arguments);
             break;
         case "adddeck":
             addDeck(receivedMessage, arguments);
@@ -328,10 +325,15 @@ function current(receivedMessage, args){
         }
     })
 }
-function listUserDecks(channel){
-
-    channel.send(">>> ")
-
+async function listUserDecks(receivedMessage, args){
+    let channel = getChannelID(receivedMessage)
+    let returnArr = await deckObj.listUserDecks(receivedMessage)
+    let pushingArr =  new Array();
+    console.log(returnArr)
+    console.log(typeof(returnArr))
+    returnArr.forEach(async(deck)=>{
+        console.log(deck._deck)
+    })
 }
 function listDecks(channel){
     deckObj.listDecks(function(callback,err){

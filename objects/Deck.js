@@ -22,10 +22,17 @@ module.exports = {
      * Returns a list of all User submitted decks registered to the server.
      * TODO: filters by server, add in restrictions from above ^ 
      */
-    listUserDecks() {
-        const deck = require('../Schema/Deck')
-        deck.find({'_server' : "PWP"}, function(err, res){
-            console.log(res)
+    listUserDecks(receivedMessage) {
+        const user = require('../Schema/Users')
+        var holderArr = new Array
+        return new Promise((resolve, reject) => {
+            user.find({'_mentionValue': "<@!"+receivedMessage.author.id+">",'_server' : receivedMessage.guild.id}).then((docs) =>{
+                docs.forEach((doc)=>{
+                    holderArr.push(doc)
+                })
+            }).then(function(){
+                resolve(holderArr)
+            })
         })
     },
 
