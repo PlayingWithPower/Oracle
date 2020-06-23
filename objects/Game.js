@@ -9,6 +9,8 @@
  * 3. Commit Match (this puts the match into an accepted status and performs match calculations)
  */
 
+const { DataResolver } = require('discord.js')
+
 const percentageToLose = 0.010
 const percentageToGain = 0.030
 
@@ -344,7 +346,7 @@ module.exports = {
             })
         })
     },
-    createMatch(player1, player2, player3, player4, id, callback) {
+    createMatch(player1, player2, player3, player4, id, receivedMessage, callback) {
         const game = require('../Schema/Games')
         const user = require('../Schema/Users')
 
@@ -368,7 +370,7 @@ module.exports = {
             deck4 = arguments[0][3]
             game({
                     _match_id: id, 
-                    _server: "PWP Server", 
+                    _server: receivedMessage.guild.id, 
                     _season: "1", 
                     _player1: player1, 
                     _player2: player2, 
@@ -399,8 +401,49 @@ module.exports = {
     /**
      * Deletes an unconfirmed match
      */
-    deleteMatch() {
+    deleteMatch(id, receivedMessage) {
+        return new Promise((resolve, reject) => {
+            const games = require('../Schema/Games')
+            server = receivedMessage.guild.id
 
+            let findQuery = {_match_id: id, _server: server}
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    if (res._Status != "FINISHED") {
+                        games.deleteOne(findQuery, function(err, res) {
+                            if (err) throw err;
+                            resolve('SUCCESS')
+                        })
+                    }
+                    else {
+                        resolve('CONFIRM')
+                    }
+                }
+                else {
+                    reject('ERROR')
+                }
+            })
+    })
+    },
+
+    confirmedDeleteMatch(id, receivedMessage) {
+        return new Promise((resolve, reject) => {
+            const games = require('../Schema/Games')
+            server = receivedMessage.guild.id
+
+            let findQuery = {_match_id: id, _server: server}
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    games.deleteOne(findQuery, function(err, res) {
+                        if (err) throw err;
+                        resolve('SUCCESS')
+                    })
+                }
+                else {
+                    reject('ERROR')
+                }
+            })
+        })
     },
 
     /**

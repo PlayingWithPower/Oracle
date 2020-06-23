@@ -135,10 +135,30 @@ async function manageReaction(reaction, user) {
         }
     }
     //end of game block
-
+    //Confirm Delete Match Block
+    else if ((msg.length > 4 && msg[2] == "DELETE" && msg[3] == "MATCH:" && reaction.emoji.name === '👍' && user.id != "717073766030508072")) {
+        if (sanitizedString != msg[7]) {
+            return
+        }
+        var generalChannel = getChannelID(reaction.message)
+        gameObj.confirmedDeleteMatch(msg[5], reaction.message).then((message) => {  
+            generalChannel.send("Successfully deleted Match #" + msg[5])
+            reaction.message.edit(">>> " + msg[7] +" **DELETED MATCH:** " + msg[5])
+        }).catch((message) => {
+            generalChannel.send("Match already deleted")
+        })
+    }
+    else if ((msg.length > 4 && msg[2] == "DELETE" && msg[3] == "MATCH:" && reaction.emoji.name === '👎' && user.id != "717073766030508072")) {
+        if (sanitizedString != msg[7]) {
+            return
+        }
+        reaction.message.edit(">>> " + msg[7] + "**CANCELLED DELETING MATCH #" + msg[5] + "**");
+    }
+    //End of Confirm Delete Match Block
     else {
         return
     }
+    
 }
 function processCommand(receivedMessage){
     let fullCommand = receivedMessage.content.substr(1)
@@ -166,6 +186,9 @@ function processCommand(receivedMessage){
             break;
         case "log":
             startMatch(receivedMessage, arguments)
+            break;
+        case "delete":
+            deleteMatch(receivedMessage, arguments)
             break;
         case "profile":
             profile(receivedMessage, arguments)
@@ -519,7 +542,7 @@ function startMatch(receivedMessage, args){
                                 return
                             }
                             else{
-                                gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, function(cb, err){
+                                gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, receivedMessage, function(cb, err){
                                     if (cb == "FAILURE"){
                                         generalChannel.send(">>> **Error:** Code 301")
                                         return
@@ -557,7 +580,44 @@ function startMatch(receivedMessage, args){
         }
     })
 }
+/**
+ * 
+ * @param {discord message obj} receivedMessage 
+ * @param {array} args Message content beyond command
+ * TODO: Add admin functionality only
+ */
+async function deleteMatch(receivedMessage, args) {
+    var generalChannel = getChannelID(receivedMessage)
+    let sanitizedString = "<@!"+receivedMessage.author.id+">"
 
+    //Catch bad input
+    if (args.length != 1) {
+        generalChannel.send("**Error**: Bad input")
+        return
+    }
+
+    const response = await gameObj.deleteMatch(args[0], receivedMessage).catch((message) => {
+        generalChannel.send("**Error**: Match not found")
+        return
+    })
+    if (response == "SUCCESS") {
+        generalChannel.send("Successfully deleted Match #" + args[0])
+    }
+    else if (response == "CONFIRM") {
+        generalChannel.send(">>> ** DELETE MATCH: ** " + args[0] + " - " + sanitizedString + " This is a finished match, Upvote to confirm, downvote to cancel")
+        .then(function (message, callback){
+            const filter = (reaction, user) => {
+                return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
+            };   
+
+            message.react("👍")
+            message.react("👎")
+        })
+    }
+    else {
+        return
+    }
+}
 function logMatch(receivedMessage, args){
     const user = require('./Schema/Users')
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
