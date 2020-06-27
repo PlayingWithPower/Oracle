@@ -185,6 +185,9 @@ function processCommand(receivedMessage){
         case "decksdetailed":
             listDecksDetailed(responseFormatted);
             break;
+        case "deckstats":
+            deckStats(receivedMessage, arguments);
+            break;
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
@@ -197,6 +200,20 @@ function processCommand(receivedMessage){
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
+}
+function deckStats(receivedMessage,args){
+    deckObj.deckStats(receivedMessage, args, function(callback, err){
+        let generalChannel = getChannelID(receivedMessage)
+        var wins = 0;
+        var losses;
+        callback.forEach(entry =>{
+            wins = wins + 1
+        })
+
+        console.log(wins)
+        
+
+    })
 }
 function toUpper(str) {
     return str

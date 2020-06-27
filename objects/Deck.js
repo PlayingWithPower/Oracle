@@ -39,8 +39,17 @@ module.exports = {
     /**
      * Returns stats about a deck alias
      */
-    deckStats() {
-
+    deckStats(receivedMessage, args, callback) {
+        args = args.join(' ');
+        const matches = require('../Schema/Games')
+        matches.aggregate([
+            {"$match":{"_player1Deck": args}}],
+            function(err, data ) {
+                if ( err )
+                  throw err;
+                callback(data)
+              }
+        );
     },
 
     /**
