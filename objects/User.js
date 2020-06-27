@@ -19,9 +19,7 @@ module.exports = {
             _mentionValue: "<@!"+receivedMessage.author.id+">",
             _server: receivedMessage.guild.id
         }
-        console.log(query)
         user.findOne(query, function(err, res){
-            //console.log(res)
             callback(res)
         })
     },

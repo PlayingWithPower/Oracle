@@ -15,6 +15,7 @@ const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
 const { Cipher } = require('crypto')
+const { type } = require('os')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -454,10 +455,29 @@ function addDeck(receivedMessage, args){
 function profile(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.profile(receivedMessage, args, function(callback, err){
+        var embedOutput;
+        var highest = Number.NEGATIVE_INFINITY;
+        var output;
+        var tmp;
+        for (var i= callback._deck.length-1; i>=1; i--) {
+            tmp = (callback._deck[i].Wins) + (callback._deck[i].Losses);
+            if (tmp > highest){
+                highest = tmp;
+                output = callback._deck[i]
+            }
+        }
+        if (output === undefined || highest == 0){
+            embedOutput = "No Data Yet."
+        }
+        else{
+            embedOutput = output.Deck
+        }
+
         var calculatedWinrate = (callback._wins/((callback._losses)+(callback._wins)))*100
         if (isNaN(calculatedWinrate)){
             calculatedWinrate = 0;
         }
+
         const profileEmbed = new Discord.MessageEmbed()
         .setColor('#0099ff')
             .setURL('')
@@ -469,7 +489,7 @@ function profile(receivedMessage, args){
                 { name: 'Wins', value:  callback._wins, inline: true },
                 { name: 'Losses', value:  callback._losses, inline: true },
                 { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
-                { name: 'Favorite Deck', value: "Update Me", inline: true },
+                { name: 'Favorite Deck', value: embedOutput, inline: true },
             )
         generalChannel.send(profileEmbed)
     });
