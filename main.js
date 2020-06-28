@@ -352,17 +352,35 @@ function getUserFromMention(mention) {
  * @param {Discord Message Obj} receivedMessage 
  * @param {*} args
  * 
- * TODO: Fix date formatting
  * TODO: Fix Bot avatar image
+ * TODO: Fix "Showing X recent matches" line, sounds awkward
  *  
  */
 async function recent(receivedMessage, args) {
-    var matches_arr = await userObj.recent(receivedMessage)
     let generalChannel = getChannelID(receivedMessage)
+    if (args.length == 0) {
+        var matches_arr = await userObj.recent(receivedMessage)
+    }
+    else if (args.length == 1) {
+        if (args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") {
+            generalChannel.send("Use **@[user]** when searching other users recent matches")
+            return
+        }
+        var matches_arr = await userObj.recent(receivedMessage, args[0])
+    }
+    else {
+        generalChannel.send("**Error**: Bad Input")
+        return
+    }
     let tempEmbed
 
     //Log only 3 most recent matches
     matches_arr = matches_arr.slice(0,3)
+    if (matches_arr.length == 0) {
+        generalChannel.send("**Error:** User has no matches in the system")
+        return
+    }
+    generalChannel.send(">>> Showing " + matches_arr.length.toString() + " recent match(es)")
     matches_arr.forEach(async(match) => {
         var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
 

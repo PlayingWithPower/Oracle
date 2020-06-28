@@ -39,10 +39,15 @@ module.exports = {
      * @returns {2D Array} Array of match Arrays sorted from most recent to least recent.
      * TODO: Server implementation
      */
-    recent(message) {
+    recent(message, user = null) {
         gameArr = []
         const games = require('../Schema/Games')
-        id = "<@!"+message.author.id+">"
+        if (user == null) {
+            id = "<@!"+message.author.id+">"
+        }
+        else {
+            id = user
+        }
         return new Promise((resolve, reject) => {
             findQuery = {$and : [
                                     {
@@ -55,6 +60,9 @@ module.exports = {
                                 },
                                 {
                                     _Status: "FINISHED"
+                                },
+                                {
+                                    _server: message.guild.id
                                 }
                         ]
             }
