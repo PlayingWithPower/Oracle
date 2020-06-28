@@ -190,6 +190,9 @@ function processCommand(receivedMessage){
         case "delete":
             deleteMatch(receivedMessage, arguments)
             break;
+        case "info":
+            matchInfo(receivedMessage, arguments)
+            break;
         case "profile":
             profile(receivedMessage, arguments)
             break;
@@ -617,6 +620,31 @@ async function deleteMatch(receivedMessage, args) {
     else {
         return
     }
+}
+
+/**
+ * 
+ * @param {discord message obj} receivedMessage 
+ * @param {array} args 
+ * 
+ * TODO: Print to general channel, currently only logs info about match
+ */
+async function matchInfo(receivedMessage, args) {
+    var generalChannel = getChannelID(receivedMessage)
+    let sanitizedString = "<@!"+receivedMessage.author.id+">"
+
+    //Catch bad input
+    if (args.length != 1) {
+        generalChannel.send("**Error**: Bad input")
+        return
+    }
+
+    const response = await gameObj.matchInfo(args[0], receivedMessage).catch((message) => {
+        generalChannel.send("**Error**: Match not found")
+        return
+    }).then((message) => {
+        console.log(message)
+    })
 }
 function logMatch(receivedMessage, args){
     const user = require('./Schema/Users')

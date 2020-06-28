@@ -449,8 +449,34 @@ module.exports = {
     /**
      * Display info about a match
      */
-    matchInfo() {
+    matchInfo(id, receivedMessage) {
+        let match_id = id
+        let server_id = receivedMessage.guild.id
+        var returnArr = new Array
+        const games = require('../Schema/Games')
 
+        return new Promise((resolve, reject) => {
+            let findQuery = {_match_id: match_id, _server: server_id}
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    returnArr.push(res._match_id)
+                    returnArr.push(res._server)
+                    returnArr.push(res._season)
+                    returnArr.push(res._player1)
+                    returnArr.push(res._player2)
+                    returnArr.push(res._player3)
+                    returnArr.push(res._player4)
+                    returnArr.push(res._player1Deck)
+                    returnArr.push(res._player2Deck)
+                    returnArr.push(res._player3Deck)
+                    returnArr.push(res._player4Deck)
+                    resolve(returnArr)
+                }
+                else {
+                    reject('FAIL')
+                }
+            })
+        })
     },
 
     /**
