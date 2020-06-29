@@ -9,6 +9,8 @@
  * 3. Commit Match (this puts the match into an accepted status and performs match calculations)
  */
 
+const { DataResolver } = require('discord.js')
+
 const percentageToLose = 0.010
 const percentageToGain = 0.030
 
@@ -328,8 +330,23 @@ module.exports = {
     },
     /**
      * Creates match
+     * TODO: Add server functionality
      */
-    createMatch(player1, player2, player3, player4, id, callback) {
+    findUserDeck(id){
+        const user = require('../Schema/Users')
+        return new Promise((resolve, reject) => {
+            findQuery = {_mentionValue: id}
+            user.findOne(findQuery, function(err, res) {
+                if (res) {
+                    resolve(res._currentDeck)
+                }
+                else {
+                    reject('ERROR')
+                }
+            })
+        })
+    },
+    createMatch(player1, player2, player3, player4, id, receivedMessage, callback) {
         const game = require('../Schema/Games')
         const user = require('../Schema/Users')
 
@@ -339,58 +356,127 @@ module.exports = {
         let deck4
 
         //Get Decks
-        //Player 1
-        findQuery = {_mentionValue: player1}
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                deck1 = res._currentDeck
-            }
-        })
-        //Player 2
-        findQuery = {_mentionValue: player2}
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                deck2 = res._currentDeck
-            }
-        })
-        //Player 3
-        findQuery = {_mentionValue: player3}
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                deck3 = res._currentDeck
-            }
-        })
-        //Player 4
-        findQuery = {_mentionValue: player4}
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                deck4 = res._currentDeck
-            }
-        })
-        game({_match_id: id, _server: "PWP", _season: "1", _player1: player1, _player2: player2, _player3: player3, _player4: player4, _player1Deck: deck1, _player2Deck: deck2, _player3Deck: deck3, _player4Deck: deck4, _Status: "STARTED", _player1Confirmed: "N", _player2Confirmed: "N", _player3Confirmed: "N", _player4Confirmed: "N"}).save(function(err, result){
-            if (result){
-                console.log("Successfully created Game #" + id)
-                callback("SUCCESS")
-            }
-            else {
-                console.log("Game creation failed for Game #" + id)
-                callback("FAILURE")
-            }
+        promiseArr = []
+
+        promiseArr.push(module.exports.findUserDeck(player1))
+        promiseArr.push(module.exports.findUserDeck(player2))
+        promiseArr.push(module.exports.findUserDeck(player3))
+        promiseArr.push(module.exports.findUserDeck(player4))
+
+        Promise.all(promiseArr).then(function() {
+            deck1 = arguments[0][0]
+            deck2 = arguments[0][1]
+            deck3 = arguments[0][2]
+            deck4 = arguments[0][3]
+            game({
+                    _match_id: id, 
+                    _server: receivedMessage.guild.id, 
+                    _season: "1", 
+                    _player1: player1, 
+                    _player2: player2, 
+                    _player3: player3, 
+                    _player4: player4, 
+                    _player1Deck: deck1, 
+                    _player2Deck: deck2, 
+                    _player3Deck: deck3, 
+                    _player4Deck: deck4, 
+                    _Status: "STARTED", 
+                    _player1Confirmed: "N", 
+                    _player2Confirmed: "N", 
+                    _player3Confirmed: "N", 
+                    _player4Confirmed: "N"
+                }).save(function(err, result){
+                if (result){
+                    console.log("Successfully created Game #" + id)
+                    callback("SUCCESS")
+                }
+                else {
+                    console.log("Game creation failed for Game #" + id)
+                    callback("FAILURE")
+                }
+            })
         })
     },
 
     /**
      * Deletes an unconfirmed match
      */
-    deleteMatch() {
+    deleteMatch(id, receivedMessage) {
+        return new Promise((resolve, reject) => {
+            const games = require('../Schema/Games')
+            server = receivedMessage.guild.id
 
+            let findQuery = {_match_id: id, _server: server}
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    if (res._Status != "FINISHED") {
+                        games.deleteOne(findQuery, function(err, res) {
+                            if (err) throw err;
+                            resolve('SUCCESS')
+                        })
+                    }
+                    else {
+                        resolve('CONFIRM')
+                    }
+                }
+                else {
+                    reject('ERROR')
+                }
+            })
+    })
+    },
+
+    confirmedDeleteMatch(id, receivedMessage) {
+        return new Promise((resolve, reject) => {
+            const games = require('../Schema/Games')
+            server = receivedMessage.guild.id
+
+            let findQuery = {_match_id: id, _server: server}
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    games.deleteOne(findQuery, function(err, res) {
+                        if (err) throw err;
+                        resolve('SUCCESS')
+                    })
+                }
+                else {
+                    reject('ERROR')
+                }
+            })
+        })
     },
 
     /**
      * Display info about a match
      */
-    matchInfo() {
+    matchInfo(id, receivedMessage) {
+        let match_id = id
+        let server_id = receivedMessage.guild.id
+        var returnArr = new Array
+        const games = require('../Schema/Games')
 
+        return new Promise((resolve, reject) => {
+            let findQuery = {_match_id: match_id, _server: server_id}
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    returnArr.push(res._match_id)
+                    returnArr.push(res._server)
+                    returnArr.push(res._season)
+                    returnArr.push(res._player1)
+                    returnArr.push(res._player2)
+                    returnArr.push(res._player3)
+                    returnArr.push(res._player4)
+                    returnArr.push(res._player1Deck)
+                    returnArr.push(res._player2Deck)
+                    returnArr.push(res._player3Deck)
+                    returnArr.push(res._player4Deck)
+                    resolve(returnArr)
+                }
+                else {
+                    reject('FAIL')
+                }
+            })
+        })
     },
 
     /**
