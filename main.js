@@ -231,19 +231,19 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-function deckStats(receivedMessage,args){
-    deckObj.deckStats(receivedMessage, args, function(callback, err){
-        let generalChannel = getChannelID(receivedMessage)
-        var wins = 0;
-        var losses;
-        callback.forEach(entry =>{
-            wins = wins + 1
-        })
-
-        console.log(callback)
-        
-
-    })
+async function deckStats(receivedMessage,args){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await deckObj.deckStats(receivedMessage, args)
+    const useEmbed = new Discord.MessageEmbed()
+        .setColor("#0099ff") //blue
+        .setTitle("*"+returnArr[0]+"*" + " Deckstats")
+        .addFields(
+            { name: 'Wins', value: returnArr[1], inline: true},
+            { name: 'Losses', value: returnArr[2], inline: true},
+            { name: 'Number of Matches', value: returnArr[1] + returnArr[2], inline: true}, 
+            { name: 'Winrate', value: Math.round((returnArr[1]/(returnArr[1]+returnArr[2]))*100) + "%", inline: true}, 
+        )
+        generalChannel.send(useEmbed)
 }
 function toUpper(str) {
     return str
@@ -333,13 +333,13 @@ function use(receivedMessage, args){
             }
             else if (callback == "5"){
                 useEmbed
-                .setColor("#af0000") //green
+                .setColor("#af0000") 
                 .setDescription("Please provide a deck name to differentiate between your 'Rogue' decks. Try !use <deckname> | Rogue")
                 generalChannel.send(useEmbed)
             }
             else if (callback[0] == "5"){
                 useEmbed
-                .setColor("#af0000") //green
+                .setColor("#af0000") 
                 .setDescription("You are attempting to use a registered alias: " + "**" + callback[1] + "**" + ". Please try !use <deckname> | Rogue if your list deviates greatly from the primer. Otherwise, try !use " + "**" + callback[1]+"**")
                 generalChannel.send(useEmbed)
             }
@@ -430,12 +430,12 @@ async function recent(receivedMessage, args) {
         const loser2 = await getUserFromMention(match[6])
         const loser3 = await getUserFromMention(match[7])
         tempEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
+            .setColor('#0099ff') //blue
             .setTitle('Game ID: ' + match[1])
             .setThumbnail(getUserAvatarUrl(winner))
             .addFields(
-                {name: 'Season: ', value: match[3], inline: true},
-                {name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                { name: 'Season: ', value: match[3], inline: true},
+                { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
                 { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**'},
                 { name: 'Opponents:', value: 
                 '**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
@@ -622,12 +622,12 @@ function startMatch(receivedMessage, args){
         return
     }
     // Make sure every user in message (and message sender) are different users [Block out if testing]
-    var tempArr = args
-    tempArr.push(sanitizedString)
-    if (gameObj.hasDuplicates(tempArr)){
-        generalChannel.send(">>> **Error**: You can't log a match with duplicate players")
-        return
-    }
+    // var tempArr = args
+    // tempArr.push(sanitizedString)
+    // if (gameObj.hasDuplicates(tempArr)){
+    //     generalChannel.send(">>> **Error**: You can't log a match with duplicate players")
+    //     return
+    // }
 
     // Check if User who sent the message is registered
     let findQuery = {_mentionValue: sanitizedString}

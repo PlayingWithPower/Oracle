@@ -42,26 +42,37 @@ module.exports = {
     deckStats(receivedMessage, args){
         args = args.join(' ')
         const matches = require('../Schema/Games')
-        let query = {$and: [{'_player1Deck': args}, {'_player2Deck': args}, {'_player3Deck': args}, {'_player4Deck': args}]}
-        matches.find(query, function(err, res){
-            if (err)
-            throw err;
-            if (res){
-                console.log(res)
-            }
+        let query = { $or: [ { _player1Deck: args }, { _player2Deck: args },{ _player3Deck: args }, { _player4Deck: args } ] }
+        let passingResult
+        let wins = 0
+        let losses = 0
+        return new Promise((resolve, reject) =>{
+            matches.find(query, function(err, res){
+                if (err)
+                throw err;
+                passingResult = res;
+            }).then(function(passingResult){
+                passingResult.forEach((entry)=>{
+                    if (entry._player1Deck == args){
+                        wins = wins + 1
+                    }
+                    else if (entry._player2Deck == args){
+                        losses = losses + 1
+                    }
+                    else if (entry._player3Deck == args){
+                        losses = losses + 1
+                    }
+                    else if (entry._player4Deck == args){
+                        losses = losses + 1
+                    }
+                })
+                let passedArray = new Array
+                passedArray.push(args, wins, losses)
+                resolve(passedArray)
+                reject("Error")
+            })
         })
         
-        // .aggregate([
-        //     {"$match":{"_player1Deck": args}},
-        //     {"$match":{"_player2Deck": args}},
-        //     {"$match":{"_player3Deck": args}},
-        //     {"$match":{"_player4Deck": args}}],
-        //     function(err, data ) {
-        //         if ( err )
-        //           throw err;
-        //         console.log(data)
-        //       }
-        // );
     },
 
     /**
