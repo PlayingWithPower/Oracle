@@ -33,7 +33,6 @@ module.exports = {
             }).then(function(){
                 resolve(holderArr)
             })
-        })
     },
 
     /**
@@ -198,5 +197,4 @@ module.exports = {
             })
         }
     }
-    // Test comment
 }
