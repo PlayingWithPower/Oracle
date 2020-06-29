@@ -22,18 +22,45 @@ module.exports = {
      * Returns a list of all User submitted decks registered to the server.
      * TODO: filters by server, add in restrictions from above ^ 
      */
-    listUserDecks() {
-        const deck = require('../Schema/Deck')
-        deck.find({'_server' : "PWP"}, function(err, res){
-            //console.log(res)
-        })
+    listUserDecks(receivedMessage) {
+        const user = require('../Schema/Users')
+        var holderArr = new Array
+        return new Promise((resolve, reject) => {
+            user.find({'_mentionValue': "<@!"+receivedMessage.author.id+">",'_server' : receivedMessage.guild.id}).then((docs) =>{
+                docs.forEach((doc)=>{
+                    holderArr.push(doc)
+                })
+            }).then(function(){
+                resolve(holderArr)
+            })
     },
 
     /**
      * Returns stats about a deck alias
      */
-    deckStats() {
-
+    deckStats(receivedMessage, args) {
+        args = args.join(' ');
+        const matches = require('../Schema/Games')
+        let query = {$and: [{'_player1Deck': args}, {'_player2Deck': args}, {'_player3Deck': args}, {'_player4Deck': args}]}
+        matches.find(query, function(err, res){
+            if (err)
+            throw err;
+            if (res){
+                console.log(res)
+            }
+        })
+        
+        // .aggregate([
+        //     {"$match":{"_player1Deck": args}},
+        //     {"$match":{"_player2Deck": args}},
+        //     {"$match":{"_player3Deck": args}},
+        //     {"$match":{"_player4Deck": args}}],
+        //     function(err, data ) {
+        //         if ( err )
+        //           throw err;
+        //         console.log(data)
+        //       }
+        // );
     },
 
     /**
