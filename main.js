@@ -210,7 +210,7 @@ function deckStats(receivedMessage,args){
             wins = wins + 1
         })
 
-        console.log(wins)
+        console.log(callback)
         
 
     })
