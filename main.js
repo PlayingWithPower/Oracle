@@ -19,7 +19,6 @@ const { type } = require('os')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
-
 client.on('ready', (on) =>{
     console.log("Debug log: Successfully connected as " + client.user.tag)
     client.user.setPresence({
@@ -29,7 +28,7 @@ client.on('ready', (on) =>{
         },
         status: 'online'
     })
-  
+    
     
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
@@ -218,6 +217,8 @@ function processCommand(receivedMessage){
         case "deckstats":
             deckStats(receivedMessage, arguments);
             break;
+        case "removedeck":
+            removeDeck(receivedMessage,arguments);
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
@@ -231,19 +232,47 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+async function removeDeck(receivedMessage, args){
+    var promiseReturnArr = new Array();
+    let generalChannel = getChannelID(receivedMessage)
+    const addingDeckEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+    let promiseReturn = await deckObj.removeDeck(receivedMessage, args);
+}
 async function deckStats(receivedMessage,args){
     let generalChannel = getChannelID(receivedMessage)
-    let returnArr = await deckObj.deckStats(receivedMessage, args)
     const useEmbed = new Discord.MessageEmbed()
+    const usersList = new Discord.MessageEmbed()
+    let returnArr = await deckObj.deckStats(receivedMessage, args)
+    if (returnArr != "Can't find deck"){
+        useEmbed
         .setColor("#0099ff") //blue
-        .setTitle("*"+returnArr[0]+"*" + " Deckstats")
+        .setTitle(returnArr[0] + " Deckstats")
         .addFields(
             { name: 'Wins', value: returnArr[1], inline: true},
             { name: 'Losses', value: returnArr[2], inline: true},
             { name: 'Number of Matches', value: returnArr[1] + returnArr[2], inline: true}, 
             { name: 'Winrate', value: Math.round((returnArr[1]/(returnArr[1]+returnArr[2]))*100) + "%", inline: true}, 
+            
         )
+
+        usersList
+            .setColor("#0099ff") //blue
+            .setTitle("People who play this deck")
+        for (i = 0; i < returnArr[3].length; i++){
+            usersList.addFields(
+                {name: " \u200b", value: returnArr[3][i], inline: true}
+            )
+        }
         generalChannel.send(useEmbed)
+        generalChannel.send(usersList)
+    }
+    else{
+        useEmbed
+        .setColor("#af0000") //red
+        .setDescription("No data for decks with that name. Try !decks to find a list of decks for this server or !deckstats <Deck Name> to find information about a deck.")
+        generalChannel.send(useEmbed)
+    }
 }
 function toUpper(str) {
     return str
@@ -459,7 +488,6 @@ function listDecks(channel){
     deckObj.listDecks(function(callback,err){
         const listedDecksEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
-            .setURL('')
        for(i = 0; i < callback.length; i++){
             listedDecksEmbed.addFields(
                 { name: " \u200b",value: callback[i]._name},
@@ -484,36 +512,45 @@ function listDecksDetailed(channel){
         channel.send(listedDecksEmbed)
     });
 }
-function addDeck(receivedMessage, args){
-    var callBackArray = new Array();
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    
-    deckObj.addDeck(receivedMessage, args, function(callback,err){
-        if ((callback != ("Error: Deck name already used"))&& 
-        (callback != ("Error: Unable to save to Database, please try again"))&&
-        (callback != ("Error: Not a valid URL, please follow the format !adddeck <url> <name>"))
-        ){
-            callback.forEach(item => {
-                callBackArray.push(item)
+async function addDeck(receivedMessage, args){
+    var promiseReturnArr = new Array();
+    let generalChannel = getChannelID(receivedMessage)
+    const addingDeckEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+    let promiseReturn = await deckObj.addDeck(receivedMessage, args);
+        if (promiseReturn == "Error 1"){
+            addingDeckEmbed
+            .setColor("#af0000") //red
+            .setDescription("Deck name already used. Try !decks to see a list of in use names.")
+        }
+        else if (promiseReturn == "Error 2"){
+            addingDeckEmbed
+            .setColor("#af0000") //red
+            .setDescription("Unable to save to Database, please try again later.")
+        }
+        else if (promiseReturn == "Error 3"){
+            addingDeckEmbed
+            .setColor("#af0000") //red
+            .setDescription("Not a valid URL, please follow the format !adddeck <url> <deck name>.")
+        }
+        else{
+            promiseReturn.forEach(item => {
+                promiseReturnArr.push(item)
             });
 
-            var grabURL = callBackArray[0].toString()
-            var grabName = callBackArray[1].toString()
+            var grabURL = promiseReturnArr[0].toString()
+            var grabName = promiseReturnArr[1].toString()
             
-            const exampleEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
-            .setURL('')
+            addingDeckEmbed
+            .setTitle("Successfully uploaded new Decklist!")
+            .setColor("#5fff00") //green
             .addFields(
                 { name: 'Decklist', value: "[Link]("+grabURL+")"},
                 { name: 'Name', value: grabName},
             )
-            generalChannel.send("Successfully uploaded new Decklist to Decklists!")
-            generalChannel.send(exampleEmbed)
         }
-        else{
-            generalChannel.send(callback)
-        }
-    });
+            generalChannel.send(addingDeckEmbed)   
+             
 }
 function profile(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
