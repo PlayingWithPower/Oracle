@@ -15,6 +15,7 @@ const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
 const { Cipher } = require('crypto')
+const { type } = require('os')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -135,10 +136,30 @@ async function manageReaction(reaction, user) {
         }
     }
     //end of game block
-
+    //Confirm Delete Match Block
+    else if ((msg.length > 4 && msg[2] == "DELETE" && msg[3] == "MATCH:" && reaction.emoji.name === '👍' && user.id != "717073766030508072")) {
+        if (sanitizedString != msg[7]) {
+            return
+        }
+        var generalChannel = getChannelID(reaction.message)
+        gameObj.confirmedDeleteMatch(msg[5], reaction.message).then((message) => {  
+            generalChannel.send("Successfully deleted Match #" + msg[5])
+            reaction.message.edit(">>> " + msg[7] +" **DELETED MATCH:** " + msg[5])
+        }).catch((message) => {
+            generalChannel.send("Match already deleted")
+        })
+    }
+    else if ((msg.length > 4 && msg[2] == "DELETE" && msg[3] == "MATCH:" && reaction.emoji.name === '👎' && user.id != "717073766030508072")) {
+        if (sanitizedString != msg[7]) {
+            return
+        }
+        reaction.message.edit(">>> " + msg[7] + "**CANCELLED DELETING MATCH #" + msg[5] + "**");
+    }
+    //End of Confirm Delete Match Block
     else {
         return
     }
+    
 }
 function processCommand(receivedMessage){
     let fullCommand = receivedMessage.content.substr(1)
@@ -167,8 +188,17 @@ function processCommand(receivedMessage){
         case "log":
             startMatch(receivedMessage, arguments)
             break;
+        case "delete":
+            deleteMatch(receivedMessage, arguments)
+            break;
+        case "info":
+            matchInfo(receivedMessage, arguments)
+            break;
         case "profile":
             profile(receivedMessage, arguments)
+            break;
+        case "recent":
+            recent(receivedMessage, arguments)
             break;
         case "use":
             use(receivedMessage, arguments)
@@ -342,6 +372,79 @@ function current(receivedMessage, args){
         }
     })
 }
+function getUserAvatarUrl(user) {
+    return "https://cdn.discordapp.com/avatars/" + user.id + "/" + user.avatar + ".png"
+}
+function getUserFromMention(mention) {
+	if (!mention) return;
+
+	if (mention.startsWith('<@') && mention.endsWith('>')) {
+		mention = mention.slice(2, -1);
+
+		if (mention.startsWith('!')) {
+			mention = mention.slice(1);
+		}
+		return client.users.fetch(mention)
+	}
+}
+/**
+ * 
+ * @param {Discord Message Obj} receivedMessage 
+ * @param {*} args
+ * 
+ * TODO: Fix Bot avatar image
+ * TODO: Fix "Showing X recent matches" line, sounds awkward
+ *  
+ */
+async function recent(receivedMessage, args) {
+    let generalChannel = getChannelID(receivedMessage)
+    if (args.length == 0) {
+        var matches_arr = await userObj.recent(receivedMessage)
+    }
+    else if (args.length == 1) {
+        if (args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") {
+            generalChannel.send("Use **@[user]** when searching other users recent matches")
+            return
+        }
+        var matches_arr = await userObj.recent(receivedMessage, args[0])
+    }
+    else {
+        generalChannel.send("**Error**: Bad Input")
+        return
+    }
+    let tempEmbed
+
+    //Log only 3 most recent matches
+    matches_arr = matches_arr.slice(0,3)
+    if (matches_arr.length == 0) {
+        generalChannel.send("**Error:** User has no matches in the system")
+        return
+    }
+    generalChannel.send(">>> Showing " + matches_arr.length.toString() + " recent match(es)")
+    matches_arr.forEach(async(match) => {
+        var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
+
+        const bot = await getUserFromMention('<@!717073766030508072>')
+        const winner = await getUserFromMention(match[4])
+        const loser1 = await getUserFromMention(match[5])
+        const loser2 = await getUserFromMention(match[6])
+        const loser3 = await getUserFromMention(match[7])
+        tempEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle('Game ID: ' + match[1])
+            .setThumbnail(getUserAvatarUrl(winner))
+            .addFields(
+                {name: 'Season: ', value: match[3], inline: true},
+                {name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**'},
+                { name: 'Opponents:', value: 
+                '**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
+                + '**'+loser2.username+'**'+ ' piloting ' + '**'+match[10]+'**' + '\n' 
+                + '**'+loser3.username+'**'+ ' piloting ' + '**'+match[11]+'**' }
+            )
+        generalChannel.send(tempEmbed)
+    })
+}
 async function listUserDecks(receivedMessage, args){
     let channel = getChannelID(receivedMessage)
     let returnArr = await deckObj.listUserDecks(receivedMessage)
@@ -415,10 +518,29 @@ function addDeck(receivedMessage, args){
 function profile(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.profile(receivedMessage, args, function(callback, err){
+        var embedOutput;
+        var highest = Number.NEGATIVE_INFINITY;
+        var output;
+        var tmp;
+        for (var i= callback._deck.length-1; i>=1; i--) {
+            tmp = (callback._deck[i].Wins) + (callback._deck[i].Losses);
+            if (tmp > highest){
+                highest = tmp;
+                output = callback._deck[i]
+            }
+        }
+        if (output === undefined || highest == 0){
+            embedOutput = "No Data Yet."
+        }
+        else{
+            embedOutput = output.Deck
+        }
+
         var calculatedWinrate = (callback._wins/((callback._losses)+(callback._wins)))*100
         if (isNaN(calculatedWinrate)){
             calculatedWinrate = 0;
         }
+
         const profileEmbed = new Discord.MessageEmbed()
         .setColor('#0099ff')
             .setURL('')
@@ -430,7 +552,7 @@ function profile(receivedMessage, args){
                 { name: 'Wins', value:  callback._wins, inline: true },
                 { name: 'Losses', value:  callback._losses, inline: true },
                 { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
-                { name: 'Favorite Deck', value: "Update Me", inline: true },
+                { name: 'Favorite Deck', value: embedOutput, inline: true },
             )
         generalChannel.send(profileEmbed)
     });
@@ -538,13 +660,12 @@ function startMatch(receivedMessage, args){
                                 return
                             }
                             else{
-                                gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, function(cb, err){
+                                gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, receivedMessage, function(cb, err){
                                     if (cb == "FAILURE"){
                                         generalChannel.send(">>> **Error:** Code 301")
                                         return
                                     }
                                     else {
-                                        console.log("Game Created")
                                         UserIDs.forEach(player => {
                                             findQuery = {_mentionValue: player}
                                             user.findOne(findQuery, function(err, res){
@@ -577,7 +698,69 @@ function startMatch(receivedMessage, args){
         }
     })
 }
+/**
+ * 
+ * @param {discord message obj} receivedMessage 
+ * @param {array} args Message content beyond command
+ * TODO: Add admin functionality only
+ */
+async function deleteMatch(receivedMessage, args) {
+    var generalChannel = getChannelID(receivedMessage)
+    let sanitizedString = "<@!"+receivedMessage.author.id+">"
 
+    //Catch bad input
+    if (args.length != 1) {
+        generalChannel.send("**Error**: Bad input")
+        return
+    }
+
+    const response = await gameObj.deleteMatch(args[0], receivedMessage).catch((message) => {
+        generalChannel.send("**Error**: Match not found")
+        return
+    })
+    if (response == "SUCCESS") {
+        generalChannel.send("Successfully deleted Match #" + args[0])
+    }
+    else if (response == "CONFIRM") {
+        generalChannel.send(">>> ** DELETE MATCH: ** " + args[0] + " - " + sanitizedString + " This is a finished match, Upvote to confirm, downvote to cancel")
+        .then(function (message, callback){
+            const filter = (reaction, user) => {
+                return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
+            };   
+
+            message.react("👍")
+            message.react("👎")
+        })
+    }
+    else {
+        return
+    }
+}
+
+/**
+ * 
+ * @param {discord message obj} receivedMessage 
+ * @param {array} args 
+ * 
+ * TODO: Print to general channel, currently only logs info about match
+ */
+async function matchInfo(receivedMessage, args) {
+    var generalChannel = getChannelID(receivedMessage)
+    let sanitizedString = "<@!"+receivedMessage.author.id+">"
+
+    //Catch bad input
+    if (args.length != 1) {
+        generalChannel.send("**Error**: Bad input")
+        return
+    }
+
+    const response = await gameObj.matchInfo(args[0], receivedMessage).catch((message) => {
+        generalChannel.send("**Error**: Match not found")
+        return
+    }).then((message) => {
+        console.log(message)
+    })
+}
 function logMatch(receivedMessage, args){
     const user = require('./Schema/Users')
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
