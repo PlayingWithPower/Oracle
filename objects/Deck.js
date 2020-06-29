@@ -33,13 +33,14 @@ module.exports = {
             }).then(function(){
                 resolve(holderArr)
             })
+        })
     },
 
     /**
      * Returns stats about a deck alias
      */
-    deckStats(receivedMessage, args) {
-        args = args.join(' ');
+    deckStats(receivedMessage, args){
+        args = args.join(' ')
         const matches = require('../Schema/Games')
         let query = {$and: [{'_player1Deck': args}, {'_player2Deck': args}, {'_player3Deck': args}, {'_player4Deck': args}]}
         matches.find(query, function(err, res){
