@@ -15,6 +15,7 @@ const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
 const { Cipher } = require('crypto')
+const { type } = require('os')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -196,6 +197,9 @@ function processCommand(receivedMessage){
         case "profile":
             profile(receivedMessage, arguments)
             break;
+        case "recent":
+            recent(receivedMessage, arguments)
+            break;
         case "use":
             use(receivedMessage, arguments)
             break;
@@ -368,6 +372,79 @@ function current(receivedMessage, args){
         }
     })
 }
+function getUserAvatarUrl(user) {
+    return "https://cdn.discordapp.com/avatars/" + user.id + "/" + user.avatar + ".png"
+}
+function getUserFromMention(mention) {
+	if (!mention) return;
+
+	if (mention.startsWith('<@') && mention.endsWith('>')) {
+		mention = mention.slice(2, -1);
+
+		if (mention.startsWith('!')) {
+			mention = mention.slice(1);
+		}
+		return client.users.fetch(mention)
+	}
+}
+/**
+ * 
+ * @param {Discord Message Obj} receivedMessage 
+ * @param {*} args
+ * 
+ * TODO: Fix Bot avatar image
+ * TODO: Fix "Showing X recent matches" line, sounds awkward
+ *  
+ */
+async function recent(receivedMessage, args) {
+    let generalChannel = getChannelID(receivedMessage)
+    if (args.length == 0) {
+        var matches_arr = await userObj.recent(receivedMessage)
+    }
+    else if (args.length == 1) {
+        if (args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") {
+            generalChannel.send("Use **@[user]** when searching other users recent matches")
+            return
+        }
+        var matches_arr = await userObj.recent(receivedMessage, args[0])
+    }
+    else {
+        generalChannel.send("**Error**: Bad Input")
+        return
+    }
+    let tempEmbed
+
+    //Log only 3 most recent matches
+    matches_arr = matches_arr.slice(0,3)
+    if (matches_arr.length == 0) {
+        generalChannel.send("**Error:** User has no matches in the system")
+        return
+    }
+    generalChannel.send(">>> Showing " + matches_arr.length.toString() + " recent match(es)")
+    matches_arr.forEach(async(match) => {
+        var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
+
+        const bot = await getUserFromMention('<@!717073766030508072>')
+        const winner = await getUserFromMention(match[4])
+        const loser1 = await getUserFromMention(match[5])
+        const loser2 = await getUserFromMention(match[6])
+        const loser3 = await getUserFromMention(match[7])
+        tempEmbed = new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle('Game ID: ' + match[1])
+            .setThumbnail(getUserAvatarUrl(winner))
+            .addFields(
+                {name: 'Season: ', value: match[3], inline: true},
+                {name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**'},
+                { name: 'Opponents:', value: 
+                '**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
+                + '**'+loser2.username+'**'+ ' piloting ' + '**'+match[10]+'**' + '\n' 
+                + '**'+loser3.username+'**'+ ' piloting ' + '**'+match[11]+'**' }
+            )
+        generalChannel.send(tempEmbed)
+    })
+}
 async function listUserDecks(receivedMessage, args){
     let channel = getChannelID(receivedMessage)
     let returnArr = await deckObj.listUserDecks(receivedMessage)
@@ -441,10 +518,29 @@ function addDeck(receivedMessage, args){
 function profile(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.profile(receivedMessage, args, function(callback, err){
+        var embedOutput;
+        var highest = Number.NEGATIVE_INFINITY;
+        var output;
+        var tmp;
+        for (var i= callback._deck.length-1; i>=1; i--) {
+            tmp = (callback._deck[i].Wins) + (callback._deck[i].Losses);
+            if (tmp > highest){
+                highest = tmp;
+                output = callback._deck[i]
+            }
+        }
+        if (output === undefined || highest == 0){
+            embedOutput = "No Data Yet."
+        }
+        else{
+            embedOutput = output.Deck
+        }
+
         var calculatedWinrate = (callback._wins/((callback._losses)+(callback._wins)))*100
         if (isNaN(calculatedWinrate)){
             calculatedWinrate = 0;
         }
+
         const profileEmbed = new Discord.MessageEmbed()
         .setColor('#0099ff')
             .setURL('')
@@ -456,7 +552,7 @@ function profile(receivedMessage, args){
                 { name: 'Wins', value:  callback._wins, inline: true },
                 { name: 'Losses', value:  callback._losses, inline: true },
                 { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
-                { name: 'Favorite Deck', value: "Update Me", inline: true },
+                { name: 'Favorite Deck', value: embedOutput, inline: true },
             )
         generalChannel.send(profileEmbed)
     });
