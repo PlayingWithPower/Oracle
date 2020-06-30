@@ -180,10 +180,27 @@ module.exports = {
         }    
     },
     /** 
-     * Removes a User deck from the server. 
+     * Locates the deck to remove. Then waits for user reaction
      */
-    removeDeck(){
+    findDeckToRemove(receivedMessage, args){
         const deck = require('../Schema/Deck')
+        args = args.join(' ')
+        let lowerArgs = args.toString().toLowerCase()
+        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
+        return new Promise((resolve, reject)=>{
+            deck.find(deckQuery, function(err, res){
+                resolve(res)
+            })
+        })
+    },
+    /** 
+     * Takes located deck and deletes it
+    */
+    removeDeck(args){
+        args = args.replace("**","")
+        args = args.replace("**","")
+        console.log(args)
+        console.log(typeof(args))
     },
     /**
      * Seed the server with an initial list of Deck Aliases.

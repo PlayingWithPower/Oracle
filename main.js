@@ -73,6 +73,7 @@ client.on('messageReactionAdd', (reaction, user) => {
  */
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
+    const embeds = reaction.message.embeds[0].title.toString().split(' ')
     let sanitizedString = "<@!"+user.id+">"
     
     // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
@@ -155,6 +156,22 @@ async function manageReaction(reaction, user) {
         reaction.message.edit(">>> " + msg[7] + "**CANCELLED DELETING MATCH #" + msg[5] + "**");
     }
     //End of Confirm Delete Match Block
+    
+    //Start of Remove Deck Reacts
+    else if((embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != "717073766030508072")){
+        //super bad way of doing this......... how to pass data to reaction/ then give it to a new function :/
+        var mySubString = reaction.message.embeds[0].description.substring(
+            reaction.message.embeds[0].description.lastIndexOf(":") + 2, 
+            reaction.message.embeds[0].description.lastIndexOf("from")
+        );
+       deckObj.removeDeck(mySubString)
+    }
+    else if((embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor("#af0000") //red
+            .setTitle("CANCELLED DELETION")
+        reaction.message.edit(editedWarningEmbed);
+    }
     else {
         return
     }
@@ -219,6 +236,7 @@ function processCommand(receivedMessage){
             break;
         case "removedeck":
             removeDeck(receivedMessage,arguments);
+            break;
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
@@ -233,11 +251,18 @@ function processCommand(receivedMessage){
     }
 }
 async function removeDeck(receivedMessage, args){
-    var promiseReturnArr = new Array();
     let generalChannel = getChannelID(receivedMessage)
     const addingDeckEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
-    let promiseReturn = await deckObj.removeDeck(receivedMessage, args);
+    let promiseReturn = await deckObj.findDeckToRemove(receivedMessage, args);
+    addingDeckEmbed
+        .setTitle("WARNING")
+        .setDescription("Are you sure you want to delete: **" + promiseReturn[0]._name + "** from your server's list of decks?")
+    generalChannel.send(addingDeckEmbed)
+    .then(function (message, callback){
+        message.react("👍")
+        message.react("👎")
+    })
 }
 async function deckStats(receivedMessage,args){
     let generalChannel = getChannelID(receivedMessage)
