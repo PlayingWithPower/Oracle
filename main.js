@@ -209,7 +209,7 @@ function processCommand(receivedMessage){
             addToCollection(receivedMessage, arguments)
             break;
         case "decks":
-            listDecks(responseFormatted)
+            listDecks(receivedMessage, arguments)
             break;
         case "decksdetailed":
             listDecksDetailed(responseFormatted);
@@ -475,25 +475,37 @@ async function recent(receivedMessage, args) {
     })
 }
 async function listUserDecks(receivedMessage, args){
-    let channel = getChannelID(receivedMessage)
+    let generalChannel = getChannelID(receivedMessage)
     let returnArr = await deckObj.listUserDecks(receivedMessage)
-    let pushingArr =  new Array();
-    console.log(returnArr)
-    console.log(typeof(returnArr))
-    returnArr.forEach(async(deck)=>{
-        console.log(deck._deck)
-    })
+
+    let userDecksEmbed = new Discord.MessageEmbed()
+        .setColor('#0099ff')
+        .setDescription(returnArr[0]._mentionValue + ' **Deckstats**')
+        for (i = 1; i < returnArr[0]._deck.length; i++){
+            let winrate = Math.round((returnArr[0]._deck[i].Wins/(returnArr[0]._deck[i].Wins+returnArr[0]._deck[i].Losses))*100)
+            if (isNaN(winrate)){
+                winrate = 0
+            }
+            userDecksEmbed.addFields(
+                { name: " \u200b",value: returnArr[0]._deck[i].Deck},
+                { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
+                { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
+                { name: "Winrate", value: winrate + "%", inline: true},
+            )
+        }
+        generalChannel.send(userDecksEmbed)
 }
-function listDecks(channel){
-    deckObj.listDecks(function(callback,err){
+function listDecks(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    deckObj.listDecks(receivedMessage ,function(callback,err){
         const listedDecksEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
        for(i = 0; i < callback.length; i++){
             listedDecksEmbed.addFields(
-                { name: " \u200b",value: callback[i]._name},
+                { name: " \u200b",value: callback[i]._name, inline: true},
             )
         }
-        channel.send(listedDecksEmbed)
+        generalChannel.send(listedDecksEmbed)
     });
 }
 function listDecksDetailed(channel){

@@ -12,9 +12,9 @@ module.exports = {
      * Returns a list of all Deck Aliases registered to the server
      * TODO: Filter by server 
      */
-    listDecks(callback) {
+    listDecks(receivedMessage, callback) {
         const deck = require('../Schema/Deck')
-        deck.find({},{_name:"", _user:"",_id:0},function(err, res){
+        deck.find({_server: receivedMessage.guild.id},{_name:"", _user:"", _id:0},function(err, res){
             callback(res)
         })
     },
