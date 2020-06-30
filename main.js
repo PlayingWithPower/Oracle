@@ -265,7 +265,7 @@ function listCollection(receivedMessage, args){
         .setColor('#0099ff')
             .setURL('')
 
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    let generalChannel = getChannelID(receivedMessage)
     userObj.profile(receivedMessage, args, function(callback, err){
             callback._deck.forEach(callbackItem =>{
                 callbackName.push(toUpper(callbackItem.Deck))
@@ -516,7 +516,7 @@ function addDeck(receivedMessage, args){
     });
 }
 function profile(receivedMessage, args){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+    var generalChannel = getChannelID(receivedMessage)
     userObj.profile(receivedMessage, args, function(callback, err){
         var embedOutput;
         var highest = Number.NEGATIVE_INFINITY;
