@@ -10,7 +10,6 @@ module.exports = {
 
     /**
      * Returns a list of all Deck Aliases registered to the server
-     * TODO: Filter by server 
      */
     listDecks(receivedMessage, callback) {
         const deck = require('../Schema/Deck')
@@ -20,7 +19,6 @@ module.exports = {
     },
     /**
      * Returns a list of all User submitted decks registered to the server.
-     * TODO: filters by server, add in restrictions from above ^ 
      */
     listUserDecks(receivedMessage) {
         const user = require('../Schema/Users')
@@ -112,8 +110,7 @@ module.exports = {
 
     /**
      * Adds a new User deck to the server.
-     * TODO: Add react to messages to confirm your deck and alias 
-     * TODO: Command only checks DB vs other aliases, not vs other URLS. AKA you can have two decklist URLs on the DB if they have different aliases
+     * TODO: Add react to messages to confirm your deck and alias - utilizes the Manage Reaction func in main.js
      */
     addDeck(receivedMessage, args) {
         const deck = require('../Schema/Deck')
@@ -199,8 +196,6 @@ module.exports = {
     removeDeck(args){
         args = args.replace("**","")
         args = args.replace("**","")
-        console.log(args)
-        console.log(typeof(args))
     },
     /**
      * Seed the server with an initial list of Deck Aliases.
