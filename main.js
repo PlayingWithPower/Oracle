@@ -16,6 +16,7 @@ const generalID = require('./constants')
 const moongoose = require('mongoose')
 const { Cipher } = require('crypto')
 const { type } = require('os')
+const { exception } = require('console')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -187,6 +188,9 @@ function processCommand(receivedMessage){
             break;
         case "log":
             startMatch(receivedMessage, arguments)
+            break;
+        case "remind":
+            remindMatch(receivedMessage, arguments)
             break;
         case "delete":
             deleteMatch(receivedMessage, arguments)
@@ -628,7 +632,6 @@ function startMatch(receivedMessage, args){
         generalChannel.send(">>> **Error**: You can't log a match with duplicate players")
         return
     }
-
     // Check if User who sent the message is registered
     let findQuery = {_mentionValue: sanitizedString}
     user.findOne(findQuery, function(err, res){
@@ -697,6 +700,32 @@ function startMatch(receivedMessage, args){
             return
         }
     })
+}
+async function remindMatch(receivedMessage, args) {
+    var generalChannel = getChannelID(receivedMessage)
+    let playerID = "<@!"+receivedMessage.author.id+">"
+
+    //Catch Bad Input
+    if (args.length != 0) {
+        generalChannel.send("**Error**: Bad input")
+        return
+    }
+
+    let response = await gameObj.getRemindInfo(playerID, receivedMessage.guild.id).catch((message) => {
+        generalChannel.send("**Error**: Unfinished match not found")
+        return
+    })
+    try {
+        response.forEach(player => {
+            if (player[1] == "N") {
+                generalChannel.send("**Alert**: " + player[0].toString() + "- remember to confirm the match above.")
+            }
+        })
+    }
+    catch {
+        return
+    }
+    
 }
 /**
  * 
