@@ -480,10 +480,39 @@ module.exports = {
     },
 
     /**
-     * remind users of unconfirmed matches
+     *  returns a 2D array of players and their respective confirmed value (Y or N)
      */
-    remind() {
+    getRemindInfo(player, server_id) {
+        const games = require('../Schema/Games')
+        var returnArr = new Array;
 
+        return new Promise((resolve, reject) => {
+            let findQuery = {$and: 
+                                    [
+                                        {_server: server_id, _Status: "STARTED"},
+                                        { $or: 
+                                            [
+                                                {_player1: player},
+                                                {_player2: player},
+                                                {_player3: player},
+                                                {_player4: player}
+                                            ]
+                                        }
+                                    ]
+                            }
+            games.findOne(findQuery, function(err, res) {
+                if (res) {
+                    returnArr.push([res._player1, res._player1Confirmed])
+                    returnArr.push([res._player2, res._player2Confirmed])
+                    returnArr.push([res._player3, res._player3Confirmed])
+                    returnArr.push([res._player4, res._player4Confirmed])
+                    resolve(returnArr)
+                }
+                else {
+                    reject(returnArr)
+                }
+            })
+        })
     },
 
     /**
