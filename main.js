@@ -16,6 +16,7 @@ const generalID = require('./constants')
 const moongoose = require('mongoose')
 const { Cipher } = require('crypto')
 const { type } = require('os')
+const { exception } = require('console')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -94,10 +95,15 @@ async function manageReaction(reaction, user) {
                         gameObj.logMatch(msg[3]).then(function(final) {
                             gameObj.finishMatch(msg[3]).then(function(){
                                 let generalChannel = getChannelID(reaction.message)
-
-                                generalChannel.send(">>> Match logged!")
+                                const logMessage = new Discord.MessageEmbed()
+                                        .setColor('#5fff00')
+                                        .setDescription("Match logged!")
+                                generalChannel.send(logMessage)
                                 final.forEach(message => {
-                                    generalChannel.send(">>> " + message)
+                                    const confirmMessage = new Discord.MessageEmbed()
+                                        .setColor('#5fff00')
+                                        .setDescription(message)
+                                    generalChannel.send(confirmMessage)
                                 })
                                 console.log("Game #" + msg[3] + " success")
                                 return
@@ -187,6 +193,9 @@ function processCommand(receivedMessage){
             break;
         case "log":
             startMatch(receivedMessage, arguments)
+            break;
+        case "remind":
+            remindMatch(receivedMessage, arguments)
             break;
         case "delete":
             deleteMatch(receivedMessage, arguments)
@@ -618,24 +627,32 @@ function startMatch(receivedMessage, args){
 
     // Check to make sure the right amount of users tagged
     if (args.length < 3 || args.length > 3) {
-        generalChannel.send(">>> **Error**: Submit only the 3 players who lost in the pod")
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: Submit only the 3 players who lost in the pod")
+        generalChannel.send(errorMsg)
         return
     }
     // Make sure every user in message (and message sender) are different users [Block out if testing]
     var tempArr = args
     tempArr.push(sanitizedString)
     if (gameObj.hasDuplicates(tempArr)){
-        generalChannel.send(">>> **Error**: You can't log a match with duplicate players")
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: You can't log a match with duplicate players")
+        generalChannel.send(errorMsg)
         return
     }
-
     // Check if User who sent the message is registered
     let findQuery = {_mentionValue: sanitizedString}
     user.findOne(findQuery, function(err, res){
         if (res){
             // Check if user who sent the message has a deck used
             if (res._currentDeck == "None") {
-                generalChannel.send(">>> **Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
+                const errorMsg = new Discord.MessageEmbed()
+                    .setColor('#af0000')
+                    .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
+                generalChannel.send(errorMsg)
                 return
             }
             UserIDs.push(sanitizedString)
@@ -648,7 +665,10 @@ function startMatch(receivedMessage, args){
                     if (res){
                         // Check if users tagged have a deck used
                         if (res._currentDeck == "None") {
-                            generalChannel.send(">>> **Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
+                            const errorMsg = new Discord.MessageEmbed()
+                                .setColor('#af0000')
+                                .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
+                            generalChannel.send(errorMsg)
                             return
                         }
                         UserIDs.push(loser)
@@ -656,13 +676,19 @@ function startMatch(receivedMessage, args){
                         if (ConfirmedUsers == 3){
                             // Double check UserID Array then create match and send messages
                             if (UserIDs.length != 4){
-                                generalChannel.send(">>> **Error:** Code 300")
+                                const errorMsg = new Discord.MessageEmbed()
+                                    .setColor('#af0000')
+                                    .setDescription("**Error:** Code 300")
+                                generalChannel.send(errorMsg)
                                 return
                             }
                             else{
                                 gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, receivedMessage, function(cb, err){
                                     if (cb == "FAILURE"){
-                                        generalChannel.send(">>> **Error:** Code 301")
+                                        const errorMsg = new Discord.MessageEmbed()
+                                            .setColor('#af0000')
+                                            .setDescription("**Error:** Code 301")
+                                        generalChannel.send(errorMsg)
                                         return
                                     }
                                     else {
@@ -686,17 +712,58 @@ function startMatch(receivedMessage, args){
                         }
                     }
                     else{
-                        generalChannel.send(">>> **Error**: " + loser + " isn't registered, type !register")
+                        const errorMsg = new Discord.MessageEmbed()
+                            .setColor('#af0000')
+                            .setDescription("**Error**: " + loser + " isn't registered, type !register")
+                        generalChannel.send(errorMsg)
                         return
                     }
                 })
             })
         }
         else{
-            generalChannel.send(">>> **Error**: " + sanitizedString + " isn't registered, type !register")
+            const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: " + sanitizedString + " isn't registered, type !register")
+            generalChannel.send(errorMsg)
             return
         }
     })
+}
+async function remindMatch(receivedMessage, args) {
+    var generalChannel = getChannelID(receivedMessage)
+    let playerID = "<@!"+receivedMessage.author.id+">"
+
+    //Catch Bad Input
+    if (args.length != 0) {
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: Bad input")
+        generalChannel.send(errorMsg)
+        return
+    }
+
+    let response = await gameObj.getRemindInfo(playerID, receivedMessage.guild.id).catch((message) => {
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: Unfinished match not found")
+        generalChannel.send(errorMsg)
+        return
+    })
+    try {
+        response.forEach(player => {
+            if (player[1] == "N") {
+                const errorMsg = new Discord.MessageEmbed()
+                        .setColor('#0099ff')
+                        .setDescription("**Alert**: " + player[0].toString() + "- remember to confirm the match above.")
+                generalChannel.send(errorMsg)
+            }
+        })
+    }
+    catch {
+        return
+    }
+    
 }
 /**
  * 
@@ -710,16 +777,25 @@ async function deleteMatch(receivedMessage, args) {
 
     //Catch bad input
     if (args.length != 1) {
-        generalChannel.send("**Error**: Bad input")
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: Bad input")
+        generalChannel.send(errorMsg)
         return
     }
 
     const response = await gameObj.deleteMatch(args[0], receivedMessage).catch((message) => {
-        generalChannel.send("**Error**: Match not found")
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: Match not found")
+        generalChannel.send(errorMsg)
         return
     })
     if (response == "SUCCESS") {
-        generalChannel.send("Successfully deleted Match #" + args[0])
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#5fff00')
+                .setDescription("Successfully deleted Match #" + args[0])
+        generalChannel.send(errorMsg)
     }
     else if (response == "CONFIRM") {
         generalChannel.send(">>> ** DELETE MATCH: ** " + args[0] + " - " + sanitizedString + " This is a finished match, Upvote to confirm, downvote to cancel")
@@ -750,12 +826,18 @@ async function matchInfo(receivedMessage, args) {
 
     //Catch bad input
     if (args.length != 1) {
-        generalChannel.send("**Error**: Bad input")
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: Bad input")
+        generalChannel.send(errorMsg)
         return
     }
 
     const response = await gameObj.matchInfo(args[0], receivedMessage).catch((message) => {
-        generalChannel.send("**Error**: Match not found")
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: Match not found")
+        generalChannel.send(errorMsg)
         return
     }).then((message) => {
         console.log(message)
