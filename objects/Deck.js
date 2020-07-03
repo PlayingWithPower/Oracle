@@ -186,7 +186,12 @@ module.exports = {
         let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
         return new Promise((resolve, reject)=>{
             deck.find(deckQuery, function(err, res){
-                resolve(res)
+                if (res.length > 0){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
             })
         })
     },
@@ -194,8 +199,20 @@ module.exports = {
      * Takes located deck and deletes it
     */
     removeDeck(args){
-        args = args.replace("**","")
-        args = args.replace("**","")
+        const deck = require('../Schema/Deck')
+        argsFiltered = args.slice(9)
+
+        let deckQuery = {_id: argsFiltered}
+        return new Promise((resolve, reject)=>{
+            deck.deleteOne(deckQuery, function(err, res){
+                if (res){
+                    resolve(res)
+                }
+                else{
+                    reject("Error 1")
+                }
+            })
+        })
     },
     /**
      * Seed the server with an initial list of Deck Aliases.

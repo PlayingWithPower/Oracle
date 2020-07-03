@@ -53,7 +53,7 @@ client.on('message', (receivedMessage) =>{
     else{
         let currentChannel =  client.channels.cache.get()
     }
-    deckObj.populateDecks(receivedMessage)
+    //deckObj.populateDecks(receivedMessage)
 })
 /**
  * TODO: 
@@ -73,7 +73,8 @@ client.on('messageReactionAdd', (reaction, user) => {
  */
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
-    const embeds = reaction.message.embeds[0].title.toString().split(' ')
+    const embeds = reaction.message.embeds[0]
+    console.log(embeds.length)
     let sanitizedString = "<@!"+user.id+">"
     
     // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
@@ -158,18 +159,29 @@ async function manageReaction(reaction, user) {
     //End of Confirm Delete Match Block
     
     //Start of Remove Deck Reacts
-    else if((embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != "717073766030508072")){
-        //super bad way of doing this......... how to pass data to reaction/ then give it to a new function :/
-        var mySubString = reaction.message.embeds[0].description.substring(
-            reaction.message.embeds[0].description.lastIndexOf(":") + 2, 
-            reaction.message.embeds[0].description.lastIndexOf("from")
-        );
-       deckObj.removeDeck(mySubString)
-    }
-    else if((embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+    else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != "717073766030508072")){
+       
+       let removeDeckResult = await deckObj.removeDeck(reaction.message.embeds[0].title)
+
+       if (removeDeckResult.deletedCount >= 1 ){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor("#5fff00") //green
+            .setTitle("Successfully Deleted Deck")
+        reaction.message.edit(editedWarningEmbed);
+       }
+       else{
         const editedWarningEmbed = new Discord.MessageEmbed()
             .setColor("#af0000") //red
-            .setTitle("CANCELLED DELETION")
+            .setTitle("Unknown Error Occurred. Please try again. Check !deck for the deck you're trying to delete.")
+        reaction.message.edit(editedWarningEmbed);
+       }
+       
+    }
+    
+    else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor("#af0000") //red
+            .setTitle("Delete Deck Cancelled")
         reaction.message.edit(editedWarningEmbed);
     }
     else {
@@ -253,16 +265,26 @@ function processCommand(receivedMessage){
 async function removeDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const addingDeckEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
     let promiseReturn = await deckObj.findDeckToRemove(receivedMessage, args);
-    addingDeckEmbed
-        .setTitle("WARNING")
+    if (promiseReturn == "Error 1"){
+        addingDeckEmbed
+        .setColor("#af0000") //red
+        .setDescription("Error deck not found. Try !help, !decks or use the format !removedeck <deckname>")
+        generalChannel.send(addingDeckEmbed)
+    }
+    else{
+        addingDeckEmbed
+        .setColor('#0099ff')
+        .setAuthor("WARNING")
+        .setTitle('Deck ID: ' + promiseReturn[0]._id)
+        .setURL(promiseReturn[0]._link)
         .setDescription("Are you sure you want to delete: **" + promiseReturn[0]._name + "** from your server's list of decks?")
-    generalChannel.send(addingDeckEmbed)
-    .then(function (message, callback){
-        message.react("👍")
-        message.react("👎")
-    })
+        generalChannel.send(addingDeckEmbed)
+        .then(function (message, callback){
+            message.react("👍")
+            message.react("👎")
+        })
+    }
 }
 async function deckStats(receivedMessage,args){
     let generalChannel = getChannelID(receivedMessage)
