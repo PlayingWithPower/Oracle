@@ -74,8 +74,16 @@ client.on('messageReactionAdd', (reaction, user) => {
  */
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
-    const embeds = reaction.message.embeds[0]
-    console.log(embeds.length)
+    var embeds = reaction.message.embeds[0]
+    
+    //Resolving issues where a user would upvote/downvote, then do it again. It would cause embeds.author to be null
+    //  causing error log later on
+    if (embeds.author === null){
+        return
+    }
+    else{
+        embeds = embeds.author.name.toString().split(' ')
+    }
     let sanitizedString = "<@!"+user.id+">"
     
     // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
