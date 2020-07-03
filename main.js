@@ -63,7 +63,7 @@ client.on('messageReactionAdd', (reaction, user) => {
     manageReaction(reaction, user)
 })
 /**
- * 
+ * manageReaction()
  * @param {*} reaction - discord reaction obj
  * @param {*} user  - discord user obj
  * 
@@ -183,8 +183,12 @@ async function manageReaction(reaction, user) {
     }
     
 }
+/**
+ * processCommand()
+ * @param {*} receivedMessage 
+ */
 function processCommand(receivedMessage){
-    let fullCommand = receivedMessage.content.substr(1)
+    let fullCommand = receivedMessage.content.substr(1).toLowerCase()
     let splitCommand = fullCommand.split(" ")
     let primaryCommand = splitCommand[0]
     let arguments = splitCommand.slice(1)
@@ -259,6 +263,11 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+/**
+ * removeDeck()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function removeDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const addingDeckEmbed = new Discord.MessageEmbed()
@@ -273,6 +282,11 @@ async function removeDeck(receivedMessage, args){
         message.react("👎")
     })
 }
+/**
+ * deckStats()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function deckStats(receivedMessage,args){
     let generalChannel = getChannelID(receivedMessage)
     const useEmbed = new Discord.MessageEmbed()
@@ -308,6 +322,10 @@ async function deckStats(receivedMessage,args){
         generalChannel.send(useEmbed)
     }
 }
+/**
+ * toUpper()
+ * @param {*} str 
+ */
 function toUpper(str) {
     return str
         .toLowerCase()
@@ -319,7 +337,11 @@ function toUpper(str) {
         })
         .join(' ');
 }
-
+/**
+ * listCollection()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function listCollection(receivedMessage, args){
     var callbackName = new Array();
     var callbackWins = new Array();
@@ -358,12 +380,22 @@ function listCollection(receivedMessage, args){
         
             
 }
+/**
+ * addToCollection()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function addToCollection(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.addToCollection(receivedMessage, args, function(callback, err){
         generalChannel.send(">>> " + callback)
     })
 }
+/**
+ * use()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function use(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const useEmbed = new Discord.MessageEmbed()
@@ -408,6 +440,11 @@ function use(receivedMessage, args){
             }
     });
 }
+/**
+ * current()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function current(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     var callBackArray = new Array();
@@ -435,6 +472,10 @@ function current(receivedMessage, args){
         }
     })
 }
+/**
+ * getUserAvatarUrl()
+ * @param {*} user 
+ */
 function getUserAvatarUrl(user) {
     return "https://cdn.discordapp.com/avatars/" + user.id + "/" + user.avatar + ".png"
 }
@@ -451,7 +492,7 @@ function getUserFromMention(mention) {
 	}
 }
 /**
- * 
+ * recent()
  * @param {Discord Message Obj} receivedMessage 
  * @param {*} args
  * 
@@ -508,6 +549,11 @@ async function recent(receivedMessage, args) {
         generalChannel.send(tempEmbed)
     })
 }
+/**
+ * listUserDecks()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function listUserDecks(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await deckObj.listUserDecks(receivedMessage)
@@ -529,6 +575,11 @@ async function listUserDecks(receivedMessage, args){
         }
         generalChannel.send(userDecksEmbed)
 }
+/**
+ * listDecks()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function listDecks(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     deckObj.listDecks(receivedMessage ,function(callback,err){
@@ -542,6 +593,10 @@ function listDecks(receivedMessage, args){
         generalChannel.send(listedDecksEmbed)
     });
 }
+/**
+ * listDecksDetailed()
+ * @param {*} channel 
+ */
 function listDecksDetailed(channel){
     deckObj.listDecks(function(callback,err){
         const listedDecksEmbed = new Discord.MessageEmbed()
@@ -558,6 +613,11 @@ function listDecksDetailed(channel){
         channel.send(listedDecksEmbed)
     });
 }
+/**
+ * addDeck()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function addDeck(receivedMessage, args){
     var promiseReturnArr = new Array();
     let generalChannel = getChannelID(receivedMessage)
@@ -598,6 +658,11 @@ async function addDeck(receivedMessage, args){
             generalChannel.send(addingDeckEmbed)   
              
 }
+/**
+ * profile()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function profile(receivedMessage, args){
     var generalChannel = getChannelID(receivedMessage)
     userObj.profile(receivedMessage, args, function(callback, err){
@@ -641,6 +706,11 @@ function profile(receivedMessage, args){
     });
     
 }
+/**
+ * logLosers()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function logLosers(receivedMessage, args){
     var callBackArray = new Array();
     //var lostEloArray = new Array();
@@ -683,8 +753,12 @@ async function logLosers(receivedMessage, args){
     })
    
 }
+
 /**
- * TODO: 
+ * startMatch()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ * TODO:
  */
 function startMatch(receivedMessage, args){
     const user = require('./Schema/Users')
@@ -804,6 +878,11 @@ function startMatch(receivedMessage, args){
         }
     })
 }
+/**
+ * remindMatch()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function remindMatch(receivedMessage, args) {
     var generalChannel = getChannelID(receivedMessage)
     let playerID = "<@!"+receivedMessage.author.id+">"
@@ -840,7 +919,7 @@ async function remindMatch(receivedMessage, args) {
     
 }
 /**
- * 
+ * deleteMatch()
  * @param {discord message obj} receivedMessage 
  * @param {array} args Message content beyond command
  * TODO: Add admin functionality only
@@ -888,7 +967,7 @@ async function deleteMatch(receivedMessage, args) {
 }
 
 /**
- * 
+ * matchInfo()
  * @param {discord message obj} receivedMessage 
  * @param {array} args 
  * 
@@ -917,6 +996,11 @@ async function matchInfo(receivedMessage, args) {
         console.log(message)
     })
 }
+/**
+ * logMatch()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function logMatch(receivedMessage, args){
     const user = require('./Schema/Users')
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
@@ -1028,6 +1112,11 @@ function logMatch(receivedMessage, args){
         }
     })
 }
+/**
+ * users()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function users(receivedMessage, args){
     /* @TODO
     This function can be useful for other aspects of the project, it should be converted to a general count function. ATM it only 
@@ -1038,6 +1127,12 @@ function users(receivedMessage, args){
         generalChannel.send(">>> There are " + callback + " registered users in this league.")
     })
 }
+/**
+ * register()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ * @param {*} channel 
+ */
 function register(receivedMessage, args, channel){
     leagueObj.register(receivedMessage, function(callback,err){
         const messageEmbed = new Discord.MessageEmbed()
@@ -1061,6 +1156,11 @@ function register(receivedMessage, args, channel){
         }
     })
 }
+/**
+ * helpCommand()
+ * @param {*} receivedMessage 
+ * @param {*} arguments 
+ */
 function helpCommand(receivedMessage, arguments){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     if (arguments.length == 0){
@@ -1085,7 +1185,8 @@ function helpCommand(receivedMessage, arguments){
         .setTimestamp()
         .setFooter('Some footer text here', '');
     
-    generalChannel.send(exampleEmbed);
+    //generalChannel.send(exampleEmbed);
+    receivedMessage.channel.send(exampleEmbed)
     } else{
         receivedMessage.channel.send("It looks like you need help with " + arguments)
 
@@ -1093,13 +1194,18 @@ function helpCommand(receivedMessage, arguments){
         //  Take argument user has mentioned and spit back information on it. EX: user types: !help test. Spit back information about test command.
     }
 }
+/**
+ * credits()
+ * @param {*} argument 
+ * @param {*} receivedMessage 
+ */
 function credits(argument, receivedMessage){
     /* @TODO
         Give credit where credit is due 
     */
 }
 /**
- * 
+ * getChannelID()
  * @param {Discord Message Object} receivedMessage Message user submitted
  * 
  * @returns Discord Channel obj to send message to
