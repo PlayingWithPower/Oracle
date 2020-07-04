@@ -17,6 +17,7 @@ const moongoose = require('mongoose')
 const { Cipher } = require('crypto')
 const { type } = require('os')
 const { exception } = require('console')
+const { update } = require('./Schema/Users')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -258,7 +259,7 @@ function processCommand(receivedMessage){
             listDecks(receivedMessage, arguments)
             break;
         case "decksdetailed":
-            listDecksDetailed(responseFormatted);
+            listDecksDetailed(receivedMessage, responseFormatted);
             break;
         case "deckstats":
             deckStats(receivedMessage, arguments);
@@ -272,11 +273,39 @@ function processCommand(receivedMessage){
         case "removedeck":
             removeDeck(receivedMessage,arguments);
             break;
+        case "updatedeck":
+            updateDeck(receivedMessage, arguments);
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+    }
+}
+async function updateDeck(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    const updateDeckEmbed = new Discord.MessageEmbed()
+    let promiseReturn = await deckObj.updateDeck(receivedMessage, args);
+    if (promiseReturn == "Error 1"){
+        updateDeckEmbed
+        .setColor("#af0000") //red
+        .setDescription("Error deck not found. Try !help, !decks or use the format !removedeck <deckname>")
+        generalChannel.send(updateDeckEmbed)
+    }
+    else{
+        updateDeckEmbed
+        .setColor('#0099ff')
+        .setAuthor("You are attempting to update the deck: "+ promiseReturn[0]._name)
+        .setTitle('Deck ID: ' + promiseReturn[0]._id)
+        .setURL(promiseReturn[0]._link)
+        .setDescription("React with the **1** to update the **Deckname**.\nReact with the **2** to update the **Link**.\nReact with the **thumbs down** to cancel at any time.")
+        generalChannel.send(updateDeckEmbed)
+        .then(function (message, callback){
+            message.react("1️⃣")
+            message.react("2️⃣")
+            message.react("👎")
+        })
     }
 }
 async function removeDeck(receivedMessage, args){
@@ -576,8 +605,8 @@ function listDecks(receivedMessage, args){
         generalChannel.send(listedDecksEmbed)
     });
 }
-function listDecksDetailed(channel){
-    deckObj.listDecks(function(callback,err){
+function listDecksDetailed(receivedMessage, channel){
+    deckObj.listDecks(receivedMessage, function(callback,err){
         const listedDecksEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
             .setURL('')

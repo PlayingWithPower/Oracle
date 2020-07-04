@@ -104,8 +104,21 @@ module.exports = {
     /**
      * Updates the URL or Alias of a deck
      */
-    updateDeck(){
-
+    updateDeck(receivedMessage, args){
+        const deck = require('../Schema/Deck')
+        args = args.join(' ')
+        let lowerArgs = args.toString().toLowerCase()
+        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
+        return new Promise((resolve, reject)=>{
+            deck.find(deckQuery, function(err, res){
+                if (res.length > 0){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
+            })
+        })
     },
 
     /**
