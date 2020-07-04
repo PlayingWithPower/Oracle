@@ -141,40 +141,40 @@ module.exports = {
         let deckAliasQuery = {'_alias': aliasArg, '_server': receivedMessage.guild.id}
         let deckSave = {'_link': urlArg, '_name': nameArg, '_alias': aliasArg, '_user': "<@!"+receivedMessage.author.id+">", '_server': receivedMessage.guild.id, '_season': "1"}
         let aliasSave = {'_name': nameArg, '_server': receivedMessage.guild.id}
-
-        if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
-            return new Promise ((resolve,reject)=>{
-                deck.findOne(deckAliasQuery, function(err, res){
-                    if (res){
-                        resolve("Error 1")
-                    }
-                    else{
-                        deck(deckSave).save(function(err, res){
-                            if (res){
-                                callBackArray.push(urlArg)
-                                callBackArray.push(aliasArg)
-                                resolve(callBackArray)
-                                console.log("DEBUG: Successfully saved to DECK DB")
-                            }
-                            else{
-                                resolve("Error 2")
-                            }
-                        })
-                        alias(aliasSave).save(function(err, res){
-                            if (res){
-                                console.log("DEBUG: Successfully saved to ALIAS DB")
-                            }
-                            else{
-                                resolve("Error 2")
-                            }
-                        })
-                    }
-                })       
-            })
-        }
-        else{
-            resolve("Error 3")
-        }    
+        return new Promise ((resolve,reject)=>{
+            if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
+                    deck.findOne(deckAliasQuery, function(err, res){
+                        if (res){
+                            resolve("Error 1")
+                        }
+                        else{
+                            deck(deckSave).save(function(err, res){
+                                if (res){
+                                    callBackArray.push(urlArg)
+                                    callBackArray.push(aliasArg)
+                                    resolve(callBackArray)
+                                    console.log("DEBUG: Successfully saved to DECK DB")
+                                }
+                                else{
+                                    resolve("Error 2")
+                                }
+                            })
+                            alias(aliasSave).save(function(err, res){
+                                if (res){
+                                    console.log("DEBUG: Successfully saved to ALIAS DB")
+                                }
+                                else{
+                                    resolve("Error 2")
+                                }
+                            })
+                        }
+                    })       
+                
+            }
+            else{
+                resolve("Error 3")
+            }    
+        })
     },
     /** 
      * Locates the deck to remove. Then waits for user reaction
