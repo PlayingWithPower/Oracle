@@ -141,40 +141,40 @@ module.exports = {
         let deckAliasQuery = {'_alias': aliasArg, '_server': receivedMessage.guild.id}
         let deckSave = {'_link': urlArg, '_name': nameArg, '_alias': aliasArg, '_user': "<@!"+receivedMessage.author.id+">", '_server': receivedMessage.guild.id, '_season': "1"}
         let aliasSave = {'_name': nameArg, '_server': receivedMessage.guild.id}
-
-        if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
-            return new Promise ((resolve,reject)=>{
-                deck.findOne(deckAliasQuery, function(err, res){
-                    if (res){
-                        resolve("Error 1")
-                    }
-                    else{
-                        deck(deckSave).save(function(err, res){
-                            if (res){
-                                callBackArray.push(urlArg)
-                                callBackArray.push(aliasArg)
-                                resolve(callBackArray)
-                                console.log("DEBUG: Successfully saved to DECK DB")
-                            }
-                            else{
-                                resolve("Error 2")
-                            }
-                        })
-                        alias(aliasSave).save(function(err, res){
-                            if (res){
-                                console.log("DEBUG: Successfully saved to ALIAS DB")
-                            }
-                            else{
-                                resolve("Error 2")
-                            }
-                        })
-                    }
-                })       
-            })
-        }
-        else{
-            resolve("Error 3")
-        }    
+        return new Promise ((resolve,reject)=>{
+            if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
+                    deck.findOne(deckAliasQuery, function(err, res){
+                        if (res){
+                            resolve("Error 1")
+                        }
+                        else{
+                            deck(deckSave).save(function(err, res){
+                                if (res){
+                                    callBackArray.push(urlArg)
+                                    callBackArray.push(aliasArg)
+                                    resolve(callBackArray)
+                                    console.log("DEBUG: Successfully saved to DECK DB")
+                                }
+                                else{
+                                    resolve("Error 2")
+                                }
+                            })
+                            alias(aliasSave).save(function(err, res){
+                                if (res){
+                                    console.log("DEBUG: Successfully saved to ALIAS DB")
+                                }
+                                else{
+                                    resolve("Error 2")
+                                }
+                            })
+                        }
+                    })       
+                
+            }
+            else{
+                resolve("Error 3")
+            }    
+        })
     },
     /** 
      * Locates the deck to remove. Then waits for user reaction
@@ -186,7 +186,12 @@ module.exports = {
         let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
         return new Promise((resolve, reject)=>{
             deck.find(deckQuery, function(err, res){
-                resolve(res)
+                if (res.length > 0){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
             })
         })
     },
@@ -194,8 +199,20 @@ module.exports = {
      * Takes located deck and deletes it
     */
     removeDeck(args){
-        args = args.replace("**","")
-        args = args.replace("**","")
+        const deck = require('../Schema/Deck')
+        argsFiltered = args.slice(9)
+
+        let deckQuery = {_id: argsFiltered}
+        return new Promise((resolve, reject)=>{
+            deck.deleteOne(deckQuery, function(err, res){
+                if (res){
+                    resolve(res)
+                }
+                else{
+                    reject("Error 1")
+                }
+            })
+        })
     },
     /**
      * Seed the server with an initial list of Deck Aliases.
