@@ -10,17 +10,15 @@ module.exports = {
 
     /**
      * Returns a list of all Deck Aliases registered to the server
-     * TODO: Filter by server 
      */
-    listDecks(callback) {
+    listDecks(receivedMessage, callback) {
         const deck = require('../Schema/Deck')
-        deck.find({},{_name:"", _user:"",_id:0},function(err, res){
+        deck.find({_server: receivedMessage.guild.id},{_name:"", _user:"", _id:0},function(err, res){
             callback(res)
         })
     },
     /**
      * Returns a list of all User submitted decks registered to the server.
-     * TODO: filters by server, add in restrictions from above ^ 
      */
     listUserDecks(receivedMessage) {
         const user = require('../Schema/Users')
@@ -40,28 +38,67 @@ module.exports = {
      * Returns stats about a deck alias
      */
     deckStats(receivedMessage, args){
-        args = args.join(' ')
+        try{
+            args = args.join(' ')
+            .toLowerCase()
+            .split(' ')
+            .map(function(word) {
+                // console.log("First capital letter: "+word[0]);
+                // console.log("remain letters: "+ word.substr(1));
+                return word[0].toUpperCase() + word.substr(1);
+            })
+            .join(' ');
+        }
+        catch{
+            args = ""
+        }
         const matches = require('../Schema/Games')
-        let query = {$and: [{'_player1Deck': args}, {'_player2Deck': args}, {'_player3Deck': args}, {'_player4Deck': args}]}
-        matches.find(query, function(err, res){
-            if (err)
-            throw err;
-            if (res){
-                console.log(res)
-            }
+
+        let query = { $or: [ { _player1Deck: args }, { _player2Deck: args },{ _player3Deck: args }, { _player4Deck: args } ] }
+        let wins = 0
+        let losses = 0
+        var deckPlayers = new Array()
+        var passingResult
+
+        return new Promise((resolve, reject) =>{
+            matches.find(query, function(err, res){
+                if (err){
+                    throw err;
+                }
+                passingResult = res;
+            }).then(function(passingResult){
+                if (passingResult != ""){
+                    passingResult.forEach((entry)=>{
+                        if (entry._player1Deck == args){
+                            wins = wins + 1
+                            deckPlayers.push(entry._player1)
+                        }
+                        else if (entry._player2Deck == args){
+                            losses = losses + 1
+                            deckPlayers.push(entry._player2)
+                        }
+                        else if (entry._player3Deck == args){
+                            losses = losses + 1
+                            deckPlayers.push(entry._player3)
+                        }
+                        else if (entry._player4Deck == args){
+                            losses = losses + 1
+                            deckPlayers.push(entry._player4)
+                        }
+                    })
+                    let passedArray = new Array
+                    deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
+                        return inputArray.indexOf(item) == index;
+                    });
+                    passedArray.push(args, wins, losses, deckPlayers)
+                    resolve(passedArray)
+                }
+                else{
+                    resolve("Can't find deck")
+                }
+            })
         })
         
-        // .aggregate([
-        //     {"$match":{"_player1Deck": args}},
-        //     {"$match":{"_player2Deck": args}},
-        //     {"$match":{"_player3Deck": args}},
-        //     {"$match":{"_player4Deck": args}}],
-        //     function(err, data ) {
-        //         if ( err )
-        //           throw err;
-        //         console.log(data)
-        //       }
-        // );
     },
 
     /**
@@ -73,14 +110,12 @@ module.exports = {
 
     /**
      * Adds a new User deck to the server.
-     * TODO: Add react to messages to confirm your deck and alias 
-     * TODO: Command only checks DB vs other aliases, not vs other URLS. AKA you can have two decklist URLs on the DB if they have different aliases
+     * TODO: Add react to messages to confirm your deck and alias - utilizes the Manage Reaction func in main.js
      */
-    addDeck(receivedMessage, args, callback) {
+    addDeck(receivedMessage, args) {
         const deck = require('../Schema/Deck')
-
+        const alias = require('../Schema/Alias')
         const callBackArray = new Array();
-
         let urlArg;
         let nameArg;
         let aliasArg
@@ -100,53 +135,84 @@ module.exports = {
                 return word[0].toUpperCase() + word.substr(1);
             })
             .join(' ');
-        }
-        catch{
+        }catch{
             console.log("Url or alias failed to cast to Strings")
         }
-
-        let deckAliasQuery = {'_alias': aliasArg}
-        let deckQuery = {'_link': urlArg, '_name': nameArg, '_alias': aliasArg, '_user': "<@!"+receivedMessage.author.id+">", '_server': "PWP", '_season': "1"}
-
-        if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
-            //console.log("DEBUG: User succesfully entered a URL")
-            deck.findOne(deckAliasQuery, function(err, res){
-                if (res){
-                    callback("Error: Deck name already used")
-                }
-                else{
-                    deck(deckQuery).save(function(err, res){
+        let deckAliasQuery = {'_alias': aliasArg, '_server': receivedMessage.guild.id}
+        let deckSave = {'_link': urlArg, '_name': nameArg, '_alias': aliasArg, '_user': "<@!"+receivedMessage.author.id+">", '_server': receivedMessage.guild.id, '_season': "1"}
+        let aliasSave = {'_name': nameArg, '_server': receivedMessage.guild.id}
+        return new Promise ((resolve,reject)=>{
+            if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
+                    deck.findOne(deckAliasQuery, function(err, res){
                         if (res){
-                            callBackArray.push(urlArg)
-                            callBackArray.push(aliasArg)
-                            callback(callBackArray)
-                            console.log("DEBUG: Successfully saved to DECK DB")
+                            resolve("Error 1")
                         }
                         else{
-                            callback("Error: Unable to save to Database, please try again")
+                            deck(deckSave).save(function(err, res){
+                                if (res){
+                                    callBackArray.push(urlArg)
+                                    callBackArray.push(aliasArg)
+                                    resolve(callBackArray)
+                                    console.log("DEBUG: Successfully saved to DECK DB")
+                                }
+                                else{
+                                    resolve("Error 2")
+                                }
+                            })
+                            alias(aliasSave).save(function(err, res){
+                                if (res){
+                                    console.log("DEBUG: Successfully saved to ALIAS DB")
+                                }
+                                else{
+                                    resolve("Error 2")
+                                }
+                            })
                         }
-                    })
-                }
-            })   
-        }
-        else{
-            callback("Error: Not a valid URL, please follow the format !adddeck <url> <name>")
-        }
-        
-        
-    },
-    /**
-     * Adds a new User deck to the server.
-     * 
-     */
-    addDeck() {
-        
+                    })       
+                
+            }
+            else{
+                resolve("Error 3")
+            }    
+        })
     },
     /** 
-     * Removes a User deck from the server. 
+     * Locates the deck to remove. Then waits for user reaction
      */
-    removeDeck(){
+    findDeckToRemove(receivedMessage, args){
+        const deck = require('../Schema/Deck')
+        args = args.join(' ')
+        let lowerArgs = args.toString().toLowerCase()
+        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
+        return new Promise((resolve, reject)=>{
+            deck.find(deckQuery, function(err, res){
+                if (res.length > 0){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
+            })
+        })
+    },
+    /** 
+     * Takes located deck and deletes it
+    */
+    removeDeck(args){
+        const deck = require('../Schema/Deck')
+        argsFiltered = args.slice(9)
 
+        let deckQuery = {_id: argsFiltered}
+        return new Promise((resolve, reject)=>{
+            deck.deleteOne(deckQuery, function(err, res){
+                if (res){
+                    resolve(res)
+                }
+                else{
+                    reject("Error 1")
+                }
+            })
+        })
     },
     /**
      * Seed the server with an initial list of Deck Aliases.

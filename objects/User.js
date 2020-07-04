@@ -39,7 +39,7 @@ module.exports = {
      * @returns {2D Array} Array of match Arrays sorted from most recent to least recent.
      * TODO: Server implementation
      */
-    recent(message, user = null) {
+    recent(message, user = null, server = null) {
         gameArr = []
         const games = require('../Schema/Games')
         if (user == null) {
@@ -49,22 +49,27 @@ module.exports = {
             id = user
         }
         return new Promise((resolve, reject) => {
-            findQuery = {$and : [
+            if (server == null) {
+                findQuery = {$and : [
+                                        {
+                                            $or: [
+                                                {_player1: id},
+                                                {_player2: id},
+                                                {_player3: id},
+                                                {_player4: id}
+                                            ]
+                                    },
                                     {
-                                        $or: [
-                                            {_player1: id},
-                                            {_player2: id},
-                                            {_player3: id},
-                                            {_player4: id}
-                                        ]
-                                },
-                                {
-                                    _Status: "FINISHED"
-                                },
-                                {
-                                    _server: message.guild.id
-                                }
-                        ]
+                                        _Status: "FINISHED"
+                                    },
+                                    {
+                                        _server: message.guild.id
+                                    }
+                            ]
+                }
+            }
+            else {
+                findQuery = {_Status: "FINISHED", _server: message.guild.id}
             }
             games.find(findQuery).then((docs) => {
                 docs.forEach((doc) => {
@@ -180,12 +185,20 @@ module.exports = {
         let argsLowerCase = argsWithSpaces.toLowerCase()
         let splitArgs = argsLowerCase.split(" | ")
 
-        //Cleaning up deckname and aliasname
-        let deckname = splitArgs[0]
-        let deckNameFormatted = deckname.toLowerCase().split(' ').map(function(word) {
-            return word[0].toUpperCase() + word.substr(1);
-        }).join(' ');
-
+        //Cleaning up deckname
+        let deckname
+        let deckNameFormatted
+        try {
+            deckname = splitArgs[0]
+            deckNameFormatted = deckname.toLowerCase().split(' ').map(function(word) {
+                return word[0].toUpperCase() + word.substr(1);
+            }).join(' ');
+        }catch{
+            deckname = ""
+            deckNameFormatted = ""
+        }
+        
+        //Cleaning up aliasname
         let aliasName
         let aliasNameFormatted
         try {
