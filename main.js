@@ -3,13 +3,23 @@
 const Discord = require('discord.js')
 const client = new Discord.Client()
 
+//Objects
 const deckObj = require('./objects/Deck')
 const gameObj = require('./objects/Game')
 const leagueObj = require('./objects/League')
 const seaonObj = require('./objects/Season')
 const userObj = require('./objects/User')
 
+//Helper files
+const FunctionHelper = require('./FunctionHelper')
+
+//Bot prefix
 const botListeningPrefix = "!";
+
+//Colors
+const messageColorRed = "#af0000"
+const messageColorGreen = "#5fff00"
+const messageColorBlue = "#0099ff"
 
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
@@ -55,7 +65,7 @@ client.on('message', (receivedMessage) =>{
     else{
         let currentChannel =  client.channels.cache.get()
     }
-    deckObj.populateDecks(receivedMessage)
+    //deckObj.populateDecks(receivedMessage)
 })
 /**
  * TODO: 
@@ -64,7 +74,7 @@ client.on('messageReactionAdd', (reaction, user) => {
     manageReaction(reaction, user)
 })
 /**
- * 
+ * manageReaction()
  * @param {*} reaction - discord reaction obj
  * @param {*} user  - discord user obj
  * 
@@ -75,7 +85,16 @@ client.on('messageReactionAdd', (reaction, user) => {
  */
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
-    const embeds = reaction.message.embeds[0].title.toString().split(' ')
+    var embeds = reaction.message.embeds[0]
+    
+    //Resolving issues where a user would upvote/downvote, then do it again. It would cause embeds.author to be null
+    //  causing error log later on
+    if (embeds.author === null){
+        return
+    }
+    else{
+        embeds = embeds.author.name.toString().split(' ')
+    }
     let sanitizedString = "<@!"+user.id+">"
     
     // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
@@ -97,12 +116,12 @@ async function manageReaction(reaction, user) {
                             gameObj.finishMatch(msg[3]).then(function(){
                                 let generalChannel = getChannelID(reaction.message)
                                 const logMessage = new Discord.MessageEmbed()
-                                        .setColor('#5fff00')
+                                        .setColor(messageColorGreen)
                                         .setDescription("Match logged!")
                                 generalChannel.send(logMessage)
                                 final.forEach(message => {
                                     const confirmMessage = new Discord.MessageEmbed()
-                                        .setColor('#5fff00')
+                                        .setColor(messageColorGreen)
                                         .setDescription(message)
                                     generalChannel.send(confirmMessage)
                                 })
@@ -165,18 +184,29 @@ async function manageReaction(reaction, user) {
     //End of Confirm Delete Match Block
     
     //Start of Remove Deck Reacts
-    else if((embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != "717073766030508072")){
-        //super bad way of doing this......... how to pass data to reaction/ then give it to a new function :/
-        var mySubString = reaction.message.embeds[0].description.substring(
-            reaction.message.embeds[0].description.lastIndexOf(":") + 2, 
-            reaction.message.embeds[0].description.lastIndexOf("from")
-        );
-       deckObj.removeDeck(mySubString)
-    }
-    else if((embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+    else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != "717073766030508072")){
+       
+       let removeDeckResult = await deckObj.removeDeck(reaction.message.embeds[0].title)
+
+       if (removeDeckResult.deletedCount >= 1 ){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor("#5fff00") //green
+            .setTitle("Successfully Deleted Deck")
+        reaction.message.edit(editedWarningEmbed);
+       }
+       else{
         const editedWarningEmbed = new Discord.MessageEmbed()
             .setColor("#af0000") //red
-            .setTitle("CANCELLED DELETION")
+            .setTitle("Unknown Error Occurred. Please try again. Check !deck for the deck you're trying to delete.")
+        reaction.message.edit(editedWarningEmbed);
+       }
+       
+    }
+    
+    else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed) //red
+            .setTitle("Delete Deck Cancelled")
         reaction.message.edit(editedWarningEmbed);
     }
     else {
@@ -184,8 +214,12 @@ async function manageReaction(reaction, user) {
     }
     
 }
+/**
+ * processCommand()
+ * @param {*} receivedMessage 
+ */
 function processCommand(receivedMessage){
-    let fullCommand = receivedMessage.content.substr(1)
+    let fullCommand = receivedMessage.content.substr(1).toLowerCase()
     let splitCommand = fullCommand.split(" ")
     let primaryCommand = splitCommand[0]
     let arguments = splitCommand.slice(1)
@@ -247,14 +281,14 @@ function processCommand(receivedMessage){
         case "deckstats":
             deckStats(receivedMessage, arguments);
             break;
-        case "removedeck":
-            removeDeck(receivedMessage,arguments);
-            break;
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
         case "adddeck":
             addDeck(receivedMessage, arguments);
+            break;
+        case "removedeck":
+            removeDeck(receivedMessage,arguments);
             break;
         case "credits":
             credits(receivedMessage, arguments)
@@ -263,20 +297,40 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+/**
+ * removeDeck()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function removeDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const addingDeckEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
     let promiseReturn = await deckObj.findDeckToRemove(receivedMessage, args);
-    addingDeckEmbed
-        .setTitle("WARNING")
+    if (promiseReturn == "Error 1"){
+        addingDeckEmbed
+        .setColor("#af0000") //red
+        .setDescription("Error deck not found. Try !help, !decks or use the format !removedeck <deckname>")
+        generalChannel.send(addingDeckEmbed)
+    }
+    else{
+        addingDeckEmbed
+        .setColor('#0099ff')
+        .setAuthor("WARNING")
+        .setTitle('Deck ID: ' + promiseReturn[0]._id)
+        .setURL(promiseReturn[0]._link)
         .setDescription("Are you sure you want to delete: **" + promiseReturn[0]._name + "** from your server's list of decks?")
-    generalChannel.send(addingDeckEmbed)
-    .then(function (message, callback){
-        message.react("👍")
-        message.react("👎")
-    })
+        generalChannel.send(addingDeckEmbed)
+        .then(function (message, callback){
+            message.react("👍")
+            message.react("👎")
+        })
+    }
 }
+/**
+ * deckStats()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function deckStats(receivedMessage,args){
     let generalChannel = getChannelID(receivedMessage)
     const useEmbed = new Discord.MessageEmbed()
@@ -284,7 +338,7 @@ async function deckStats(receivedMessage,args){
     let returnArr = await deckObj.deckStats(receivedMessage, args)
     if (returnArr != "Can't find deck"){
         useEmbed
-        .setColor("#0099ff") //blue
+        .setColor(messageColorBlue) //blue
         .setTitle(returnArr[0] + " Deckstats")
         .addFields(
             { name: 'Wins', value: returnArr[1], inline: true},
@@ -307,11 +361,15 @@ async function deckStats(receivedMessage,args){
     }
     else{
         useEmbed
-        .setColor("#af0000") //red
+        .setColor(messageColorRed) //red
         .setDescription("No data for decks with that name. Try !decks to find a list of decks for this server or !deckstats <Deck Name> to find information about a deck.")
         generalChannel.send(useEmbed)
     }
 }
+/**
+ * toUpper()
+ * @param {*} str 
+ */
 function toUpper(str) {
     return str
         .toLowerCase()
@@ -323,7 +381,11 @@ function toUpper(str) {
         })
         .join(' ');
 }
-
+/**
+ * listCollection()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function listCollection(receivedMessage, args){
     var callbackName = new Array();
     var callbackWins = new Array();
@@ -362,56 +424,71 @@ function listCollection(receivedMessage, args){
         
             
 }
+/**
+ * addToCollection()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function addToCollection(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     userObj.addToCollection(receivedMessage, args, function(callback, err){
         generalChannel.send(">>> " + callback)
     })
 }
+/**
+ * use()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function use(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const useEmbed = new Discord.MessageEmbed()
-    .setColor('#5fff00')
+    .setColor(messageColorGreen)
         .setURL('')
     userObj.useDeck(receivedMessage, args, function(callback, err){
             if (callback == "1"){
                 useEmbed
-                .setColor("#af0000") //red
+                .setColor(messageColorRed) //red
                 .setDescription(receivedMessage.author.username + " is not registered. Register with !register")
                 generalChannel.send(useEmbed)
             }
             else if (callback[0] == "2"){
                 useEmbed
-                .setColor("#af0000")
+                .setColor(messageColorRed)
                 .setDescription("**"+callback[1]+"**" + " is not a registered alias. \n Try !decks and choose an alias or !use <deckname> | Rogue ")
                 generalChannel.send(useEmbed)
             }
             else if (callback == "3"){
                 useEmbed
-                .setColor("#af0000")
+                .setColor(messageColorRed)
                 .setDescription("Error setting deck. Please try again.")
                 generalChannel.send(useEmbed)
             }
             else if (callback[0] == "4"){
                 useEmbed
-                .setColor("#5fff00") //green
+                .setColor(messageColorGreen) //green
                 .setDescription("Successfully set " + "**"+callback[1]+"**"+ " as the Current Deck for " + "<@!" + receivedMessage.author.id + ">")
                 generalChannel.send(useEmbed)
             }
             else if (callback == "5"){
                 useEmbed
-                .setColor("#af0000") 
+                .setColor(messageColorRed) 
                 .setDescription("Please provide a deck name to differentiate between your 'Rogue' decks. Try !use <deckname> | Rogue")
                 generalChannel.send(useEmbed)
             }
             else if (callback[0] == "5"){
                 useEmbed
-                .setColor("#af0000") 
+                .setColor(messageColorRed) 
                 .setDescription("You are attempting to use a registered alias: " + "**" + callback[1] + "**" + ". Please try !use <deckname> | Rogue if your list deviates greatly from the primer. Otherwise, try !use " + "**" + callback[1]+"**")
                 generalChannel.send(useEmbed)
             }
     });
 }
+/**
+ * current()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function current(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     var callBackArray = new Array();
@@ -439,6 +516,10 @@ function current(receivedMessage, args){
         }
     })
 }
+/**
+ * getUserAvatarUrl()
+ * @param {*} user 
+ */
 function getUserAvatarUrl(user) {
     return "https://cdn.discordapp.com/avatars/" + user.id + "/" + user.avatar + ".png"
 }
@@ -455,7 +536,7 @@ function getUserFromMention(mention) {
 	}
 }
 /**
- * 
+ * recent()
  * @param {Discord Message Obj} receivedMessage 
  * @param {array} args | array of other input after command
  * 
@@ -578,6 +659,11 @@ async function recent(receivedMessage, args) {
         generalChannel.send(tempEmbed)
     })
 }
+/**
+ * listUserDecks()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function listUserDecks(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await deckObj.listUserDecks(receivedMessage)
@@ -590,15 +676,24 @@ async function listUserDecks(receivedMessage, args){
             if (isNaN(winrate)){
                 winrate = 0
             }
-            userDecksEmbed.addFields(
-                { name: " \u200b",value: returnArr[0]._deck[i].Deck},
-                { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
-                { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
-                { name: "Winrate", value: winrate + "%", inline: true},
-            )
+            //Check if there's no data
+            if ((returnArr[0]._deck[i].Wins + returnArr[0]._deck[i].Losses) == 0 ){ }
+            else{
+                userDecksEmbed.addFields(
+                    { name: " \u200b",value: returnArr[0]._deck[i].Deck},
+                    { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
+                    { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
+                    { name: "Winrate", value: winrate + "%", inline: true},
+                )
+            }
         }
         generalChannel.send(userDecksEmbed)
 }
+/**
+ * listDecks()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function listDecks(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     deckObj.listDecks(receivedMessage ,function(callback,err){
@@ -612,6 +707,10 @@ function listDecks(receivedMessage, args){
         generalChannel.send(listedDecksEmbed)
     });
 }
+/**
+ * listDecksDetailed()
+ * @param {*} channel 
+ */
 function listDecksDetailed(channel){
     deckObj.listDecks(function(callback,err){
         const listedDecksEmbed = new Discord.MessageEmbed()
@@ -628,6 +727,11 @@ function listDecksDetailed(channel){
         channel.send(listedDecksEmbed)
     });
 }
+/**
+ * addDeck()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function addDeck(receivedMessage, args){
     var promiseReturnArr = new Array();
     let generalChannel = getChannelID(receivedMessage)
@@ -636,17 +740,17 @@ async function addDeck(receivedMessage, args){
     let promiseReturn = await deckObj.addDeck(receivedMessage, args);
         if (promiseReturn == "Error 1"){
             addingDeckEmbed
-            .setColor("#af0000") //red
+            .setColor(messageColorRed) //red
             .setDescription("Deck name already used. Try !decks to see a list of in use names.")
         }
         else if (promiseReturn == "Error 2"){
             addingDeckEmbed
-            .setColor("#af0000") //red
+            .setColor(messageColorRed) //red
             .setDescription("Unable to save to Database, please try again later.")
         }
         else if (promiseReturn == "Error 3"){
             addingDeckEmbed
-            .setColor("#af0000") //red
+            .setColor(messageColorRed) //red
             .setDescription("Not a valid URL, please follow the format !adddeck <url> <deck name>.")
         }
         else{
@@ -659,7 +763,7 @@ async function addDeck(receivedMessage, args){
             
             addingDeckEmbed
             .setTitle("Successfully uploaded new Decklist!")
-            .setColor("#5fff00") //green
+            .setColor(messageColorGreen) //green
             .addFields(
                 { name: 'Decklist', value: "[Link]("+grabURL+")"},
                 { name: 'Name', value: grabName},
@@ -668,6 +772,11 @@ async function addDeck(receivedMessage, args){
             generalChannel.send(addingDeckEmbed)   
              
 }
+/**
+ * profile()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function profile(receivedMessage, args){
     var generalChannel = getChannelID(receivedMessage)
     userObj.profile(receivedMessage, args, function(callback, err){
@@ -711,6 +820,11 @@ function profile(receivedMessage, args){
     });
     
 }
+/**
+ * logLosers()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function logLosers(receivedMessage, args){
     var callBackArray = new Array();
     //var lostEloArray = new Array();
@@ -753,8 +867,12 @@ async function logLosers(receivedMessage, args){
     })
    
 }
+
 /**
- * TODO: 
+ * startMatch()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ * TODO:
  */
 function startMatch(receivedMessage, args){
     const user = require('./Schema/Users')
@@ -874,6 +992,11 @@ function startMatch(receivedMessage, args){
         }
     })
 }
+/**
+ * remindMatch()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function remindMatch(receivedMessage, args) {
     var generalChannel = getChannelID(receivedMessage)
     let playerID = "<@!"+receivedMessage.author.id+">"
@@ -910,7 +1033,7 @@ async function remindMatch(receivedMessage, args) {
     
 }
 /**
- * 
+ * deleteMatch()
  * @param {discord message obj} receivedMessage 
  * @param {array} args Message content beyond command
  * TODO: Add admin functionality only
@@ -937,7 +1060,7 @@ async function deleteMatch(receivedMessage, args) {
     })
     if (response == "SUCCESS") {
         const errorMsg = new Discord.MessageEmbed()
-                .setColor('#5fff00')
+                .setColor(messageColorGreen)
                 .setDescription("Successfully deleted Match #" + args[0])
         generalChannel.send(errorMsg)
     }
@@ -958,7 +1081,7 @@ async function deleteMatch(receivedMessage, args) {
 }
 
 /**
- * 
+ * matchInfo()
  * @param {discord message obj} receivedMessage 
  * @param {array} args 
  * 
@@ -1010,6 +1133,11 @@ async function matchInfo(receivedMessage, args) {
         }
     })
 }
+/**
+ * logMatch()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function logMatch(receivedMessage, args){
     const user = require('./Schema/Users')
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
@@ -1121,6 +1249,11 @@ function logMatch(receivedMessage, args){
         }
     })
 }
+/**
+ * users()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 function users(receivedMessage, args){
     /* @TODO
     This function can be useful for other aspects of the project, it should be converted to a general count function. ATM it only 
@@ -1131,68 +1264,62 @@ function users(receivedMessage, args){
         generalChannel.send(">>> There are " + callback + " registered users in this league.")
     })
 }
+/**
+ * register()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ * @param {*} channel 
+ */
 function register(receivedMessage, args, channel){
     leagueObj.register(receivedMessage, function(callback,err){
         const messageEmbed = new Discord.MessageEmbed()
         if (callback == "1"){ 
             messageEmbed
-            .setColor("#5fff00")
+            .setColor(messageColorGreen)
             .setDescription(receivedMessage.author.username + " is now registered.")
             channel.send(messageEmbed)
         }
         else if (callback == "2"){
             messageEmbed
-            .setColor("#af0000")
+            .setColor(messageColorRed)
             .setDescription(receivedMessage.author.username + " is already registered.")
             channel.send(messageEmbed)
         }
         else if (callback == "3"){
             messageEmbed
-            .setColor("#af0000")
+            .setColor(messageColorRed)
             .setDescription("Critical Error. Try again. If problem persists, please reach out to developers.")
             channel.send(messageEmbed)
         }
     })
 }
+/**
+ * helpCommand()
+ * @param {*} receivedMessage 
+ * @param {*} arguments 
+ */
 function helpCommand(receivedMessage, arguments){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     if (arguments.length == 0){
-        const exampleEmbed = new Discord.MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle('PWP Bot')
-        .setURL('')
-        .setAuthor('Noah Saldaña', '', '')
-        .setDescription('An excellent bot for excellent people')
-        .setThumbnail('')
-        .addFields(
-            { name: '!help', value: 'Where you are now. A list of all available commands with a brief description of each.' },
-            { name: '\u200B', value: '\u200B' },
-            { name: '!multiply', value: 'Multiply two numbers.', inline: true },
-            { name: '!send', value: 'Bot will tell your friends what you really think of them.', inline: true },
-            { name: '!log', value: 'Testing function, adds elo to an account. ', inline: true },
-            /* @TODO
-                Add other commands manually or find a way to programmatically list all commands available + a blurb
-            */
-        )
-        .setImage('')
-        .setTimestamp()
-        .setFooter('Some footer text here', '');
-    
-    generalChannel.send(exampleEmbed);
-    } else{
-        receivedMessage.channel.send("It looks like you need help with " + arguments)
 
-        //@TODO
-        //  Take argument user has mentioned and spit back information on it. EX: user types: !help test. Spit back information about test command.
+        // Call FunctionHelper to with our message.
+        FunctionHelper.showEmbedHelpForAllCommands(receivedMessage)
+    } else{
+        FunctionHelper.showEmbedHelpForCommand(receivedMessage, arguments);
     }
 }
+/**
+ * credits()
+ * @param {*} argument 
+ * @param {*} receivedMessage 
+ */
 function credits(argument, receivedMessage){
     /* @TODO
         Give credit where credit is due 
     */
 }
 /**
- * 
+ * getChannelID()
  * @param {Discord Message Object} receivedMessage Message user submitted
  * 
  * @returns Discord Channel obj to send message to

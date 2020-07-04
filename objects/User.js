@@ -185,12 +185,20 @@ module.exports = {
         let argsLowerCase = argsWithSpaces.toLowerCase()
         let splitArgs = argsLowerCase.split(" | ")
 
-        //Cleaning up deckname and aliasname
-        let deckname = splitArgs[0]
-        let deckNameFormatted = deckname.toLowerCase().split(' ').map(function(word) {
-            return word[0].toUpperCase() + word.substr(1);
-        }).join(' ');
-
+        //Cleaning up deckname
+        let deckname
+        let deckNameFormatted
+        try {
+            deckname = splitArgs[0]
+            deckNameFormatted = deckname.toLowerCase().split(' ').map(function(word) {
+                return word[0].toUpperCase() + word.substr(1);
+            }).join(' ');
+        }catch{
+            deckname = ""
+            deckNameFormatted = ""
+        }
+        
+        //Cleaning up aliasname
         let aliasName
         let aliasNameFormatted
         try {
