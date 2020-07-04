@@ -263,14 +263,14 @@ function processCommand(receivedMessage){
         case "deckstats":
             deckStats(receivedMessage, arguments);
             break;
-        case "removedeck":
-            removeDeck(receivedMessage,arguments);
-            break;
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
         case "adddeck":
             addDeck(receivedMessage, arguments);
+            break;
+        case "removedeck":
+            removeDeck(receivedMessage,arguments);
             break;
         case "credits":
             credits(receivedMessage, arguments)
@@ -550,12 +550,16 @@ async function listUserDecks(receivedMessage, args){
             if (isNaN(winrate)){
                 winrate = 0
             }
-            userDecksEmbed.addFields(
-                { name: " \u200b",value: returnArr[0]._deck[i].Deck},
-                { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
-                { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
-                { name: "Winrate", value: winrate + "%", inline: true},
-            )
+            //Check if there's no data
+            if ((returnArr[0]._deck[i].Wins + returnArr[0]._deck[i].Losses) == 0 ){ }
+            else{
+                userDecksEmbed.addFields(
+                    { name: " \u200b",value: returnArr[0]._deck[i].Deck},
+                    { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
+                    { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
+                    { name: "Winrate", value: winrate + "%", inline: true},
+                )
+            }
         }
         generalChannel.send(userDecksEmbed)
 }
