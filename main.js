@@ -10,6 +10,9 @@ const leagueObj = require('./objects/League')
 const seaonObj = require('./objects/Season')
 const userObj = require('./objects/User')
 
+//Helper files
+const FunctionHelper = require('./FunctionHelper')
+
 //Bot prefix
 const botListeningPrefix = "!";
 
@@ -1171,34 +1174,11 @@ function register(receivedMessage, args, channel){
 function helpCommand(receivedMessage, arguments){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     if (arguments.length == 0){
-        const exampleEmbed = new Discord.MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle('PWP Bot')
-        .setURL('')
-        .setAuthor('Noah Saldaña', '', '')
-        .setDescription('An excellent bot for excellent people')
-        .setThumbnail('')
-        .addFields(
-            { name: '!help', value: 'Where you are now. A list of all available commands with a brief description of each.' },
-            { name: '\u200B', value: '\u200B' },
-            { name: '!multiply', value: 'Multiply two numbers.', inline: true },
-            { name: '!send', value: 'Bot will tell your friends what you really think of them.', inline: true },
-            { name: '!log', value: 'Testing function, adds elo to an account. ', inline: true },
-            /* @TODO
-                Add other commands manually or find a way to programmatically list all commands available + a blurb
-            */
-        )
-        .setImage('')
-        .setTimestamp()
-        .setFooter('Some footer text here', '');
-    
-    //generalChannel.send(exampleEmbed);
-    receivedMessage.channel.send(exampleEmbed)
-    } else{
-        receivedMessage.channel.send("It looks like you need help with " + arguments)
 
-        //@TODO
-        //  Take argument user has mentioned and spit back information on it. EX: user types: !help test. Spit back information about test command.
+        // Call FunctionHelper to with our message.
+        FunctionHelper.showEmbedHelpForAllCommands(receivedMessage)
+    } else{
+        FunctionHelper.showEmbedHelpForCommand(receivedMessage, arguments);
     }
 }
 /**
