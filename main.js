@@ -65,7 +65,7 @@ client.on('message', (receivedMessage) =>{
     else{
         let currentChannel =  client.channels.cache.get()
     }
-    deckObj.populateDecks(receivedMessage)
+    //deckObj.populateDecks(receivedMessage)
 })
 /**
  * TODO: 
@@ -85,7 +85,16 @@ client.on('messageReactionAdd', (reaction, user) => {
  */
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
-    const embeds = reaction.message.embeds[0].title.toString().split(' ')
+    var embeds = reaction.message.embeds[0]
+    
+    //Resolving issues where a user would upvote/downvote, then do it again. It would cause embeds.author to be null
+    //  causing error log later on
+    if (embeds.author === null){
+        return
+    }
+    else{
+        embeds = embeds.author.name.toString().split(' ')
+    }
     let sanitizedString = "<@!"+user.id+">"
     
     // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
@@ -175,18 +184,29 @@ async function manageReaction(reaction, user) {
     //End of Confirm Delete Match Block
     
     //Start of Remove Deck Reacts
-    else if((embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != "717073766030508072")){
-        //super bad way of doing this......... how to pass data to reaction/ then give it to a new function :/
-        var mySubString = reaction.message.embeds[0].description.substring(
-            reaction.message.embeds[0].description.lastIndexOf(":") + 2, 
-            reaction.message.embeds[0].description.lastIndexOf("from")
-        );
-       deckObj.removeDeck(mySubString)
+    else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != "717073766030508072")){
+       
+       let removeDeckResult = await deckObj.removeDeck(reaction.message.embeds[0].title)
+
+       if (removeDeckResult.deletedCount >= 1 ){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor("#5fff00") //green
+            .setTitle("Successfully Deleted Deck")
+        reaction.message.edit(editedWarningEmbed);
+       }
+       else{
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor("#af0000") //red
+            .setTitle("Unknown Error Occurred. Please try again. Check !deck for the deck you're trying to delete.")
+        reaction.message.edit(editedWarningEmbed);
+       }
+       
     }
-    else if((embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+    
+    else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
         const editedWarningEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed) //red
-            .setTitle("CANCELLED DELETION")
+            .setTitle("Delete Deck Cancelled")
         reaction.message.edit(editedWarningEmbed);
     }
     else {
@@ -261,14 +281,14 @@ function processCommand(receivedMessage){
         case "deckstats":
             deckStats(receivedMessage, arguments);
             break;
-        case "removedeck":
-            removeDeck(receivedMessage,arguments);
-            break;
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
         case "adddeck":
             addDeck(receivedMessage, arguments);
+            break;
+        case "removedeck":
+            removeDeck(receivedMessage,arguments);
             break;
         case "credits":
             credits(receivedMessage, arguments)
@@ -285,16 +305,26 @@ function processCommand(receivedMessage){
 async function removeDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const addingDeckEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
     let promiseReturn = await deckObj.findDeckToRemove(receivedMessage, args);
-    addingDeckEmbed
-        .setTitle("WARNING")
+    if (promiseReturn == "Error 1"){
+        addingDeckEmbed
+        .setColor("#af0000") //red
+        .setDescription("Error deck not found. Try !help, !decks or use the format !removedeck <deckname>")
+        generalChannel.send(addingDeckEmbed)
+    }
+    else{
+        addingDeckEmbed
+        .setColor('#0099ff')
+        .setAuthor("WARNING")
+        .setTitle('Deck ID: ' + promiseReturn[0]._id)
+        .setURL(promiseReturn[0]._link)
         .setDescription("Are you sure you want to delete: **" + promiseReturn[0]._name + "** from your server's list of decks?")
-    generalChannel.send(addingDeckEmbed)
-    .then(function (message, callback){
-        message.react("👍")
-        message.react("👎")
-    })
+        generalChannel.send(addingDeckEmbed)
+        .then(function (message, callback){
+            message.react("👍")
+            message.react("👎")
+        })
+    }
 }
 /**
  * deckStats()
@@ -646,12 +676,16 @@ async function listUserDecks(receivedMessage, args){
             if (isNaN(winrate)){
                 winrate = 0
             }
-            userDecksEmbed.addFields(
-                { name: " \u200b",value: returnArr[0]._deck[i].Deck},
-                { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
-                { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
-                { name: "Winrate", value: winrate + "%", inline: true},
-            )
+            //Check if there's no data
+            if ((returnArr[0]._deck[i].Wins + returnArr[0]._deck[i].Losses) == 0 ){ }
+            else{
+                userDecksEmbed.addFields(
+                    { name: " \u200b",value: returnArr[0]._deck[i].Deck},
+                    { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
+                    { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
+                    { name: "Winrate", value: winrate + "%", inline: true},
+                )
+            }
         }
         generalChannel.send(userDecksEmbed)
 }
