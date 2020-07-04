@@ -27,6 +27,7 @@ const moongoose = require('mongoose')
 const { Cipher } = require('crypto')
 const { type } = require('os')
 const { exception } = require('console')
+const { match } = require('assert')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -64,7 +65,7 @@ client.on('message', (receivedMessage) =>{
     else{
         let currentChannel =  client.channels.cache.get()
     }
-    deckObj.populateDecks(receivedMessage)
+    //deckObj.populateDecks(receivedMessage)
 })
 /**
  * TODO: 
@@ -84,7 +85,16 @@ client.on('messageReactionAdd', (reaction, user) => {
  */
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
-    const embeds = reaction.message.embeds[0].title.toString().split(' ')
+    var embeds = reaction.message.embeds[0]
+    
+    //Resolving issues where a user would upvote/downvote, then do it again. It would cause embeds.author to be null
+    //  causing error log later on
+    if (embeds.author === null){
+        return
+    }
+    else{
+        embeds = embeds.author.name.toString().split(' ')
+    }
     let sanitizedString = "<@!"+user.id+">"
     
     // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
@@ -174,18 +184,29 @@ async function manageReaction(reaction, user) {
     //End of Confirm Delete Match Block
     
     //Start of Remove Deck Reacts
-    else if((embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != "717073766030508072")){
-        //super bad way of doing this......... how to pass data to reaction/ then give it to a new function :/
-        var mySubString = reaction.message.embeds[0].description.substring(
-            reaction.message.embeds[0].description.lastIndexOf(":") + 2, 
-            reaction.message.embeds[0].description.lastIndexOf("from")
-        );
-       deckObj.removeDeck(mySubString)
+    else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != "717073766030508072")){
+       
+       let removeDeckResult = await deckObj.removeDeck(reaction.message.embeds[0].title)
+
+       if (removeDeckResult.deletedCount >= 1 ){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor("#5fff00") //green
+            .setTitle("Successfully Deleted Deck")
+        reaction.message.edit(editedWarningEmbed);
+       }
+       else{
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor("#af0000") //red
+            .setTitle("Unknown Error Occurred. Please try again. Check !deck for the deck you're trying to delete.")
+        reaction.message.edit(editedWarningEmbed);
+       }
+       
     }
-    else if((embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+    
+    else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
         const editedWarningEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed) //red
-            .setTitle("CANCELLED DELETION")
+            .setTitle("Delete Deck Cancelled")
         reaction.message.edit(editedWarningEmbed);
     }
     else {
@@ -239,6 +260,9 @@ function processCommand(receivedMessage){
         case "recent":
             recent(receivedMessage, arguments)
             break;
+        case "match":
+            matchInfo(receivedMessage, arguments)
+            break;
         case "use":
             use(receivedMessage, arguments)
             break;
@@ -257,14 +281,14 @@ function processCommand(receivedMessage){
         case "deckstats":
             deckStats(receivedMessage, arguments);
             break;
-        case "removedeck":
-            removeDeck(receivedMessage,arguments);
-            break;
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
         case "adddeck":
             addDeck(receivedMessage, arguments);
+            break;
+        case "removedeck":
+            removeDeck(receivedMessage,arguments);
             break;
         case "credits":
             credits(receivedMessage, arguments)
@@ -281,16 +305,26 @@ function processCommand(receivedMessage){
 async function removeDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const addingDeckEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
     let promiseReturn = await deckObj.findDeckToRemove(receivedMessage, args);
-    addingDeckEmbed
-        .setTitle("WARNING")
+    if (promiseReturn == "Error 1"){
+        addingDeckEmbed
+        .setColor("#af0000") //red
+        .setDescription("Error deck not found. Try !help, !decks or use the format !removedeck <deckname>")
+        generalChannel.send(addingDeckEmbed)
+    }
+    else{
+        addingDeckEmbed
+        .setColor('#0099ff')
+        .setAuthor("WARNING")
+        .setTitle('Deck ID: ' + promiseReturn[0]._id)
+        .setURL(promiseReturn[0]._link)
         .setDescription("Are you sure you want to delete: **" + promiseReturn[0]._name + "** from your server's list of decks?")
-    generalChannel.send(addingDeckEmbed)
-    .then(function (message, callback){
-        message.react("👍")
-        message.react("👎")
-    })
+        generalChannel.send(addingDeckEmbed)
+        .then(function (message, callback){
+            message.react("👍")
+            message.react("👎")
+        })
+    }
 }
 /**
  * deckStats()
@@ -504,57 +538,123 @@ function getUserFromMention(mention) {
 /**
  * recent()
  * @param {Discord Message Obj} receivedMessage 
- * @param {*} args
+ * @param {array} args | array of other input after command
  * 
  * TODO: Fix Bot avatar image
- * TODO: Fix "Showing X recent matches" line, sounds awkward
  *  
+ * **If checking could be optimized but eh**
+ * 
+ * 
+ *  Allows the user to view recent matches. type "server" instead of an @ to see server recent matches. Add "more" on the end of input to add more results
  */
 async function recent(receivedMessage, args) {
     let generalChannel = getChannelID(receivedMessage)
+    let more = false
+    let allServer = false
+
+    // checking block of DOOM
     if (args.length == 0) {
         var matches_arr = await userObj.recent(receivedMessage)
     }
     else if (args.length == 1) {
-        if (args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") {
-            generalChannel.send("Use **@[user]** when searching other users recent matches")
+        if (args[0].toLowerCase() == "more") {
+            more = true
+            var matches_arr = await userObj.recent(receivedMessage)
+        }
+        else if ((args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") && args[0].toLowerCase() != "server") {
+            const errorEmbed = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("Use **@[user]** when searching other users recent matches or \"server\" to see server matches and type \"more\" after the command to load more results")
+            generalChannel.send(errorEmbed)
             return
         }
-        var matches_arr = await userObj.recent(receivedMessage, args[0])
+        else if (args[0].toLowerCase() == "server") {
+            var matches_arr = await userObj.recent(receivedMessage, null, true)
+        }
+        else {
+            var matches_arr = await userObj.recent(receivedMessage, args[0])
+        }
+    }
+    else if (args.length == 2) {
+        if ((args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") && args[0].toLowerCase() != "server" || args[1].toLowerCase() != "more") {
+            const errorEmbed = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("Use **@[user]** when searching other users recent matches or \"server\" to see server matches and type \"more\" after the command to load more results")
+            generalChannel.send(errorEmbed)
+            return
+        }
+        else if (args[0].toLowerCase() == "server") {
+            more = true
+            var matches_arr = await userObj.recent(receivedMessage, null, true)
+        }
+        else {
+            more = true
+            var matches_arr = await userObj.recent(receivedMessage, args[0])
+        }
     }
     else {
-        generalChannel.send("**Error**: Bad Input")
+        const errorEmbed = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: Bad Input")
+        generalChannel.send(errorEmbed)
         return
     }
-    let tempEmbed
+    // Checking block over
 
-    //Log only 3 most recent matches
-    matches_arr = matches_arr.slice(0,3)
+
+    //Log only 5 most recent matches or if the user types "more" 
+    if (more) {
+        matches_arr = matches_arr.slice(0,10)
+    }
+    else {
+        matches_arr = matches_arr.slice(0,5)
+    }
+
+    // Make sure there are matches
     if (matches_arr.length == 0) {
-        generalChannel.send("**Error:** User has no matches in the system")
+        const errorEmbed = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error:** User has no matches in the system")
+        generalChannel.send(errorEmbed)
         return
     }
-    generalChannel.send(">>> Showing " + matches_arr.length.toString() + " recent match(es)")
+
+    // Grammar fixing
+    let matchGrammar = "match"
+    if (matches_arr.length > 1) {
+        matchGrammar = "matches"
+    }
+    else {
+        matchGrammar = "match"
+    }
+
+    const confirmEmbed = new Discord.MessageEmbed()
+            .setColor('#5fff00')
+            .setDescription("Showing " + matches_arr.length.toString() + " recent " + matchGrammar)
+    generalChannel.send(confirmEmbed)
+
+    //Main loop
+    let tempEmbed
     matches_arr.forEach(async(match) => {
         var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
 
-        const bot = await getUserFromMention('<@!717073766030508072>')
+        //const bot = await getUserFromMention('<@!717073766030508072>')
         const winner = await getUserFromMention(match[4])
-        const loser1 = await getUserFromMention(match[5])
-        const loser2 = await getUserFromMention(match[6])
-        const loser3 = await getUserFromMention(match[7])
+        //const loser1 = await getUserFromMention(match[5])
+        //const loser2 = await getUserFromMention(match[6])
+        //const loser3 = await getUserFromMention(match[7])
         tempEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff') //blue
             .setTitle('Game ID: ' + match[1])
-            .setThumbnail(getUserAvatarUrl(winner))
+            //.setThumbnail(getUserAvatarUrl(winner))
             .addFields(
                 { name: 'Season: ', value: match[3], inline: true},
                 { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
-                { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**'},
-                { name: 'Opponents:', value: 
-                '**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
-                + '**'+loser2.username+'**'+ ' piloting ' + '**'+match[10]+'**' + '\n' 
-                + '**'+loser3.username+'**'+ ' piloting ' + '**'+match[11]+'**' }
+                { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**', inline: true},
+                //{ name: 'Opponents:', value: 
+                //'**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
+                //+ '**'+loser2.username+'**'+ ' piloting ' + '**'+match[10]+'**' + '\n' 
+                //+ '**'+loser3.username+'**'+ ' piloting ' + '**'+match[11]+'**' }
             )
         generalChannel.send(tempEmbed)
     })
@@ -576,12 +676,16 @@ async function listUserDecks(receivedMessage, args){
             if (isNaN(winrate)){
                 winrate = 0
             }
-            userDecksEmbed.addFields(
-                { name: " \u200b",value: returnArr[0]._deck[i].Deck},
-                { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
-                { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
-                { name: "Winrate", value: winrate + "%", inline: true},
-            )
+            //Check if there's no data
+            if ((returnArr[0]._deck[i].Wins + returnArr[0]._deck[i].Losses) == 0 ){ }
+            else{
+                userDecksEmbed.addFields(
+                    { name: " \u200b",value: returnArr[0]._deck[i].Deck},
+                    { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
+                    { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
+                    { name: "Winrate", value: winrate + "%", inline: true},
+                )
+            }
         }
         generalChannel.send(userDecksEmbed)
 }
@@ -988,22 +1092,45 @@ async function matchInfo(receivedMessage, args) {
     let sanitizedString = "<@!"+receivedMessage.author.id+">"
 
     //Catch bad input
-    if (args.length != 1) {
+    if (args.length != 1 || args[0].length != 12) {
         const errorMsg = new Discord.MessageEmbed()
                 .setColor('#af0000')
                 .setDescription("**Error**: Bad input")
         generalChannel.send(errorMsg)
         return
     }
-
+    let failed = false
     const response = await gameObj.matchInfo(args[0], receivedMessage).catch((message) => {
         const errorMsg = new Discord.MessageEmbed()
                 .setColor('#af0000')
                 .setDescription("**Error**: Match not found")
         generalChannel.send(errorMsg)
+        failed = true
         return
-    }).then((message) => {
-        console.log(message)
+    }).then(async(match) => {
+        if (!failed) {
+            var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
+
+            const bot = await getUserFromMention('<@!717073766030508072>')
+            const winner = await getUserFromMention(match[4])
+            const loser1 = await getUserFromMention(match[5])
+            const loser2 = await getUserFromMention(match[6])
+            const loser3 = await getUserFromMention(match[7])
+            tempEmbed = new Discord.MessageEmbed()
+                .setColor('#0099ff') //blue
+                .setTitle('Game ID: ' + match[1])
+                .setThumbnail(getUserAvatarUrl(winner))
+                .addFields(
+                    { name: 'Season: ', value: match[3], inline: true},
+                    { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                    { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**'},
+                    { name: 'Opponents:', value: 
+                    '**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
+                    + '**'+loser2.username+'**'+ ' piloting ' + '**'+match[10]+'**' + '\n' 
+                    + '**'+loser3.username+'**'+ ' piloting ' + '**'+match[11]+'**' }
+                )
+            generalChannel.send(tempEmbed)
+        }
     })
 }
 /**
