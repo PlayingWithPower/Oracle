@@ -459,6 +459,9 @@ module.exports = {
             let findQuery = {_match_id: match_id, _server: server_id}
             games.findOne(findQuery, function(err, res) {
                 if (res) {
+                    timestamp = res._id.toString().substring(0,8)
+                    date = new Date( parseInt( timestamp, 16 ) * 1000)
+                    returnArr.push(date)
                     returnArr.push(res._match_id)
                     returnArr.push(res._server)
                     returnArr.push(res._season)
