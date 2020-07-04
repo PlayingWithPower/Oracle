@@ -21,6 +21,7 @@ helpDictionary =
     users : "Shows all the users registered to the elo bot.",
     log : "The command used to log a game.",
     remind : "Command to remind a user to confirm a game.",
+    // delete is a keyword...we gotta choose something else.
     de_lete : "Command to delete a record from the elo bot records.",
     info : "Command to get info about a match.",
     profile : "Command to check a profile of a user.",
@@ -55,11 +56,22 @@ module.exports = {
         .setColor(messageColorBlue)
         .setTitle('PWP Bot - !help ' + [arguments])
         .setURL('')
-        .addFields(
-            { name: "Command: !" + [arguments], value: helpDictionary[arguments] },
-        )
         .setTimestamp()
         .setFooter('Here to help, anytime!', '');
+
+        // due to keyword collision, delete is 'de_lete' in dictionary
+        if (arguments == 'delete')
+        {
+            exampleEmbed.addFields(
+                { name: "Command: !delete", value: helpDictionary['de_lete'] },
+            )
+        }
+        else
+        {
+            exampleEmbed.addFields(
+                { name: "Command: !" + [arguments], value: helpDictionary[arguments] },
+            )
+        }
 
         receivedMessage.channel.send(exampleEmbed);
     },
@@ -84,7 +96,15 @@ module.exports = {
 
         for(var keyVal in helpDictionary)
         {
-            exampleEmbed.addField('!' + keyVal, helpDictionary[keyVal], true);
+            // due to keyword collision, delete is 'de_lete' in dictionary
+            if (keyVal == 'de_lete')
+            {
+                exampleEmbed.addField('!delete', helpDictionary[keyVal], true);
+            }
+            else
+            {
+                exampleEmbed.addField('!' + keyVal, helpDictionary[keyVal], true);
+            }    
         }
 
         receivedMessage.channel.send(exampleEmbed);
