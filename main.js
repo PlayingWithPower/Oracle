@@ -217,12 +217,16 @@ async function manageReaction(reaction, user) {
     else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '1️⃣' && user.id != "717073766030508072")){
         let channel = reaction.message.channel
         let deckID = upperLevelEmbeds.title.slice(9)
+        var returnedDeckName = ""
         const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {max: 1 })
 
         channel.send("Selected Deckname. Please type what you want to change it to")
 
         collector.on('collect', async(message) => {
             let promiseReturn = await deckObj.updateDeckName(message, deckID)
+            if (promiseReturn.count > 2){
+                returnedDeckName = promiseReturn[0][1]
+            }
         })
         collector.on('end', collected =>{
             if (collected.size == 0){

@@ -125,16 +125,18 @@ module.exports = {
      * Updates the Deck Name of a deck 
      */
     updateDeckName(newNameMessage, oldNameID){
-        let newName = newNameMessage.content
-        let newAlias = newName
         const deck = require('../Schema/Deck')
+        const alias = require('../Schema/Alias')
+
+        let checkingArr = new Array();
+        let newName
+        let newAlias
+        var newStr = newNameMessage.content
 
         newAlias = newStr.toLowerCase()
         newName = newStr.toLowerCase()
         .split(' ')
         .map(function(word) {
-            // console.log("First capital letter: "+word[0]);
-            // console.log("remain letters: "+ word.substr(1));
             return word[0].toUpperCase() + word.substr(1);
         })
         .join(' ');
@@ -143,11 +145,40 @@ module.exports = {
         return new Promise ((resolve, reject)=>{
            deck.find(deckQuery, function(err, res){
                if (res){
-                   deck.updateOne(deckQuery, { $set: {_name:newName, _alias: newAlias } }, function(err, res){
+                   deck.updateOne(deckQuery, { $set: {_name: newName, _alias: newAlias } }, function(err, res){
                     if(res){
-                        console.log("success")
+                        checkingArr.push(["Deck Check", newName])
+                    }
+                    else{
+                        resolve("Error 2")
                     }
                    })
+                   convertedAlias = res[0]._alias.toLowerCase()
+                        .split(' ')
+                        .map(function(word) {
+                            return word[0].toUpperCase() + word.substr(1);
+                        })
+                        .join(' ');
+                    let aliasQuery = {_name: convertedAlias, _server: res[0]._server}
+                    alias.findOne(aliasQuery, function(err, res){
+                       if (res){
+                           alias.updateOne(aliasQuery, {$set: {_name: newName}}, function (err, res){
+                                if (res){
+                                    checkingArr.push(["Alias Check", newAlias])
+                                    resolve(checkingArr)
+                                }
+                                else{
+                                    resolve("Error 4")
+                                }
+                           })
+                       }
+                       else{
+                           resolve("Error 3")
+                       }
+                   })
+               }
+               else{
+                   resolve("Error 1")
                }
            })
         })
