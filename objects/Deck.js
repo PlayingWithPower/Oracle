@@ -102,9 +102,10 @@ module.exports = {
     },
 
     /**
-     * Updates the URL or Alias of a deck
+     * Checks if the deck a user is trying to update is valid. 
+     * Helper Function to the two below updateDeckName() and updateDeckList()
      */
-    updateDeck(receivedMessage, args){
+    findDeckToUpdate(receivedMessage, args){
         const deck = require('../Schema/Deck')
         args = args.join(' ')
         let lowerArgs = args.toString().toLowerCase()
@@ -120,7 +121,43 @@ module.exports = {
             })
         })
     },
+    /**
+     * Updates the Deck Name of a deck 
+     */
+    updateDeckName(newNameMessage, oldNameID){
+        let newName = newNameMessage.content
+        let newAlias = newName
+        const deck = require('../Schema/Deck')
 
+        newAlias = newStr.toLowerCase()
+        newName = newStr.toLowerCase()
+        .split(' ')
+        .map(function(word) {
+            // console.log("First capital letter: "+word[0]);
+            // console.log("remain letters: "+ word.substr(1));
+            return word[0].toUpperCase() + word.substr(1);
+        })
+        .join(' ');
+
+        let deckQuery = {_id: oldNameID}
+        return new Promise ((resolve, reject)=>{
+           deck.find(deckQuery, function(err, res){
+               if (res){
+                   deck.updateOne(deckQuery, { $set: {_name:newName, _alias: newAlias } }, function(err, res){
+                    if(res){
+                        console.log("success")
+                    }
+                   })
+               }
+           })
+        })
+    },
+    /**
+     * Updates the URL of a deck
+     */
+    updateDeckList(){
+
+    },
     /**
      * Adds a new User deck to the server.
      * TODO: Add react to messages to confirm your deck and alias - utilizes the Manage Reaction func in main.js

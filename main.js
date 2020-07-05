@@ -87,7 +87,8 @@ client.on('messageReactionAdd', (reaction, user) => {
 async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
     var embeds = reaction.message.embeds[0]
-    
+    var upperLevelEmbeds = reaction.message.embeds[0]
+
     //Resolving issues where a user would upvote/downvote, then do it again. It would cause embeds.author to be null
     //  causing error log later on
     if (embeds.author === null){
@@ -210,7 +211,43 @@ async function manageReaction(reaction, user) {
             .setTitle("Delete Deck Cancelled")
         reaction.message.edit(editedWarningEmbed);
     }
+    //End of Remove Deck Reacts
+
+    //Start of Update Deck Reacts
+    else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '1️⃣' && user.id != "717073766030508072")){
+        let channel = reaction.message.channel
+        let deckID = upperLevelEmbeds.title.slice(9)
+        const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {max: 1 })
+
+        channel.send("Selected Deckname. Please type what you want to change it to")
+
+        collector.on('collect', async(message) => {
+            let promiseReturn = await deckObj.updateDeckName(message, deckID)
+        })
+        collector.on('end', collected =>{
+            if (collected.size == 0){
+                channel.send("Bot has timed out. Please type !updatedeck again to start updating your deck again")
+            }
+            else{
+                channel.send("Updated deck name of ")
+            }
+        })
+  
+    }
+    else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '2️⃣' && user.id != "717073766030508072")){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed) //red
+            .setTitle("Delete Deck Cancelled")
+        reaction.message.edit(editedWarningEmbed);
+    }
+    else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed) //red
+            .setTitle("Update Deck Cancelled")
+        reaction.message.edit(editedWarningEmbed);
+    }
     else {
+        
         return
     }
     
@@ -304,7 +341,7 @@ function processCommand(receivedMessage){
 async function updateDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const updateDeckEmbed = new Discord.MessageEmbed()
-    let promiseReturn = await deckObj.updateDeck(receivedMessage, args);
+    let promiseReturn = await deckObj.findDeckToUpdate(receivedMessage, args);
     if (promiseReturn == "Error 1"){
         updateDeckEmbed
         .setColor("#af0000") //red
@@ -317,7 +354,7 @@ async function updateDeck(receivedMessage, args){
         .setAuthor("You are attempting to update the deck: "+ promiseReturn[0]._name)
         .setTitle('Deck ID: ' + promiseReturn[0]._id)
         .setURL(promiseReturn[0]._link)
-        .setDescription("React with the **1** to update the **Deckname**.\nReact with the **2** to update the **Link**.\nReact with the **thumbs down** to cancel at any time.")
+        .setDescription("React with the **1** to update the **Deck Name**.\nReact with the **2** to update the **Deck Link**.\nReact with the **thumbs down** to cancel at any time.")
         generalChannel.send(updateDeckEmbed)
         .then(function (message, callback){
             message.react("1️⃣")
