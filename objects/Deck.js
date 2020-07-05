@@ -143,28 +143,28 @@ module.exports = {
 
         let deckQuery = {_id: oldNameID}
         return new Promise ((resolve, reject)=>{
-           deck.find(deckQuery, function(err, res){
-               if (res){
-                   deck.updateOne(deckQuery, { $set: {_name: newName, _alias: newAlias } }, function(err, res){
-                    if(res){
-                        checkingArr.push(["Deck Check", newName])
+           deck.find(deckQuery, function(err, deckFindRes){
+               if (deckFindRes){
+                   deck.updateOne(deckQuery, { $set: {_name: newName, _alias: newAlias } }, function(err, deckUpdateRes){
+                    if(deckUpdateRes){
+                        checkingArr.push(["New Name", newName])
                     }
                     else{
                         resolve("Error 2")
                     }
                    })
-                   convertedAlias = res[0]._alias.toLowerCase()
+                   convertedAlias = deckFindRes[0]._alias.toLowerCase()
                         .split(' ')
                         .map(function(word) {
                             return word[0].toUpperCase() + word.substr(1);
                         })
                         .join(' ');
-                    let aliasQuery = {_name: convertedAlias, _server: res[0]._server}
-                    alias.findOne(aliasQuery, function(err, res){
-                       if (res){
-                           alias.updateOne(aliasQuery, {$set: {_name: newName}}, function (err, res){
-                                if (res){
-                                    checkingArr.push(["Alias Check", newAlias])
+                    let aliasQuery = {_name: convertedAlias, _server: deckFindRes[0]._server}
+                    alias.findOne(aliasQuery, function(err, aliasFindRes){
+                       if (aliasFindRes){
+                           alias.updateOne(aliasQuery, {$set: {_name: newName}}, function (err, aliasUpdateRes){
+                                if (aliasUpdateRes){
+                                    checkingArr.push(["Old Name", deckFindRes[0]._name])
                                     resolve(checkingArr)
                                 }
                                 else{

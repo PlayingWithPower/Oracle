@@ -24,11 +24,6 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
-const { Cipher } = require('crypto')
-const { type } = require('os')
-const { exception } = require('console')
-const { update } = require('./Schema/Users')
-const { match } = require('assert')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -217,23 +212,32 @@ async function manageReaction(reaction, user) {
     else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '1️⃣' && user.id != "717073766030508072")){
         let channel = reaction.message.channel
         let deckID = upperLevelEmbeds.title.slice(9)
-        var returnedDeckName = ""
-        const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {max: 1 })
+        var oldDeckName = ""
+        var newDeckName = ""
 
-        channel.send("Selected Deckname. Please type what you want to change it to")
+        const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 5000, max: 1 })
+        
+        const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
+            .setColor(messageColorBlue)
+            .setDescription("**Selected Deckname**. Please **type** the new deck name.")
+        reaction.message.edit(selectedEditEmbed);
 
         collector.on('collect', async(message) => {
             let promiseReturn = await deckObj.updateDeckName(message, deckID)
-            if (promiseReturn.count > 2){
-                returnedDeckName = promiseReturn[0][1]
+            if (promiseReturn){
+                newDeckName = promiseReturn[0][1]
+                oldDeckName = promiseReturn[1][1] 
+                
+                channel.send("Updated deck name of " + oldDeckName + " to " + newDeckName)
             }
         })
         collector.on('end', collected =>{
-            if (collected.size == 0){
-                channel.send("Bot has timed out. Please type !updatedeck again to start updating your deck again")
-            }
-            else{
-                channel.send("Updated deck name of ")
+            let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
+            if (collected.size == 0 && editedEmbed[0] == "You"){
+                const editedEndingMessage = new Discord.MessageEmbed()
+                    .setColor(messageColorRed)
+                    .setTitle("Update Deck Timeout. Please type !updatedeck <deckname> again.")
+                reaction.message.edit(editedEndingMessage);
             }
         })
   
@@ -348,13 +352,13 @@ async function updateDeck(receivedMessage, args){
     let promiseReturn = await deckObj.findDeckToUpdate(receivedMessage, args);
     if (promiseReturn == "Error 1"){
         updateDeckEmbed
-        .setColor("#af0000") //red
+        .setColor(messageColorRed) //red
         .setDescription("Error deck not found. Try !help, !decks or use the format !removedeck <deckname>")
         generalChannel.send(updateDeckEmbed)
     }
     else{
         updateDeckEmbed
-        .setColor('#0099ff')
+        .setColor(messageColorBlue)
         .setAuthor("You are attempting to update the deck: "+ promiseReturn[0]._name)
         .setTitle('Deck ID: ' + promiseReturn[0]._id)
         .setURL(promiseReturn[0]._link)
@@ -781,8 +785,8 @@ function listDecks(receivedMessage, args){
  * listDecksDetailed()
  * @param {*} channel 
  */
-function listDecksDetailed(channel){
-    deckObj.listDecks(function(callback,err){
+function listDecksDetailed(receivedMessage, channel){
+    deckObj.listDecks(receivedMessage, function(callback,err){
         const listedDecksEmbed = new Discord.MessageEmbed()
             .setColor('#0099ff')
             .setURL('')
