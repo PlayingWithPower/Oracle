@@ -24,10 +24,6 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
-const { Cipher } = require('crypto')
-const { type } = require('os')
-const { exception } = require('console')
-const { match } = require('assert')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
