@@ -102,12 +102,121 @@ module.exports = {
     },
 
     /**
-     * Updates the URL or Alias of a deck
+     * Checks if the deck a user is trying to update is valid. 
+     * Helper Function to the two below updateDeckName() and updateDeckList()
      */
-    updateDeck(){
-
+    findDeckToUpdate(receivedMessage, args){
+        const deck = require('../Schema/Deck')
+        args = args.join(' ')
+        let lowerArgs = args.toString().toLowerCase()
+        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
+        return new Promise((resolve, reject)=>{
+            deck.find(deckQuery, function(err, res){
+                if (res.length > 0){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
+            })
+        })
     },
+    /**
+     * Updates the Deck Name of a deck 
+     */
+    updateDeckName(newNameMessage, oldNameID){
+        const deck = require('../Schema/Deck')
+        const alias = require('../Schema/Alias')
 
+        let checkingArr = new Array();
+        let newName
+        let newAlias
+        var newStr = newNameMessage.content
+
+        newAlias = newStr.toLowerCase()
+        newName = newStr.toLowerCase()
+        .split(' ')
+        .map(function(word) {
+            return word[0].toUpperCase() + word.substr(1);
+        })
+        .join(' ');
+
+        let deckQuery = {_id: oldNameID}
+        return new Promise ((resolve, reject)=>{
+           deck.find(deckQuery, function(err, deckFindRes){
+               if (deckFindRes){
+                   deck.updateOne(deckQuery, { $set: {_name: newName, _alias: newAlias } }, function(err, deckUpdateRes){
+                    if(deckUpdateRes){
+                        checkingArr.push(["New Name", newName])
+                    }
+                    else{
+                        resolve("Error 2")
+                    }
+                   })
+                   convertedAlias = deckFindRes[0]._alias.toLowerCase()
+                        .split(' ')
+                        .map(function(word) {
+                            return word[0].toUpperCase() + word.substr(1);
+                        })
+                        .join(' ');
+                    let aliasQuery = {_name: convertedAlias, _server: deckFindRes[0]._server}
+                    alias.findOne(aliasQuery, function(err, aliasFindRes){
+                       if (aliasFindRes){
+                           alias.updateOne(aliasQuery, {$set: {_name: newName}}, function (err, aliasUpdateRes){
+                                if (aliasUpdateRes){
+                                    checkingArr.push(["Old Name", deckFindRes[0]._name])
+                                    resolve(checkingArr)
+                                }
+                                else{
+                                    resolve("Error 4")
+                                }
+                           })
+                       }
+                       else{
+                           resolve("Error 3")
+                       }
+                   })
+               }
+               else{
+                   resolve("Error 1")
+               }
+           })
+        })
+    },
+    /**
+     * Updates the URL of a deck
+     */
+    updateDeckList(newURLMessage, oldNameID){
+        const deck = require('../Schema/Deck')
+
+        let checkingArr = new Array();
+
+        let deckQuery = {_id: oldNameID}
+        return new Promise ((resolve, reject)=>{
+            if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(newURLMessage.content)) {
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, { $set: {_link: newURLMessage.content} }, function(err, deckUpdateRes){
+                         if(deckUpdateRes){
+                             checkingArr.push(newURLMessage.content)
+                             checkingArr.push(deckFindRes[0]._name)
+                             resolve(checkingArr)
+                         }
+                         else{
+                             resolve("Error 3")
+                         }
+                        })
+                    }
+                    else{
+                        resolve("Error 2")
+                    }
+                })
+            }
+            else{
+                resolve("Error 1")
+            }
+        })
+    },
     /**
      * Adds a new User deck to the server.
      * TODO: Add react to messages to confirm your deck and alias - utilizes the Manage Reaction func in main.js
