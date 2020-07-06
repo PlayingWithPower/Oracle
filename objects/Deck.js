@@ -186,8 +186,36 @@ module.exports = {
     /**
      * Updates the URL of a deck
      */
-    updateDeckList(){
+    updateDeckList(newURLMessage, oldNameID){
+        const deck = require('../Schema/Deck')
 
+        let checkingArr = new Array();
+
+        let deckQuery = {_id: oldNameID}
+        return new Promise ((resolve, reject)=>{
+            if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(newURLMessage.content)) {
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, { $set: {_link: newURLMessage.content} }, function(err, deckUpdateRes){
+                         if(deckUpdateRes){
+                             checkingArr.push(newURLMessage.content)
+                             checkingArr.push(deckFindRes[0]._name)
+                             resolve(checkingArr)
+                         }
+                         else{
+                             resolve("Error 3")
+                         }
+                        })
+                    }
+                    else{
+                        resolve("Error 2")
+                    }
+                })
+            }
+            else{
+                resolve("Error 1")
+            }
+        })
     },
     /**
      * Adds a new User deck to the server.

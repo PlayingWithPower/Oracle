@@ -215,11 +215,11 @@ async function manageReaction(reaction, user) {
         var oldDeckName = ""
         var newDeckName = ""
 
-        const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 5000, max: 1 })
+        const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 })
         
         const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
             .setColor(messageColorBlue)
-            .setDescription("**Selected Deckname**. Please **type** the new deck name.")
+            .setDescription("**Selected Deck Name**. Please **type** the new deck name.")
         reaction.message.edit(selectedEditEmbed);
 
         collector.on('collect', async(message) => {
@@ -227,26 +227,88 @@ async function manageReaction(reaction, user) {
             if (promiseReturn){
                 newDeckName = promiseReturn[0][1]
                 oldDeckName = promiseReturn[1][1] 
-                
-                channel.send("Updated deck name of " + oldDeckName + " to " + newDeckName)
+
+                const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                    .setColor(messageColorGreen)
+                    .setAuthor("Success!")
+                    .setDescription("**Updated** deck name of **" + oldDeckName + "** to **" + newDeckName + "**")
+                reaction.message.edit(updatedDeckEmbed);
+            }
+            else{
+                const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                    .setColor(messageColorRed)
+                    .setAuthor("Error")
+                    .setDescription("An error has occurred. Please try again.")
+                reaction.message.edit(errorDeckEmbed);
             }
         })
         collector.on('end', collected =>{
-            let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
-            if (collected.size == 0 && editedEmbed[0] == "You"){
-                const editedEndingMessage = new Discord.MessageEmbed()
-                    .setColor(messageColorRed)
-                    .setTitle("Update Deck Timeout. Please type !updatedeck <deckname> again.")
-                reaction.message.edit(editedEndingMessage);
+            if (reaction.message.embeds[0].author != null){
+                let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
+                if (collected.size == 0 && editedEmbed[0] == "You"){
+                    const editedEndingMessage = new Discord.MessageEmbed()
+                        .setColor(messageColorRed)
+                        .setTitle("Update Deck Timeout. Please type !updatedeck <deckname> again.")
+                    reaction.message.edit(editedEndingMessage);
+                }
+            }
+            else{
+                return
             }
         })
   
     }
     else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '2️⃣' && user.id != "717073766030508072")){
-        const editedWarningEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorRed) //red
-            .setTitle("Delete Deck Cancelled")
-        reaction.message.edit(editedWarningEmbed);
+        let channel = reaction.message.channel
+        let deckID = upperLevelEmbeds.title.slice(9)
+
+        const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 })
+        
+        const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
+            .setColor(messageColorBlue)
+            .setDescription("**Selected Deck Link**. Please **enter** the new deck link.")
+        reaction.message.edit(selectedEditEmbed);
+
+        collector.on('collect', async(message) => {
+            let promiseReturn = await deckObj.updateDeckList(message, deckID)
+            if (promiseReturn == "Error 1"){
+                const nonValidURLEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                    .setColor(messageColorRed)
+                    .setAuthor("Error")
+                    .setDescription("You have entered a non-valid url. Please try again")
+                reaction.message.edit(nonValidURLEmbed);
+            }
+            else if (promiseReturn){
+                const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                    .setColor(messageColorGreen)
+                    .setAuthor("Success!")
+                    .setURL(promiseReturn[0])
+                    .setDescription("**Updated** deck list of **" + promiseReturn[1] + "**")
+                reaction.message.edit(updatedDeckEmbed);
+            }
+            else{
+                const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                    .setColor(messageColorRed)
+                    .setAuthor("Error")
+                    .setDescription("An error has occurred. Please try again.")
+                reaction.message.edit(errorDeckEmbed);
+            }
+        })
+        collector.on('end', collected =>{
+            if (reaction.message.embeds[0].author != null){
+                let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
+                if (collected.size == 0 && editedEmbed[0] == "You"){
+                    const editedEndingMessage = new Discord.MessageEmbed()
+                        .setColor(messageColorRed)
+                        .setTitle("Update Link Timeout. Please type !updatedeck <deckname> again.")
+                    reaction.message.edit(editedEndingMessage);
+                }
+            }
+            else{
+                return
+            }
+        })
+  
     }
     else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
         const editedWarningEmbed = new Discord.MessageEmbed()
@@ -295,7 +357,12 @@ function processCommand(receivedMessage){
             remindMatch(receivedMessage, arguments)
             break;
         case "delete":
-            deleteMatch(receivedMessage, arguments)
+            if (receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false })){
+                deleteMatch(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
             break;
         case "info":
             matchInfo(receivedMessage, arguments)
@@ -331,13 +398,28 @@ function processCommand(receivedMessage){
             listUserDecks(receivedMessage, arguments);
             break;
         case "adddeck":
-            addDeck(receivedMessage, arguments);
+            if (receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false })){
+                addDeck(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
             break;
         case "removedeck":
-            removeDeck(receivedMessage,arguments);
+            if (receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false })){
+                removeDeck(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
             break;
         case "updatedeck":
-            updateDeck(receivedMessage, arguments);
+            if (receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false })){
+                updateDeck(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
             break;
         case "credits":
             credits(receivedMessage, arguments)
@@ -345,6 +427,13 @@ function processCommand(receivedMessage){
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
+}
+function nonAdminAccess(receivedMessage, command){
+    let generalChannel = getChannelID(receivedMessage)
+    const adminAccessNotGrantedEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setDescription("It looks like you're trying to access the **" + command + "** command. This is an **Admin Only** command. If you would like to access this command, you need a **role** with the 'Administrator' tag on Discord.")
+    generalChannel.send(adminAccessNotGrantedEmbed)
 }
 async function updateDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
@@ -362,7 +451,7 @@ async function updateDeck(receivedMessage, args){
         .setAuthor("You are attempting to update the deck: "+ promiseReturn[0]._name)
         .setTitle('Deck ID: ' + promiseReturn[0]._id)
         .setURL(promiseReturn[0]._link)
-        .setDescription("React with the **1** to update the **Deck Name**.\nReact with the **2** to update the **Deck Link**.\nReact with the **thumbs down** to cancel at any time.")
+        .setDescription("React with the **1** to update the **Deck Name**.\nReact with the **2** to update the **Deck Link**.\nReact with the **thumbs down** at any time to cancel.")
         generalChannel.send(updateDeckEmbed)
         .then(function (message, callback){
             message.react("1️⃣")
