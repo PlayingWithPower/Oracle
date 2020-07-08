@@ -50,7 +50,8 @@ module.exports = {
 
     },
     /**
-     * Sets the season name. Helper function. May not be needed
+     * Sets the season name
+     * Helper function. May not be needed
      */
     setSeasonName(){
 
