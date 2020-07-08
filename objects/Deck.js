@@ -415,7 +415,7 @@ module.exports = {
                 _hasPrimer: hasPrimer
             }
             let aliasSave = {
-                _name: decks[2].toLowerCase(),
+                _name: decks[2],
                 _server: receivedMessage.guild.id
             }
                 deck(deckSave).save(function(err, res){
