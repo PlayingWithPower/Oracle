@@ -36,7 +36,7 @@ client.on('ready', (on) =>{
         },
         status: 'online'
     })
-    //DO NOT REMOVE
+    
     
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
@@ -216,13 +216,13 @@ async function manageReaction(reaction, user) {
 
        if (removeDeckResult.deletedCount >= 1 ){
         const editedWarningEmbed = new Discord.MessageEmbed()
-            .setColor("#5fff00") //green
+            .setColor(messageColorGreen) //green
             .setTitle("Successfully Deleted Deck")
         reaction.message.edit(editedWarningEmbed);
        }
        else{
         const editedWarningEmbed = new Discord.MessageEmbed()
-            .setColor("#af0000") //red
+            .setColor(messageColorRed) //red
             .setTitle("Unknown Error Occurred. Please try again. Check !deck for the deck you're trying to delete.")
         reaction.message.edit(editedWarningEmbed);
        }
@@ -362,6 +362,7 @@ async function manageReaction(reaction, user) {
     }
     
 }
+
 /**
  * processCommand()
  * @param {*} receivedMessage 
@@ -378,7 +379,6 @@ function processCommand(receivedMessage){
     let server = receivedMessage.guild.id
     //console.log(server)
     let responseFormatted = client.channels.cache.get(channel)
-
 
     switch(primaryCommand){
         case "help":
@@ -397,7 +397,7 @@ function processCommand(receivedMessage){
             remindMatch(receivedMessage, arguments)
             break;
         case "delete":
-            if (receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false })){
+            if (FunctionHelper.isUserAdmin(receivedMessage)){
                 deleteMatch(receivedMessage, arguments)
             }
             else{
@@ -438,7 +438,7 @@ function processCommand(receivedMessage){
             listUserDecks(receivedMessage, arguments);
             break;
         case "adddeck":
-            if (receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false })){
+            if (FunctionHelper.isUserAdmin(receivedMessage)){
                 addDeck(receivedMessage, arguments)
             }
             else{
@@ -446,7 +446,7 @@ function processCommand(receivedMessage){
             }
             break;
         case "removedeck":
-            if (receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false })){
+            if (FunctionHelper.isUserAdmin(receivedMessage)){
                 removeDeck(receivedMessage, arguments)
             }
             else{
@@ -454,7 +454,7 @@ function processCommand(receivedMessage){
             }
             break;
         case "updatedeck":
-            if (receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false })){
+            if (FunctionHelper.isUserAdmin(receivedMessage)){
                 updateDeck(receivedMessage, arguments)
             }
             else{
@@ -468,6 +468,14 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+
+/**
+ * nonAdminAccess()
+ * @param {*} receivedMessage 
+ * @param {*} command attempted to use.
+ * 
+ * Prints generic message to user that they do not have admin rights to use the command they issued.
+ */
 function nonAdminAccess(receivedMessage, command){
     let generalChannel = getChannelID(receivedMessage)
     const adminAccessNotGrantedEmbed = new Discord.MessageEmbed()
@@ -475,6 +483,12 @@ function nonAdminAccess(receivedMessage, command){
         .setDescription("It looks like you're trying to access the **" + command + "** command. This is an **Admin Only** command. If you would like to access this command, you need a **role** with the 'Administrator' tag on Discord.")
     generalChannel.send(adminAccessNotGrantedEmbed)
 }
+
+/**
+ * updateDeck()
+ * @param {*} receivedMessage 
+ * @param {*} args 
+ */
 async function updateDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const updateDeckEmbed = new Discord.MessageEmbed()
@@ -511,13 +525,13 @@ async function removeDeck(receivedMessage, args){
     let promiseReturn = await deckObj.findDeckToRemove(receivedMessage, args);
     if (promiseReturn == "Error 1"){
         addingDeckEmbed
-        .setColor("#af0000") //red
+        .setColor(messageColorRed) //red
         .setDescription("Error deck not found. Try !help, !decks or use the format !removedeck <deckname>")
         generalChannel.send(addingDeckEmbed)
     }
     else{
         addingDeckEmbed
-        .setColor('#0099ff')
+        .setColor(messageColorBlue)
         .setAuthor("WARNING")
         .setTitle('Deck ID: ' + promiseReturn[0]._id)
         .setURL(promiseReturn[0]._link)
@@ -552,7 +566,7 @@ async function deckStats(receivedMessage,args){
         )
 
         usersList
-            .setColor("#0099ff") //blue
+            .setColor(messageColorBlue) //blue
             .setTitle("People who play this deck")
         for (i = 0; i < returnArr[3].length; i++){
             usersList.addFields(
@@ -594,7 +608,7 @@ function listCollection(receivedMessage, args){
     var callbackWins = new Array();
     var callbackLosses = new Array();
     const profileEmbed = new Discord.MessageEmbed()
-        .setColor('#0099ff')
+        .setColor(messageColorBlue)
             .setURL('')
 
     let generalChannel = getChannelID(receivedMessage)
@@ -696,7 +710,7 @@ function current(receivedMessage, args){
     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     var callBackArray = new Array();
     const profileEmbed = new Discord.MessageEmbed()
-    .setColor('#0099ff')
+    .setColor(messageColorBlue)
         .setURL('')
 
     userObj.currentDeck(receivedMessage, args, function(callback, err){
@@ -766,7 +780,7 @@ async function recent(receivedMessage, args) {
         }
         else if ((args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") && args[0].toLowerCase() != "server") {
             const errorEmbed = new Discord.MessageEmbed()
-                .setColor('#af0000')
+                .setColor(messageColorRed)
                 .setDescription("Use **@[user]** when searching other users recent matches or \"server\" to see server matches and type \"more\" after the command to load more results")
             generalChannel.send(errorEmbed)
             return
@@ -781,7 +795,7 @@ async function recent(receivedMessage, args) {
     else if (args.length == 2) {
         if ((args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") && args[0].toLowerCase() != "server" || args[1].toLowerCase() != "more") {
             const errorEmbed = new Discord.MessageEmbed()
-                .setColor('#af0000')
+                .setColor(messageColorRed)
                 .setDescription("Use **@[user]** when searching other users recent matches or \"server\" to see server matches and type \"more\" after the command to load more results")
             generalChannel.send(errorEmbed)
             return
@@ -797,7 +811,7 @@ async function recent(receivedMessage, args) {
     }
     else {
         const errorEmbed = new Discord.MessageEmbed()
-                .setColor('#af0000')
+                .setColor(messageColorRed)
                 .setDescription("**Error**: Bad Input")
         generalChannel.send(errorEmbed)
         return
@@ -816,7 +830,7 @@ async function recent(receivedMessage, args) {
     // Make sure there are matches
     if (matches_arr.length == 0) {
         const errorEmbed = new Discord.MessageEmbed()
-                .setColor('#af0000')
+                .setColor(messageColorRed)
                 .setDescription("**Error:** User has no matches in the system")
         generalChannel.send(errorEmbed)
         return
@@ -832,7 +846,7 @@ async function recent(receivedMessage, args) {
     }
 
     const confirmEmbed = new Discord.MessageEmbed()
-            .setColor('#5fff00')
+            .setColor(messageColorGreen)
             .setDescription("Showing " + matches_arr.length.toString() + " recent " + matchGrammar)
     generalChannel.send(confirmEmbed)
 
@@ -847,7 +861,7 @@ async function recent(receivedMessage, args) {
         //const loser2 = await getUserFromMention(match[6])
         //const loser3 = await getUserFromMention(match[7])
         tempEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff') //blue
+            .setColor(messageColorBlue) //blue
             .setTitle('Game ID: ' + match[1])
             //.setThumbnail(getUserAvatarUrl(winner))
             .addFields(
@@ -872,7 +886,7 @@ async function listUserDecks(receivedMessage, args){
     let returnArr = await deckObj.listUserDecks(receivedMessage)
 
     let userDecksEmbed = new Discord.MessageEmbed()
-        .setColor('#0099ff')
+        .setColor(messageColorBlue)
         .setDescription(returnArr[0]._mentionValue + ' **Deckstats**')
         for (i = 1; i < returnArr[0]._deck.length; i++){
             let winrate = Math.round((returnArr[0]._deck[i].Wins/(returnArr[0]._deck[i].Wins+returnArr[0]._deck[i].Losses))*100)
@@ -901,7 +915,7 @@ function listDecks(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     deckObj.listDecks(receivedMessage ,function(callback,err){
         const listedDecksEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
+            .setColor(messageColorBlue)
        for(i = 0; i < callback.length; i++){
             listedDecksEmbed.addFields(
                 { name: " \u200b",value: callback[i]._name, inline: true},
@@ -917,7 +931,7 @@ function listDecks(receivedMessage, args){
 function listDecksDetailed(receivedMessage, channel){
     deckObj.listDecks(receivedMessage, function(callback,err){
         const listedDecksEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
+            .setColor(messageColorBlue)
             .setURL('')
        for(i = 0; i < callback.length; i++){
             listedDecksEmbed.addFields(
@@ -934,12 +948,14 @@ function listDecksDetailed(receivedMessage, channel){
  * addDeck()
  * @param {*} receivedMessage 
  * @param {*} args 
+ * 
+ * Calling method checks for admin privs before getting here.
  */
 async function addDeck(receivedMessage, args){
     var promiseReturnArr = new Array();
     let generalChannel = getChannelID(receivedMessage)
     const addingDeckEmbed = new Discord.MessageEmbed()
-            .setColor('#0099ff')
+            .setColor(messageColorBlue)
     let promiseReturn = await deckObj.addDeck(receivedMessage, args);
         if (promiseReturn == "Error 1"){
             addingDeckEmbed
@@ -1007,7 +1023,7 @@ function profile(receivedMessage, args){
         }
 
         const profileEmbed = new Discord.MessageEmbed()
-        .setColor('#0099ff')
+        .setColor(messageColorBlue)
             .setURL('')
             .addFields(
                 { name: 'User', value: callback._mentionValue, inline: true },
@@ -1227,7 +1243,7 @@ async function remindMatch(receivedMessage, args) {
         response.forEach(player => {
             if (player[1] == "N") {
                 const errorMsg = new Discord.MessageEmbed()
-                        .setColor('#0099ff')
+                        .setColor(messageColorBlue)
                         .setDescription("**Alert**: " + player[0].toString() + "- remember to confirm the match above.")
                 generalChannel.send(errorMsg)
             }
@@ -1242,7 +1258,8 @@ async function remindMatch(receivedMessage, args) {
  * deleteMatch()
  * @param {discord message obj} receivedMessage 
  * @param {array} args Message content beyond command
- * TODO: Add admin functionality only
+ * 
+ * Calling method checks for admin priv before getting here.
  */
 async function deleteMatch(receivedMessage, args) {
     var generalChannel = getChannelID(receivedMessage)
@@ -1296,7 +1313,6 @@ async function deleteMatch(receivedMessage, args) {
  * @param {discord message obj} receivedMessage 
  * @param {array} args 
  * 
- * TODO: Print to general channel, currently only logs info about match
  */
 async function matchInfo(receivedMessage, args) {
     var generalChannel = getChannelID(receivedMessage)
@@ -1305,7 +1321,7 @@ async function matchInfo(receivedMessage, args) {
     //Catch bad input
     if (args.length != 1 || args[0].length != 12) {
         const errorMsg = new Discord.MessageEmbed()
-                .setColor('#af0000')
+                .setColor(messageColorRed)
                 .setDescription("**Error**: Bad input")
         generalChannel.send(errorMsg)
         return
@@ -1313,7 +1329,7 @@ async function matchInfo(receivedMessage, args) {
     let failed = false
     const response = await gameObj.matchInfo(args[0], receivedMessage).catch((message) => {
         const errorMsg = new Discord.MessageEmbed()
-                .setColor('#af0000')
+                .setColor(messageColorRed)
                 .setDescription("**Error**: Match not found")
         generalChannel.send(errorMsg)
         failed = true
@@ -1328,7 +1344,7 @@ async function matchInfo(receivedMessage, args) {
             const loser2 = await getUserFromMention(match[6])
             const loser3 = await getUserFromMention(match[7])
             tempEmbed = new Discord.MessageEmbed()
-                .setColor('#0099ff') //blue
+                .setColor(messageColorBlue) //blue
                 .setTitle('Game ID: ' + match[1])
                 .setThumbnail(getUserAvatarUrl(winner))
                 .addFields(
