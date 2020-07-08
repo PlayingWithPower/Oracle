@@ -83,15 +83,16 @@ async function manageReaction(reaction, user) {
     const msg = reaction.message.content.toString().split(' ');
     var embeds = reaction.message.embeds[0]
     var upperLevelEmbeds = reaction.message.embeds[0]
-
     //Resolving issues where a user would upvote/downvote, then do it again. It would cause embeds.author to be null
     //  causing error log later on
+    //console.log(embeds)
     if (embeds.author === null){
         return
     }
     else{
         embeds = embeds.author.name.toString().split(' ')
     }
+    //console.log(upperLevelEmbeds.description.toString().split(' '))
     let sanitizedString = "<@!"+user.id+">"
     
     // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
@@ -100,17 +101,23 @@ async function manageReaction(reaction, user) {
     }
 
     // Game Block
-    if (msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👍' && user.id != "717073766030508072") {
-        if (sanitizedString !=  msg[5]){
+    if (embeds.length > 1 && embeds[0] == "Game" && embeds[1] == "ID:" && reaction.emoji.name === '👍' && user.id != "717073766030508072") {
+        grabMentionValue = upperLevelEmbeds.description.toString().split(' ')[0]
+        grabMatchID =  embeds[2]
+        if (sanitizedString !=  grabMentionValue){
             return
         }
+        // 1 = name Ga
+        // 2 = ID: 
+        // 3 = match ID
+        //
         //const result = await gameObj.confirmMatch(msg[3], sanitizedString).catch((message) => {
         //})
-        gameObj.confirmMatch(msg[3], sanitizedString).then(function() {
-                gameObj.checkMatch(msg[3]).then(function(next) {
+        gameObj.confirmMatch(grabMatchID, sanitizedString).then(function() {
+                gameObj.checkMatch(grabMatchID).then(function(next) {
                     if (next == "SUCCESS") {
-                        gameObj.logMatch(msg[3]).then(function(final) {
-                            gameObj.finishMatch(msg[3]).then(function(){
+                        gameObj.logMatch(grabMatchID).then(function(final) {
+                            gameObj.finishMatch(grabMatchID).then(function(){
                                 let generalChannel = getChannelID(reaction.message)
                                 const logMessage = new Discord.MessageEmbed()
                                         .setColor(messageColorGreen)
@@ -122,10 +129,10 @@ async function manageReaction(reaction, user) {
                                         .setDescription(message)
                                     generalChannel.send(confirmMessage)
                                 })
-                                console.log("Game #" + msg[3] + " success")
+                                console.log("Game #" + grabMatchID + " success")
                                 return
                             }).catch((message) => {
-                                console.log("Finishing Game #" + msg[3] + " failed. ERROR:", message)
+                                console.log("Finishing Game #" + grabMatchID + " failed. ERROR:", message)
                                 })
 
                         }).catch((message) => {
@@ -142,17 +149,23 @@ async function manageReaction(reaction, user) {
             return
             })
     }
-    else if ((msg.length > 3 && msg[1] == "Game" && msg[2] == "ID:" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
-        if (sanitizedString !=  msg[5]){
+    
+    else if ((embeds.length > 1 && embeds[0] == "Game" && embeds[1] == "ID:" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+        grabMentionValue = upperLevelEmbeds.description.toString().split(' ')[0]
+        grabMatchID =  embeds[2]
+        if (sanitizedString !=  grabMentionValue){
             console.log("not the right user")
             return
         }
-        const result = await gameObj.closeMatch(msg[3]).catch((message) => {
-            console.log("Closing Game #" + msg[3] + " failed.")
+        const result = await gameObj.closeMatch(grabMatchID).catch((message) => {
+            console.log("Closing Game #" + grabMatchID + " failed.")
         })
         if (result == 'SUCCESS'){
             let generalChannel = getChannelID(reaction.message)
-            generalChannel.send(">>> " + msg[5] + " cancelled the Match Log")
+            const cancelledEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorGreen)
+                .setDescription(grabMentionValue + " cancelled the Match Log")
+            generalChannel.send(cancelledEmbed)
         }
         else {
             return
@@ -160,23 +173,39 @@ async function manageReaction(reaction, user) {
     }
     //end of game block
     //Confirm Delete Match Block
-    else if ((msg.length > 4 && msg[2] == "DELETE" && msg[3] == "MATCH:" && reaction.emoji.name === '👍' && user.id != "717073766030508072")) {
-        if (sanitizedString != msg[7]) {
+    else if ((embeds.length > 1 && embeds[5] == "delete" && reaction.emoji.name === '👍' && user.id != "717073766030508072")) {
+        grabMentionValue = upperLevelEmbeds.description.toString().split(' ')
+        grabMatchID = upperLevelEmbeds.title.toString().split(' ')
+        if (sanitizedString != grabMentionValue[0]) {
             return
         }
         var generalChannel = getChannelID(reaction.message)
-        gameObj.confirmedDeleteMatch(msg[5], reaction.message).then((message) => {  
-            generalChannel.send("Successfully deleted Match #" + msg[5])
-            reaction.message.edit(">>> " + msg[7] +" **DELETED MATCH:** " + msg[5])
+        console.log(grabMatchID)
+        gameObj.confirmedDeleteMatch(grabMatchID[2], reaction.message).then((message) => {  
+            const successEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorGreen)
+                .setAuthor("Successfully deleted")
+                .setDescription(grabMentionValue[0] + " Match ID:" + grabMatchID[2] + " was deleted")
+            reaction.message.edit(successEmbed)
         }).catch((message) => {
-            generalChannel.send("Match already deleted")
+            const errorEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorRed)
+                .setAuthor("Error Deleting")
+                .setDescription("Match already deleted")
+            reaction.message.edit(errorEmbed)
         })
     }
-    else if ((msg.length > 4 && msg[2] == "DELETE" && msg[3] == "MATCH:" && reaction.emoji.name === '👎' && user.id != "717073766030508072")) {
-        if (sanitizedString != msg[7]) {
+    else if ((embeds.length > 1 && embeds[5] == "delete" && reaction.emoji.name === '👎' && user.id != "717073766030508072")) {
+        grabMentionValue = upperLevelEmbeds.description.toString().split(' ')
+        grabMatchID = upperLevelEmbeds.title.toString().split(' ')
+        if (sanitizedString != grabMentionValue[0]) {
             return
         }
-        reaction.message.edit(">>> " + msg[7] + "**CANCELLED DELETING MATCH #" + msg[5] + "**");
+        const errorEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("Delete Cancelled")
+            .setDescription(grabMentionValue[0] + " you have **cancelled** deleteting Match ID: **" + grabMatchID[2]+"**")
+        reaction.message.edit(errorEmbed);
     }
     //End of Confirm Delete Match Block
     
@@ -223,23 +252,29 @@ async function manageReaction(reaction, user) {
         reaction.message.edit(selectedEditEmbed);
 
         collector.on('collect', async(message) => {
-            let promiseReturn = await deckObj.updateDeckName(message, deckID)
-            if (promiseReturn){
-                newDeckName = promiseReturn[0][1]
-                oldDeckName = promiseReturn[1][1] 
-
-                const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
-                    .setColor(messageColorGreen)
-                    .setAuthor("Success!")
-                    .setDescription("**Updated** deck name of **" + oldDeckName + "** to **" + newDeckName + "**")
-                reaction.message.edit(updatedDeckEmbed);
+            var grabEmbed = reaction.message.embeds[0]
+            if (grabEmbed.title.toString().split(' ')[0] == "Update"){
+                return
             }
             else{
-                const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
-                    .setColor(messageColorRed)
-                    .setAuthor("Error")
-                    .setDescription("An error has occurred. Please try again.")
-                reaction.message.edit(errorDeckEmbed);
+                let promiseReturn = await deckObj.updateDeckName(message, deckID)
+                if (promiseReturn){
+                    newDeckName = promiseReturn[0][1]
+                    oldDeckName = promiseReturn[1][1] 
+
+                    const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                        .setColor(messageColorGreen)
+                        .setAuthor("Success!")
+                        .setDescription("**Updated** deck name of **" + oldDeckName + "** to **" + newDeckName + "**")
+                    reaction.message.edit(updatedDeckEmbed);
+                }
+                else{
+                    const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                        .setColor(messageColorRed)
+                        .setAuthor("Error")
+                        .setDescription("An error has occurred. Please try again.")
+                    reaction.message.edit(errorDeckEmbed);
+                }
             }
         })
         collector.on('end', collected =>{
@@ -270,28 +305,33 @@ async function manageReaction(reaction, user) {
         reaction.message.edit(selectedEditEmbed);
 
         collector.on('collect', async(message) => {
-            let promiseReturn = await deckObj.updateDeckList(message, deckID)
-            if (promiseReturn == "Error 1"){
-                const nonValidURLEmbed = new Discord.MessageEmbed(selectedEditEmbed)
-                    .setColor(messageColorRed)
-                    .setAuthor("Error")
-                    .setDescription("You have entered a non-valid url. Please try again")
-                reaction.message.edit(nonValidURLEmbed);
-            }
-            else if (promiseReturn){
-                const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
-                    .setColor(messageColorGreen)
-                    .setAuthor("Success!")
-                    .setURL(promiseReturn[0])
-                    .setDescription("**Updated** deck list of **" + promiseReturn[1] + "**")
-                reaction.message.edit(updatedDeckEmbed);
+            if (grabEmbed.title.toString().split(' ')[0] == "Update"){
+                return
             }
             else{
-                const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
-                    .setColor(messageColorRed)
-                    .setAuthor("Error")
-                    .setDescription("An error has occurred. Please try again.")
-                reaction.message.edit(errorDeckEmbed);
+                let promiseReturn = await deckObj.updateDeckList(message, deckID)
+                if (promiseReturn == "Error 1"){
+                    const nonValidURLEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                        .setColor(messageColorRed)
+                        .setAuthor("Error")
+                        .setDescription("You have entered a non-valid url. Please try again")
+                    reaction.message.edit(nonValidURLEmbed);
+                }
+                else if (promiseReturn){
+                    const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                        .setColor(messageColorGreen)
+                        .setAuthor("Success!")
+                        .setURL(promiseReturn[0])
+                        .setDescription("**Updated** deck list of **" + promiseReturn[1] + "**")
+                    reaction.message.edit(updatedDeckEmbed);
+                }
+                else{
+                    const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                        .setColor(messageColorRed)
+                        .setAuthor("Error")
+                        .setDescription("An error has occurred. Please try again.")
+                    reaction.message.edit(errorDeckEmbed);
+                }
             }
         })
         collector.on('end', collected =>{
@@ -310,7 +350,7 @@ async function manageReaction(reaction, user) {
         })
   
     }
-    else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+    else if((embeds.length > 4 && embeds[4] == "update" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
         const editedWarningEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed) //red
             .setTitle("Update Deck Cancelled")
@@ -1075,15 +1115,15 @@ function startMatch(receivedMessage, args){
         return
     }
     // Make sure every user in message (and message sender) are different users [Block out if testing]
-    var tempArr = args
-    tempArr.push(sanitizedString)
-    if (gameObj.hasDuplicates(tempArr)){
-        const errorMsg = new Discord.MessageEmbed()
-                .setColor('#af0000')
-                .setDescription("**Error**: You can't log a match with duplicate players")
-        generalChannel.send(errorMsg)
-        return
-    }
+    // var tempArr = args
+    // tempArr.push(sanitizedString)
+    // if (gameObj.hasDuplicates(tempArr)){
+    //     const errorMsg = new Discord.MessageEmbed()
+    //             .setColor('#af0000')
+    //             .setDescription("**Error**: You can't log a match with duplicate players")
+    //     generalChannel.send(errorMsg)
+    //     return
+    // }
     // Check if User who sent the message is registered
     let findQuery = {_mentionValue: sanitizedString}
     user.findOne(findQuery, function(err, res){
@@ -1136,12 +1176,15 @@ function startMatch(receivedMessage, args){
                                         UserIDs.forEach(player => {
                                             findQuery = {_mentionValue: player}
                                             user.findOne(findQuery, function(err, res){
-                                                generalChannel.send(">>> Game ID: " + id + " - " + res._mentionValue + " used **" + res._currentDeck + "**, upvote to confirm this game or downvote to contest. ")
+                                                const userUpvoteEmbed = new Discord.MessageEmbed()
+                                                    .setAuthor("Game ID: " + id)
+                                                    .setColor(messageColorBlue)
+                                                    .setDescription(res._mentionValue + " used **" + res._currentDeck + "** \n **Upvote** to confirm \n **Downvote** to contest")
+                                                generalChannel.send(res._mentionValue, userUpvoteEmbed)
                                                     .then(function (message, callback){
                                                     const filter = (reaction, user) => {
                                                         return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
                                                     };   
-
                                                     message.react("👍")
                                                     message.react("👎")
                                                 })
@@ -1221,6 +1264,7 @@ async function remindMatch(receivedMessage, args) {
 async function deleteMatch(receivedMessage, args) {
     var generalChannel = getChannelID(receivedMessage)
     let sanitizedString = "<@!"+receivedMessage.author.id+">"
+    const confirmMsgEmbed = new Discord.MessageEmbed()
 
     //Catch bad input
     if (args.length != 1) {
@@ -1239,18 +1283,22 @@ async function deleteMatch(receivedMessage, args) {
         return
     })
     if (response == "SUCCESS") {
-        const errorMsg = new Discord.MessageEmbed()
+        const errorMsg = new Discord.MessageEmbed(confirmMsgEmbed)
                 .setColor(messageColorGreen)
                 .setDescription("Successfully deleted Match #" + args[0])
         generalChannel.send(errorMsg)
     }
     else if (response == "CONFIRM") {
-        generalChannel.send(">>> ** DELETE MATCH: ** " + args[0] + " - " + sanitizedString + " This is a finished match, Upvote to confirm, downvote to cancel")
+        confirmMsgEmbed
+            .setColor(messageColorBlue)
+            .setAuthor("You are attempting to permanently delete a match")
+            .setTitle("Match ID: "+ args[0])
+            .setDescription(sanitizedString + " This is a finished match \n **Upvote** to confirm \n **Downvote** to cancel")
+        generalChannel.send(confirmMsgEmbed)
         .then(function (message, callback){
-            const filter = (reaction, user) => {
-                return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
-            };   
-
+            // const filter = (reaction, user) => {
+            //     return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
+            // };  
             message.react("👍")
             message.react("👎")
         })
