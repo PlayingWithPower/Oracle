@@ -476,7 +476,10 @@ async function deckinfo(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await deckObj.deckInfo(receivedMessage, args)
     if (returnArr == "Error 1"){
-        console.log("err")
+        const errorEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setDescription("Error finding the deck **" + args.join(' ') + "** \n Try !decks to find a list of decks")
+        generalChannel.send(errorEmbed)
     }
     else{
         let fixedColors = returnArr._colors.replace(/,/g, ' ');
