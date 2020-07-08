@@ -479,21 +479,20 @@ async function deckinfo(receivedMessage, args){
         console.log("err")
     }
     else{
-        console.log(returnArr)
-        console.log(returnArr._link)
-        console.log(typeof(returnArr._author))
+        let fixedColors = returnArr._colors.replace(/,/g, ' ');
         const resultEmbed = new Discord.MessageEmbed()
             .setColor(messageColorGreen)
             .setDescription("Deck Information about **"+ returnArr._name + "**")
             .setTitle("Deck Link")
             .setURL(returnArr._link)
             .addFields(
-                { name: 'Commander', value: returnArr._commander, inline: true},
-                { name: 'Color', value: returnArr._colors, inline: true},
-                { name: 'Authors', value: returnArr._author, inline: true},
-                { name: 'Description', value: returnArr._description, inline: true},
-                { name: 'Discord Link', value: returnArr._discordLink, inline: true},
-                { name: 'Deck Type', value: returnArr._deckType, inline: true},
+                { name: 'Commander', value: returnArr._commander},
+                { name: 'Color', value: fixedColors},
+                { name: 'Authors', value: returnArr._author},
+                { name: 'Description', value: returnArr._description},
+                { name: 'Discord Link', value: returnArr._discordLink},
+                { name: 'Deck Type', value: returnArr._deckType},
+                { name: 'Has Primer?', value: returnArr._hasPrimer.toString()},
             )
 
         generalChannel.send(resultEmbed)
