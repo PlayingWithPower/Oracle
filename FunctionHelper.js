@@ -22,25 +22,41 @@ helpDictionary =
     log : "The command used to log a game.",
     remind : "Command to remind a user to confirm a game.",
     // delete is a keyword...we gotta choose something else.
-    de_lete : "Command to delete a record from the elo bot records.",
+    de_lete : "Command to delete a record from the elo bot records. **",
     info : "Command to get info about a match.",
     profile : "Command to check a profile of a user.",
     recent : "Command to see recent matches.",
     use : "Command to set the deck you are using.",
     current : "Command to show the deck you are currently using.",
-    add : "Command to add a deck to the collection.",
+    adddeck : "Command to add a deck to the collection. **",
     decks : "Command to show the decks currently registered.",
     decksdetailed : "Command to show detailed info on the decks registered.",
-    removedeck : "Command to remove a deck from the list.",
+    removedeck : "Command to remove a deck from the list. **",
+    updatedeck : "Command to update a deck's information. **",
     mydecks : "List decks registered to you.",
     credits : "Roll the credits!",
     unknown : "We have no real clue what we can do to help you after that command. =)"
 }
 
+
+
 module.exports = {
     test()
     {
         console.log("Testing other file.")
+    },
+
+    /**
+    * isUserAdmin()
+    * @param {*} receivedMessage 
+    * 
+    * Simple check for issuer admin rights.
+    */
+    isUserAdmin(receivedMessage)
+    {
+        // Admin check from issuer.
+        let isAdmin = receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false });
+        return isAdmin;
     },
 
     /**
@@ -85,6 +101,7 @@ module.exports = {
      */
     showEmbedHelpForAllCommands(receivedMessage)
     {
+        let isAdmin = this.isUserAdmin(receivedMessage)
         const exampleEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
         .setTitle('PWP Bot')
@@ -94,16 +111,37 @@ module.exports = {
         .setTimestamp()
         .setFooter('Here to help, anytime!', '');
 
+        if (isAdmin)
+        {
+            // User tag at bottom for admin.
+            exampleEmbed.setFooter("** Denote admin-only commands. Records show " + receivedMessage.author.username + " is an admin.")
+        }
+
         for(var keyVal in helpDictionary)
         {
             // due to keyword collision, delete is 'de_lete' in dictionary
             if (keyVal == 'de_lete')
-            {
-                exampleEmbed.addField('!delete', helpDictionary[keyVal], true);
+            {   
+                if (isAdmin)
+                {
+                    exampleEmbed.addField('!delete', helpDictionary[keyVal], true);
+                }  
             }
             else
             {
-                exampleEmbed.addField('!' + keyVal, helpDictionary[keyVal], true);
+                // We will attempt to not show admin commands to everyone. If they see it b/c a mod
+                // issued the command, oh well.
+                if (keyVal == 'adddeck' || keyVal == 'removedeck' || keyVal == 'updatedeck')
+                {
+                    if (isAdmin)
+                    {
+                        exampleEmbed.addField('!' + keyVal, helpDictionary[keyVal], true);
+                    }
+                }
+                else
+                {
+                    exampleEmbed.addField('!' + keyVal, helpDictionary[keyVal], true);
+                }
             }    
         }
 
