@@ -381,6 +381,9 @@ function processCommand(receivedMessage){
     let responseFormatted = client.channels.cache.get(channel)
 
     switch(primaryCommand){
+        case "setup":
+            deckObj.setUpPopulate(receivedMessage)
+            break;
         case "help":
             helpCommand(receivedMessage, arguments)
             break;
@@ -434,6 +437,9 @@ function processCommand(receivedMessage){
         case "deckstats":
             deckStats(receivedMessage, arguments);
             break;
+        case "deckinfo":
+            deckinfo(receivedMessage, arguments);
+            break;
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
@@ -466,6 +472,36 @@ function processCommand(receivedMessage){
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+    }
+}
+
+async function deckinfo(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await deckObj.deckInfo(receivedMessage, args)
+    if (returnArr == "Error 1"){
+        const errorEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setDescription("Error finding the deck **" + args.join(' ') + "** \n Try !decks to find a list of decks")
+        generalChannel.send(errorEmbed)
+    }
+    else{
+        let fixedColors = returnArr._colors.replace(/,/g, ' ');
+        const resultEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setDescription("Deck Information about **"+ returnArr._name + "**")
+            .setTitle("Deck Link")
+            .setURL(returnArr._link)
+            .addFields(
+                { name: 'Commander', value: returnArr._commander},
+                { name: 'Color', value: fixedColors},
+                { name: 'Authors', value: returnArr._author},
+                { name: 'Description', value: returnArr._description},
+                { name: 'Discord Link', value: returnArr._discordLink},
+                { name: 'Deck Type', value: returnArr._deckType},
+                { name: 'Has Primer?', value: returnArr._hasPrimer.toString()},
+            )
+
+        generalChannel.send(resultEmbed)
     }
 }
 
@@ -579,7 +615,7 @@ async function deckStats(receivedMessage,args){
     else{
         useEmbed
         .setColor(messageColorRed) //red
-        .setDescription("No data for decks with that name. Try !decks to find a list of decks for this server or !deckstats <Deck Name> to find information about a deck.")
+        .setDescription("No games have been logged with that name. \n Try !decks to find a list of decks for this server \n Or !deckstats <deckname> to find information about a deck.")
         generalChannel.send(useEmbed)
     }
 }
@@ -910,19 +946,53 @@ async function listUserDecks(receivedMessage, args){
  * listDecks()
  * @param {*} receivedMessage 
  * @param {*} args 
+ * TODO: There's weird lag in this function.. someone help -noah
+ * It will spit out either up to the 4th color or the 5th, lag for like 3-5 seconds then spit out the rest of the messages
  */
-function listDecks(receivedMessage, args){
+async function listDecks(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-    deckObj.listDecks(receivedMessage ,function(callback,err){
-        const listedDecksEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorBlue)
-       for(i = 0; i < callback.length; i++){
-            listedDecksEmbed.addFields(
-                { name: " \u200b",value: callback[i]._name, inline: true},
-            )
+    let returnArr = await deckObj.listDecks(receivedMessage)
+
+    let oneColorArr = new Array();
+    let twoColorArr = new Array();
+    let threeColorArr = new Array();
+    let fourColorArr = new Array();
+    let fiveColorArr = new Array();
+
+    let combinedArr = new Array();
+
+    returnArr.forEach(entry =>{
+        var newStr = entry._colors.replace(/,/g, '');
+        newStr = newStr.replace(/ /g, '');
+        
+        if (newStr.length == 1){
+            oneColorArr.push(entry._name)
         }
-        generalChannel.send(listedDecksEmbed)
-    });
+        else if (newStr.length == 2){
+            twoColorArr.push(entry._name)
+        }
+        else if (newStr.length == 3){
+            threeColorArr.push(entry._name)
+        }
+        else if (newStr.length == 4){
+            fourColorArr.push(entry._name)
+        }
+        else{
+            fiveColorArr.push(entry._name)
+        }
+    })
+    const helperEmbed = new Discord.MessageEmbed()
+    .setColor(messageColorGreen)
+    .setTitle("Don't see what you're looking for here?")
+    .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
+    Try '!use <deckname> | Rogue' to be able to use **any deck**.")
+
+    generalChannel.send(FunctionHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
+    generalChannel.send(FunctionHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
+    generalChannel.send(FunctionHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
+    generalChannel.send(FunctionHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
+    generalChannel.send(FunctionHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
+    generalChannel.send(helperEmbed)
 }
 /**
  * listDecksDetailed()

@@ -45,6 +45,22 @@ module.exports = {
     {
         console.log("Testing other file.")
     },
+    /**
+     * This is used in !deck to quickly create 5 embeds, one for each color
+     * @param {*} colorArr 
+     * @param {*} colorNum 
+     */
+    createDeckEmbed(colorArr, colorNum){
+        const someEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorBlue)
+            .setAuthor(colorNum)
+        for(i = 0; i < colorArr.length; i++){
+            someEmbed.addFields(
+                { name: " \u200b",value: colorArr[i], inline: true},
+            )
+        }
+        return someEmbed
+    },
 
     /**
     * isUserAdmin()
