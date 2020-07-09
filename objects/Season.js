@@ -48,5 +48,19 @@ module.exports = {
      */
     leaderBoard() {
 
-    }
+    },
+    /**
+     * Sets the season name
+     * Helper function. May not be needed
+     */
+    setSeasonName(){
+
+    },
+    /**
+     * Updates the name of a season
+     * Remember to update all instances of the old name with the new name
+     */
+    updateSeasonName(){
+
+    },
 }
