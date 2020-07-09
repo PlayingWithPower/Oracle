@@ -36,7 +36,40 @@ module.exports = {
             })
         })
     },
+    /**
+     * Returns information about a deck
+     * @param {*} receivedMessage 
+     * @param {*} args 
+     */
+    deckInfo(receivedMessage, args){
+        try{
+            args = args.join(' ')
+            .toLowerCase()
+            .split(' ')
+            .map(function(word) {
+                // console.log("First capital letter: "+word[0]);
+                // console.log("remain letters: "+ word.substr(1));
+                return word[0].toUpperCase() + word.substr(1);
+            })
+            .join(' ');
+        }
+        catch{
+            args = ""
+        }
+        const deck = require('../Schema/Deck')
 
+        let deckQuery = {_name: args, _server: receivedMessage.guild.id}
+        return new Promise((resolve, reject) =>{
+            deck.findOne(deckQuery, function(err, res){
+                if (res){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
+            })
+        })
+    },
     /**
      * Returns stats about a deck alias
      */

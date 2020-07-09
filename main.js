@@ -437,6 +437,9 @@ function processCommand(receivedMessage){
         case "deckstats":
             deckStats(receivedMessage, arguments);
             break;
+        case "deckinfo":
+            deckinfo(receivedMessage, arguments);
+            break;
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
@@ -469,6 +472,36 @@ function processCommand(receivedMessage){
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+    }
+}
+
+async function deckinfo(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await deckObj.deckInfo(receivedMessage, args)
+    if (returnArr == "Error 1"){
+        const errorEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setDescription("Error finding the deck **" + args.join(' ') + "** \n Try !decks to find a list of decks")
+        generalChannel.send(errorEmbed)
+    }
+    else{
+        let fixedColors = returnArr._colors.replace(/,/g, ' ');
+        const resultEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setDescription("Deck Information about **"+ returnArr._name + "**")
+            .setTitle("Deck Link")
+            .setURL(returnArr._link)
+            .addFields(
+                { name: 'Commander', value: returnArr._commander},
+                { name: 'Color', value: fixedColors},
+                { name: 'Authors', value: returnArr._author},
+                { name: 'Description', value: returnArr._description},
+                { name: 'Discord Link', value: returnArr._discordLink},
+                { name: 'Deck Type', value: returnArr._deckType},
+                { name: 'Has Primer?', value: returnArr._hasPrimer.toString()},
+            )
+
+        generalChannel.send(resultEmbed)
     }
 }
 
@@ -582,7 +615,7 @@ async function deckStats(receivedMessage,args){
     else{
         useEmbed
         .setColor(messageColorRed) //red
-        .setDescription("No data for decks with that name. Try !decks to find a list of decks for this server or !deckstats <Deck Name> to find information about a deck.")
+        .setDescription("No games have been logged with that name. \n Try !decks to find a list of decks for this server \n Or !deckstats <deckname> to find information about a deck.")
         generalChannel.send(useEmbed)
     }
 }
