@@ -15,5 +15,16 @@ var deck = new mongoose.Schema({
     _deckType: String,
     _hasPrimer: Boolean
 });
+// Columns are:
+        // Has Primer
+        // Deck Type: (Proactive, Adaptive, Disruptive)
+        // Deck Name
+        // Deck Link
+        // Commander Name
+        // Description
+        // Color Identity
+        // Discord Link
+        // Authors
+        // Date Added
 
 module.exports = mongoose.model('Decks', deck);

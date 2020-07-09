@@ -13,9 +13,12 @@ module.exports = {
      */
     listDecks(receivedMessage, callback) {
         const deck = require('../Schema/Deck')
-        deck.find({_server: receivedMessage.guild.id},{_name:"", _user:"", _id:0},function(err, res){
-            callback(res)
+        return new Promise((resolve, reject) =>{
+            deck.find({_server: receivedMessage.guild.id},function(err, res){
+                resolve(res)
+            }) 
         })
+        
     },
     /**
      * Returns a list of all User submitted decks registered to the server.
@@ -405,5 +408,65 @@ module.exports = {
                 }
             })
         }
+    },
+    setUpPopulate(receivedMessage){
+        // Columns are:
+        // Has Primer
+        // Deck Type: (Proactive, Adaptive, Disruptive)
+        // Deck Name
+        // Deck Link
+        // Commander Name
+        // Description
+        // Color Identity
+        // Discord Link
+        // Authors
+        // Date Added
+        const data = require('../data/decklists.json');
+        const deck = require('../Schema/Deck')
+        const alias = require('../Schema/Alias')
+
+        data.forEach(decks =>{
+            if (decks[0] == "Y"){
+                hasPrimer = true
+            }
+            else{
+                hasPrimer = false
+            }
+            let deckSave = {
+                _link: decks[3],
+                _name: decks[2],
+                _alias: decks[2].toLowerCase(),
+                _commander: decks[4],
+                _colors: decks[6],
+                _author: decks[8],
+                _server: receivedMessage.guild.id,
+                _season: "1",
+                _description: decks[5],
+                _discordLink: decks[7],
+                _dateAdded: decks[9],
+                _deckType: decks[1],
+                _hasPrimer: hasPrimer
+            }
+            let aliasSave = {
+                _name: decks[2],
+                _server: receivedMessage.guild.id
+            }
+                deck(deckSave).save(function(err, res){
+                    if (res){
+                        //console.log("Success!")
+                    }
+                    else{
+                        console.log("Error: Unable to save to Database, please try again")
+                    }
+                })
+                alias(aliasSave).save(function(err, res){
+                    if (res){
+                        //console.log("Success!")
+                    }
+                    else{
+                        console.log("Error: Unable to save to Database, please try again")
+                    }
+                })
+        })
     }
 }
