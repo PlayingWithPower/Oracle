@@ -1,5 +1,6 @@
 const { db } = require('../Schema/Deck')
 const { resolve } = require('dns')
+const Deck = require('../Schema/Deck')
 
 /**
  * Deck Object
@@ -257,68 +258,79 @@ module.exports = {
      * Adds a new User deck to the server.
      * TODO: Add react to messages to confirm your deck and alias - utilizes the Manage Reaction func in main.js
      */
-    addDeck(receivedMessage, args) {
+    addDeck(receivedMessage, newDeckArr) {
+        //link,name, alias,commander,colors,author,server,season,description,
+        // discordlink,decktype, primer?
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
-        const callBackArray = new Array();
-        let urlArg;
-        let nameArg;
-        let aliasArg
-        try{
-            urlArg = args[0].toString()
-            nameArg = (args.slice(1)).toString();
-            
-            //var lower = nameArg.toLowerCase();
-            var newStr = nameArg.replace(/,/g, ' ');
+        const DeckHelper = require('../Helpers/DeckHelper')
 
-            aliasArg = newStr.toLowerCase()
-            nameArg = newStr.toLowerCase()
-            .split(' ')
-            .map(function(word) {
-                // console.log("First capital letter: "+word[0]);
-                // console.log("remain letters: "+ word.substr(1));
-                return word[0].toUpperCase() + word.substr(1);
-            })
-            .join(' ');
-        }catch{
-            console.log("Url or alias failed to cast to Strings")
+        let deckNick = newDeckArr[0]
+        let deckAlias = newDeckArr[0].toLowerCase()
+        let commanderName = newDeckArr[1]
+        let colorIdentity = newDeckArr[2]
+        let deckLink = newDeckArr[3]
+        let author = newDeckArr[4]
+        let deckDescription = newDeckArr[5]
+        let deckType = newDeckArr[6]
+        let hasPrimer = newDeckArr[7]
+        let discordLink = newDeckArr[8]
+        
+        deckNick = DeckHelper.toUpper(deckNick)
+        colorIdentity = DeckHelper.toUpper(colorIdentity)
+        colorIdentity = colorIdentity.split('').join(', ')
+        commanderName = DeckHelper.toUpper(commanderName)
+        decktype = DeckHelper.toUpper(deckType)
+
+        const sendBackArr = new Array();
+        
+        let deckAliasQuery = {'_alias': deckAlias, '_server': receivedMessage.guild.id}
+        let deckSave = {
+            '_link': deckLink, 
+            '_name': deckNick, 
+            '_alias': deckAlias,
+            '_commander': commanderName,
+            '_colors': colorIdentity,
+            '_author': author,
+            '_server': receivedMessage.guild.id, 
+            '_season': "1",
+            '_description': deckDescription,
+            '_discordLink': discordLink,
+            '_dateAdded': "",
+            '_deckType': deckType,
+            '_hasPrimer': hasPrimer
+           
         }
-        let deckAliasQuery = {'_alias': aliasArg, '_server': receivedMessage.guild.id}
-        let deckSave = {'_link': urlArg, '_name': nameArg, '_alias': aliasArg, '_user': "<@!"+receivedMessage.author.id+">", '_server': receivedMessage.guild.id, '_season': "1"}
-        let aliasSave = {'_name': nameArg, '_server': receivedMessage.guild.id}
+        let aliasSave = {'_name': deckNick, '_server': receivedMessage.guild.id}
         return new Promise ((resolve,reject)=>{
-            if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(urlArg)) {
-                    deck.findOne(deckAliasQuery, function(err, res){
+            deck.findOne(deckAliasQuery, function(err, res){
+                if (res){
+                    resolve("Error 1")
+                }
+                else{
+                    deck(deckSave).save(function(err, res){
                         if (res){
-                            resolve("Error 1")
+                            sendBackArr.push(
+                                deckNick, commanderName, colorIdentity, deckLink, 
+                                author, deckDescription, deckType, hasPrimer, discordLink
+                                )
+                            resolve(sendBackArr)
+                            console.log("DEBUG: Successfully saved to DECK DB")
                         }
                         else{
-                            deck(deckSave).save(function(err, res){
-                                if (res){
-                                    callBackArray.push(urlArg)
-                                    callBackArray.push(aliasArg)
-                                    resolve(callBackArray)
-                                    console.log("DEBUG: Successfully saved to DECK DB")
-                                }
-                                else{
-                                    resolve("Error 2")
-                                }
-                            })
-                            alias(aliasSave).save(function(err, res){
-                                if (res){
-                                    console.log("DEBUG: Successfully saved to ALIAS DB")
-                                }
-                                else{
-                                    resolve("Error 2")
-                                }
-                            })
+                            resolve("Error 2")
                         }
-                    })       
-                
-            }
-            else{
-                resolve("Error 3")
-            }    
+                    })
+                    alias(aliasSave).save(function(err, res){
+                        if (res){
+                            console.log("DEBUG: Successfully saved to ALIAS DB")
+                        }
+                        else{
+                            resolve("Error 2")
+                        }
+                    })
+                }
+            })       
         })
     },
     /** 
