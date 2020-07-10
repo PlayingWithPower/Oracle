@@ -5,6 +5,7 @@
 const Discord = require('discord.js')
 
 var helpDictionary = Object();
+var exampleDictionary = Object();
 
 //Colors
 const messageColorRed = "#af0000"
@@ -38,7 +39,29 @@ helpDictionary =
     unknown : "We have no real clue what we can do to help you after that command. =)"
 }
 
-
+exampleDictionary =
+{
+    help : "Provides the available commands. Use !help <command> to get more specific help.",
+    register : "!register - registers you to the league.",
+    users : "!users - Lists all users, by username, that are registered in the league.",
+    log : "!log @<loser1> @<loser2> @<user3> - logs you as the winner of a game and logs the pod.\n\nex. !log @cruzer @noah @ben",
+    remind : "!remind @<user> - to remind them to confirm a pending game.\n\nex. !remind @cruzer",
+    // delete is a keyword...we gotta choose something else.
+    de_lete : "!delete <match id> - deletes the specifc match. [admin-only]\n\nex. !delete 4jjf65",
+    info : "!info <match id> - provides information about given match.\n\nex. !info 4jjf65",
+    profile : "!profile - to see your profile\n\n!profile @<user> - to see their profile\n\nex. !profile , !profile @noah",
+    recent : "!recent - to see your recent matches\n\n!recent @<user> - to see user's recent matches\n\nex. !recent, !recent @ben",
+    use : "!use <Deck name from database>\n\n!use Rogue | <Title> to use a deck not in the database\n\nex. !use Gitrog Dredge, !use Rogue | Kinnan",
+    current : "!current - your current deck",
+    adddeck : "!add <Deck URL> <Deck Name>\n\nex. !add https://tappedout.net/mtg-decks/21-07-19-fblthp-lost-and-found/ Fblthp: Lost and Found",
+    decks : "!decks - Lists all decks registered.",
+    decksdetailed : "!deckdetailed <Deck Name>\n\nex. !deckdetailed Kess Storm",
+    removedeck : "!removedeck <Deck Name> [admin-only]\n\nex. !removedeck Kess Storm\n\n** Requires reaction for confirmation. **",
+    updatedeck : "!updatedeck <Deck Name> [admin-only]\n\nex. !updatedeck Kess Storm\n\n** Requires reaction for confirmation. **",
+    mydecks : "!mydecks - lists your current decks",
+    credits : "!credits - Do it, do it now!",
+    unknown : "We have no real clue what we can do to help you after that command. =)"
+}
 
 module.exports = {
     test()
@@ -101,8 +124,6 @@ module.exports = {
     {
         const exampleEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-        .setTitle('PWP Bot - !help ' + [arguments])
-        .setURL('')
         .setTimestamp()
         .setFooter('Here to help, anytime!', '');
 
@@ -110,13 +131,13 @@ module.exports = {
         if (arguments == 'delete')
         {
             exampleEmbed.addFields(
-                { name: "Command: !delete", value: helpDictionary['de_lete'] },
+                { name: "Command: !delete", value: exampleDictionary['de_lete'] },
             )
         }
         else
         {
             exampleEmbed.addFields(
-                { name: "Command: !" + [arguments], value: helpDictionary[arguments] },
+                { name: "Command: !" + [arguments], value: exampleDictionary[arguments] },
             )
         }
 
