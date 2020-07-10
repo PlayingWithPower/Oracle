@@ -29,7 +29,7 @@ helpDictionary =
     recent : "Command to see recent matches.",
     use : "Command to set the deck you are using.",
     current : "Command to show the deck you are currently using.",
-    adddeck : "Command to add a deck to the collection. **",
+    add : "Command to add a deck to the collection. **",
     decks : "Command to show the decks currently registered.",
     decksdetailed : "Command to show detailed info on the decks registered.",
     removedeck : "Command to remove a deck from the list. **",
@@ -83,6 +83,21 @@ module.exports = {
             )
         }
         return someEmbed
+    },
+    /**
+     * toUpper()
+     * @param {*} str 
+     */
+    toUpper(str) {
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map(function(word) {
+            // console.log("First capital letter: "+word[0]);
+            // console.log("remain letters: "+ word.substr(1));
+            return word[0].toUpperCase() + word.substr(1);
+        })
+        .join(' ');
     },
 
     /**
