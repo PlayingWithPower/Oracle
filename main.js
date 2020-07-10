@@ -11,7 +11,8 @@ const seasonObj = require('./objects/Season')
 const userObj = require('./objects/User')
 
 //Helper files
-const FunctionHelper = require('./FunctionHelper')
+const FunctionHelper = require('./Helpers/FunctionHelper')
+const DeckHelper = require('./Helpers/DeckHelper')
 
 //Bot prefix
 const botListeningPrefix = "!";
@@ -425,9 +426,9 @@ function processCommand(receivedMessage){
         case "current":
             current(receivedMessage, arguments)
             break;
-        case "add":
-            addToCollection(receivedMessage, arguments)
-            break;
+        // case "add":
+        //     addToCollection(receivedMessage, arguments)
+        //     break;
         case "decks":
             listDecks(receivedMessage, arguments)
             break;
@@ -443,7 +444,7 @@ function processCommand(receivedMessage){
         case "mydecks":
             listUserDecks(receivedMessage, arguments);
             break;
-        case "adddeck":
+        case "add":
             if (FunctionHelper.isUserAdmin(receivedMessage)){
                 addDeck(receivedMessage, arguments)
             }
@@ -658,21 +659,7 @@ async function deckStats(receivedMessage,args){
         generalChannel.send(useEmbed)
     }
 }
-/**
- * toUpper()
- * @param {*} str 
- */
-function toUpper(str) {
-    return str
-        .toLowerCase()
-        .split(' ')
-        .map(function(word) {
-            // console.log("First capital letter: "+word[0]);
-            // console.log("remain letters: "+ word.substr(1));
-            return word[0].toUpperCase() + word.substr(1);
-        })
-        .join(' ');
-}
+
 /**
  * listCollection()
  * @param {*} receivedMessage 
@@ -689,7 +676,7 @@ function listCollection(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     userObj.profile(receivedMessage, args, function(callback, err){
             callback._deck.forEach(callbackItem =>{
-                callbackName.push(toUpper(callbackItem.Deck))
+                callbackName.push(DeckHelper.toUpper(callbackItem.Deck))
                 callbackWins.push(callbackItem.Wins)
                 callbackLosses.push(callbackItem.Losses)
             })
@@ -1026,11 +1013,11 @@ async function listDecks(receivedMessage, args){
     .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
     Try '!use <deckname> | Rogue' to be able to use **any deck**.")
 
-    generalChannel.send(FunctionHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
-    generalChannel.send(FunctionHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
-    generalChannel.send(FunctionHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
-    generalChannel.send(FunctionHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
-    generalChannel.send(FunctionHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
+    generalChannel.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
+    generalChannel.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
+    generalChannel.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
+    generalChannel.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
+    generalChannel.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
     generalChannel.send(helperEmbed)
 }
 /**
@@ -1063,41 +1050,91 @@ function listDecksDetailed(receivedMessage, channel){
 async function addDeck(receivedMessage, args){
     var promiseReturnArr = new Array();
     let generalChannel = getChannelID(receivedMessage)
-    const addingDeckEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorBlue)
-    let promiseReturn = await deckObj.addDeck(receivedMessage, args);
-        if (promiseReturn == "Error 1"){
-            addingDeckEmbed
-            .setColor(messageColorRed) //red
-            .setDescription("Deck name already used. Try !decks to see a list of in use names.")
-        }
-        else if (promiseReturn == "Error 2"){
-            addingDeckEmbed
-            .setColor(messageColorRed) //red
-            .setDescription("Unable to save to Database, please try again later.")
-        }
-        else if (promiseReturn == "Error 3"){
-            addingDeckEmbed
-            .setColor(messageColorRed) //red
-            .setDescription("Not a valid URL, please follow the format !adddeck <url> <deck name>.")
-        }
-        else{
-            promiseReturn.forEach(item => {
-                promiseReturnArr.push(item)
-            });
 
-            var grabURL = promiseReturnArr[0].toString()
-            var grabName = promiseReturnArr[1].toString()
-            
-            addingDeckEmbed
-            .setTitle("Successfully uploaded new Decklist!")
-            .setColor(messageColorGreen) //green
-            .addFields(
-                { name: 'Decklist', value: "[Link]("+grabURL+")"},
-                { name: 'Name', value: grabName},
-            )
+    let argsWithCommas = args.toString()
+    let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+    let argsLowerCase = argsWithSpaces.toLowerCase()
+    let splitArgs = argsLowerCase.split(" | ")
+
+    const errorEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setTitle("Error Adding New Deck")
+
+    const addingDeckEmbed = new Discord.MessageEmbed()
+    .setColor(messageColorBlue)
+
+    if (splitArgs.length == 9){
+        let deckNick = splitArgs[0]
+        let commanderName = splitArgs[1]
+        let colorIdentity = splitArgs[2]
+        let deckLink = splitArgs[3]
+        let author = splitArgs[4]
+        let deckDescription = splitArgs[5]
+        let deckType = splitArgs[6]
+        let hasPrimer = splitArgs[7]
+        let discordLink = splitArgs[8]
+
+        if(hasPrimer.toLowerCase() != ("yes" || "no")){
+            errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
+            It looks like you're having trouble with the Primer. Make sure your primer section is 'Yes' or 'No'")
+            generalChannel.send(errorEmbed)
+            return
         }
-            generalChannel.send(addingDeckEmbed)   
+        if (deckType.toLowerCase() != ("proactive" || "adapative" || "disruptive")){
+            errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
+            It looks like you're having trouble with the Deck Type. The three deck types are: Proactive, Adapative and Disruptive")
+            generalChannel.send(errorEmbed)
+            return
+        }
+        if(!(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(discordLink))) {
+            discordLink = "";
+        }   
+
+        let newDeckArr = new Array();
+        newDeckArr.push(deckNick, commanderName, colorIdentity, deckLink, author, deckDescription, deckType, hasPrimer, discordLink)
+        let promiseReturn = await deckObj.addDeck(receivedMessage, newDeckArr)
+    }
+    else{
+        errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link")
+        generalChannel.send(errorEmbed)
+    }
+
+    
+
+
+    //let promiseReturn = await deckObj.addDeck(receivedMessage, args);
+        // if (promiseReturn == "Error 1"){
+        //     addingDeckEmbed
+        //     .setColor(messageColorRed) //red
+        //     .setDescription("Deck name already used. Try !decks to see a list of in use names.")
+        // }
+        // else if (promiseReturn == "Error 2"){
+        //     addingDeckEmbed
+        //     .setColor(messageColorRed) //red
+        //     .setDescription("Unable to save to Database, please try again later.")
+        // }
+        // else if (promiseReturn == "Error 3"){
+        //     addingDeckEmbed
+        //     .setColor(messageColorRed) //red
+        //     .setDescription("Not a valid URL, please follow the format !adddeck <url> <deck name>.")
+        // }
+        // !add {Deck Nickname} | {Commander Name} | {Color Identity} | {Deck Link} | {Deck Author} | {Deck Description}
+            // promiseReturn.forEach(item => {
+            //     promiseReturnArr.push(item)
+            // });
+
+            // var grabURL = promiseReturnArr[0].toString()
+            // var grabName = promiseReturnArr[1].toString()
+            
+            // addingDeckEmbed
+            // .setTitle("Successfully uploaded new Decklist!")
+            // .setColor(messageColorGreen) //green
+            // .addFields(
+            //     { name: 'Decklist', value: "[Link]("+grabURL+")"},
+            //     { name: 'Name', value: grabName},
+            // )
+        
+            // generalChannel.send(addingDeckEmbed)   
              
 }
 /**
