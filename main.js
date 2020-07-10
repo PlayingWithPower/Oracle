@@ -585,40 +585,41 @@ async function removeDeck(receivedMessage, args){
  * @param {*} receivedMessage 
  * @param {*} args 
  */
-async function deckStats(receivedMessage,args){
+async function deckStats(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const useEmbed = new Discord.MessageEmbed()
     const usersList = new Discord.MessageEmbed()
     let returnArr = await deckObj.deckStats(receivedMessage, args)
-    if (returnArr != "Can't find deck"){
-        useEmbed
-        .setColor(messageColorBlue) //blue
-        .setTitle(returnArr[0] + " Deckstats")
-        .addFields(
-            { name: 'Wins', value: returnArr[1], inline: true},
-            { name: 'Losses', value: returnArr[2], inline: true},
-            { name: 'Number of Matches', value: returnArr[1] + returnArr[2], inline: true}, 
-            { name: 'Winrate', value: Math.round((returnArr[1]/(returnArr[1]+returnArr[2]))*100) + "%", inline: true}, 
+    console.log(returnArr)
+    // if (returnArr != "Can't find deck"){
+    //     useEmbed
+    //     .setColor(messageColorBlue) //blue
+    //     .setTitle(returnArr[0] + " Deckstats")
+    //     .addFields(
+    //         { name: 'Wins', value: returnArr[1], inline: true},
+    //         { name: 'Losses', value: returnArr[2], inline: true},
+    //         { name: 'Number of Matches', value: returnArr[1] + returnArr[2], inline: true}, 
+    //         { name: 'Winrate', value: Math.round((returnArr[1]/(returnArr[1]+returnArr[2]))*100) + "%", inline: true}, 
             
-        )
+    //     )
 
-        usersList
-            .setColor(messageColorBlue) //blue
-            .setTitle("People who play this deck")
-        for (i = 0; i < returnArr[3].length; i++){
-            usersList.addFields(
-                {name: " \u200b", value: returnArr[3][i], inline: true}
-            )
-        }
-        generalChannel.send(useEmbed)
-        generalChannel.send(usersList)
-    }
-    else{
-        useEmbed
-        .setColor(messageColorRed) //red
-        .setDescription("No games have been logged with that name. \n Try !decks to find a list of decks for this server \n Or !deckstats <deckname> to find information about a deck.")
-        generalChannel.send(useEmbed)
-    }
+    //     usersList
+    //         .setColor(messageColorBlue) //blue
+    //         .setTitle("People who play this deck")
+    //     for (i = 0; i < returnArr[3].length; i++){
+    //         usersList.addFields(
+    //             {name: " \u200b", value: returnArr[3][i], inline: true}
+    //         )
+    //     }
+    //     generalChannel.send(useEmbed)
+    //     generalChannel.send(usersList)
+    // }
+    // else{
+    //     useEmbed
+    //     .setColor(messageColorRed) //red
+    //     .setDescription("No games have been logged with that name. \n Try !decks to find a list of decks for this server \n Or !deckstats <deckname> to find information about a deck.")
+    //     generalChannel.send(useEmbed)
+    //}
 }
 
 /**

@@ -1,6 +1,7 @@
 const { db } = require('../Schema/Deck')
 const { resolve } = require('dns')
 const Deck = require('../Schema/Deck')
+const { type } = require('os')
 
 /**
  * Deck Object
@@ -75,22 +76,40 @@ module.exports = {
      * Returns stats about a deck alias
      */
     deckStats(receivedMessage, args){
-        try{
-            args = args.join(' ')
-            .toLowerCase()
-            .split(' ')
-            .map(function(word) {
-                // console.log("First capital letter: "+word[0]);
-                // console.log("remain letters: "+ word.substr(1));
-                return word[0].toUpperCase() + word.substr(1);
-            })
-            .join(' ');
-        }
-        catch{
-            args = ""
-        }
+        const DeckHelper = require('../Helpers/DeckHelper')
         const matches = require('../Schema/Games')
 
+        // Yeah just a sec
+        // !deckstats
+        // Raw dump of decks
+        // !deckstats {deck nickname}
+        // Stats for a given deck
+        // !deckstats @user
+        // Stats for a given user
+        // !deckstats {Deck Nickname} | {Season Name}
+        // or !deckstats {Deck Nickname} | all)
+        
+        if (typeof args[0] === 'string' || args[0] instanceof String){
+            console.log("string")
+        }
+        else if (args[0].slice(0,3) == "<@!"){
+            const user = require('../Schema/Users')
+            var holderArr = new Array
+            return new Promise((resolve, reject) => {
+                user.find({'_mentionValue': args[0],'_server' : receivedMessage.guild.id}).then((res) =>{
+                    resolve(res)
+                })
+            })
+        }
+        
+        // else{
+        //     console.log(args)
+        //     args = " "
+        // }
+        if (args == " "){
+            let rawDumpQuery = { _server: receivedMessage.guild.id}
+        }
+        console.log(args)
         let query = { $or: [ { _player1Deck: args }, { _player2Deck: args },{ _player3Deck: args }, { _player4Deck: args } ] }
         let wins = 0
         let losses = 0
