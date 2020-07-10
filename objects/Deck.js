@@ -79,6 +79,7 @@ module.exports = {
         const DeckHelper = require('../Helpers/DeckHelper')
         const matches = require('../Schema/Games')
 
+        
         // Yeah just a sec
         // !deckstats
         // Raw dump of decks
@@ -89,10 +90,7 @@ module.exports = {
         // !deckstats {Deck Nickname} | {Season Name}
         // or !deckstats {Deck Nickname} | all)
         
-        if (typeof args[0] === 'string' || args[0] instanceof String){
-            console.log("string")
-        }
-        else if (args[0].slice(0,3) == "<@!"){
+        if (args[0].slice(0,3) == "<@!"){
             const user = require('../Schema/Users')
             var holderArr = new Array
             return new Promise((resolve, reject) => {
@@ -100,6 +98,10 @@ module.exports = {
                     resolve(res)
                 })
             })
+        }
+        else{
+            args = DeckHelper.toUpper(args)
+            console.log(args)
         }
         
         // else{
