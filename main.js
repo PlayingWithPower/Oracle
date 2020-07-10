@@ -25,6 +25,7 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
+const Deck = require('./Schema/Deck')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -100,7 +101,6 @@ async function manageReaction(reaction, user) {
     if (reaction.message.author.id != "717073766030508072") {
         return
     }
-
     // Game Block
     if (embeds.length > 1 && embeds[0] == "Game" && embeds[1] == "ID:" && reaction.emoji.name === '👍' && user.id != "717073766030508072") {
         grabMentionValue = upperLevelEmbeds.description.toString().split(' ')[0]
@@ -353,8 +353,31 @@ async function manageReaction(reaction, user) {
     }
     else if((embeds.length > 4 && embeds[4] == "update" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
         const editedWarningEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorRed) //red
+            .setColor(messageColorRed)
             .setTitle("Update Deck Cancelled")
+        reaction.message.edit(editedWarningEmbed);
+    }
+    //End of Update Deck Block
+    //Start of Add Deck Block
+    else if ((embeds.length > 4 && embeds[0] == "Trying"&& reaction.emoji.name === '👍' && user.id != "717073766030508072")){
+        let promiseReturn = await deckObj.addDeckHelper(reaction.message, upperLevelEmbeds.fields)
+        if (promiseReturn == ""){
+            const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setTitle("Error saving deck, please try again. ")
+        reaction.message.edit(editedWarningEmbed);
+        }
+        else{
+            const editedSuccessEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setTitle("Successfully saved the new deck: " + promiseReturn)
+        reaction.message.edit(editedSuccessEmbed)
+        }
+    }
+    else if ((embeds.length > 4 && embeds[0] == "Trying"&& reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+        const editedWarningEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setTitle("Add Deck Cancelled")
         reaction.message.edit(editedWarningEmbed);
     }
     else {
@@ -1022,9 +1045,6 @@ async function addDeck(receivedMessage, args){
             .setColor(messageColorRed)
             .setTitle("Error Adding New Deck")
 
-    const addingDeckEmbed = new Discord.MessageEmbed()
-    .setColor(messageColorBlue)
-
     if (splitArgs.length == 9){
         let deckNick = splitArgs[0]
         let commanderName = splitArgs[1]
@@ -1036,25 +1056,67 @@ async function addDeck(receivedMessage, args){
         let hasPrimer = splitArgs[7]
         let discordLink = splitArgs[8]
 
-        if(hasPrimer.toLowerCase() != ("yes" || "no")){
+        if((hasPrimer.toLowerCase() != "yes") && (hasPrimer.toLowerCase() !="no")){
             errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
             It looks like you're having trouble with the Primer. Make sure your primer section is 'Yes' or 'No'")
             generalChannel.send(errorEmbed)
             return
         }
-        if (deckType.toLowerCase() != ("proactive" || "adapative" || "disruptive")){
+        if ((deckType.toLowerCase() != "proactive")&& (deckType.toLowerCase() != "adaptive")&&(deckType.toLowerCase() != "disruptive")){
             errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
-            It looks like you're having trouble with the Deck Type. The three deck types are: Proactive, Adapative and Disruptive")
+            It looks like you're having trouble with the Deck Type. The three deck types are: Proactive, Adaptive and Disruptive")
             generalChannel.send(errorEmbed)
             return
         }
         if(!(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(discordLink))) {
-            discordLink = "";
-        }   
+            discordLink = "No Link Provided";
+        }
+        if(!(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(deckLink))) {
+            deckLink = "No Link Provided";
+        }
+
+        colorIdentity = colorIdentity.replace(/ /g, '');
+        for (let el of colorIdentity) {
+            if (el !== ("w") &&el !== ("u") &&el !== ("b") &&el !== ("r") &&el !== ("g")){
+                errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
+                It looks like you're having trouble with the Color. Correct input includes the 5 letters 'WUBRG' in some combination")
+                generalChannel.send(errorEmbed)
+              break;
+            }
+          }
+            
 
         let newDeckArr = new Array();
         newDeckArr.push(deckNick, commanderName, colorIdentity, deckLink, author, deckDescription, deckType, hasPrimer, discordLink)
         let promiseReturn = await deckObj.addDeck(receivedMessage, newDeckArr)
+        if (promiseReturn == "Error 1"){
+            const sameNamedEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorRed)
+                .setTitle("Error. A deck with that name already exists. Please try a new name.")
+            generalChannel.send(sameNamedEmbed)
+        }
+        else{
+            const awaitReactionEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorGreen)
+                .setAuthor("Trying to save a new deck named: " + promiseReturn[0])
+                .setDescription("Please confirm the information below. \nUpvote to confirm \nDownvote to cancel")
+                .addFields(
+                    { name: "Deckname", value: promiseReturn[0], inline:true},
+                    { name: "Commander", value: promiseReturn[1], inline:true},
+                    { name: "Color Identity", value: promiseReturn[2], inline:true},
+                    { name: "Deck Link", value: promiseReturn[3], inline:true},
+                    { name: "Author", value: promiseReturn[4], inline:true},
+                    { name: "Deck Description", value: promiseReturn[5], inline:true},
+                    { name: "Deck Type", value: promiseReturn[6], inline:true},
+                    { name: "Has Primer?", value: DeckHelper.toUpper(promiseReturn[7].toString()), inline:true},
+                    { name: "Discord Link", value: promiseReturn[8], inline:true},
+                )
+            
+            generalChannel.send(awaitReactionEmbed).then(function(message, callback){
+                message.react("👍")
+                message.react("👎")
+            })
+        }
     }
     else{
         errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link")

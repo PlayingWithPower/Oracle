@@ -275,11 +275,8 @@ module.exports = {
     },
     /**
      * Adds a new User deck to the server.
-     * TODO: Add react to messages to confirm your deck and alias - utilizes the Manage Reaction func in main.js
      */
     addDeck(receivedMessage, newDeckArr) {
-        //link,name, alias,commander,colors,author,server,season,description,
-        // discordlink,decktype, primer?
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
         const DeckHelper = require('../Helpers/DeckHelper')
@@ -296,60 +293,87 @@ module.exports = {
         let discordLink = newDeckArr[8]
         
         deckNick = DeckHelper.toUpper(deckNick)
-        colorIdentity = DeckHelper.toUpper(colorIdentity)
+        colorIdentity = colorIdentity.toUpperCase()
         colorIdentity = colorIdentity.split('').join(', ')
         commanderName = DeckHelper.toUpper(commanderName)
-        decktype = DeckHelper.toUpper(deckType)
+        deckType = DeckHelper.toUpper(deckType)
+        
+        if (hasPrimer == "no"){
+            hasPrimer = false
+        }
+        else{
+            hasPrimer = true
+        }
 
         const sendBackArr = new Array();
         
-        let deckAliasQuery = {'_alias': deckAlias, '_server': receivedMessage.guild.id}
-        let deckSave = {
-            '_link': deckLink, 
-            '_name': deckNick, 
-            '_alias': deckAlias,
-            '_commander': commanderName,
-            '_colors': colorIdentity,
-            '_author': author,
-            '_server': receivedMessage.guild.id, 
-            '_season': "1",
-            '_description': deckDescription,
-            '_discordLink': discordLink,
-            '_dateAdded': "",
-            '_deckType': deckType,
-            '_hasPrimer': hasPrimer
-           
+        let deckAliasQuery = {
+            '_alias': deckAlias, 
+            '_server': receivedMessage.guild.id
         }
-        let aliasSave = {'_name': deckNick, '_server': receivedMessage.guild.id}
         return new Promise ((resolve,reject)=>{
             deck.findOne(deckAliasQuery, function(err, res){
                 if (res){
                     resolve("Error 1")
                 }
                 else{
-                    deck(deckSave).save(function(err, res){
-                        if (res){
-                            sendBackArr.push(
-                                deckNick, commanderName, colorIdentity, deckLink, 
-                                author, deckDescription, deckType, hasPrimer, discordLink
-                                )
-                            resolve(sendBackArr)
-                            console.log("DEBUG: Successfully saved to DECK DB")
-                        }
-                        else{
-                            resolve("Error 2")
-                        }
-                    })
-                    alias(aliasSave).save(function(err, res){
-                        if (res){
-                            console.log("DEBUG: Successfully saved to ALIAS DB")
-                        }
-                        else{
-                            resolve("Error 2")
-                        }
-                    })
+                    sendBackArr.push(
+                        deckNick, commanderName, colorIdentity, 
+                        deckLink, author, deckDescription, 
+                        deckType, hasPrimer, discordLink
+                        )
+                    resolve(sendBackArr)
                 }
             })       
+        })
+    },
+    addDeckHelper(message, args){
+        const deck = require('../Schema/Deck')
+        const alias = require('../Schema/Alias')
+        let primerBool
+        if (args[7].value == "False"){
+            primerBool = false
+        }
+        else{
+            primerBool = true
+        }
+        let deckSave = {
+            '_link': args[3].value, 
+            '_name': args[0].value, 
+            '_alias': args[0].value.toLowerCase(),
+            '_commander': args[1].value,
+            '_colors': args[2].value,
+            '_author': args[4].value,
+            '_server': message.guild.id, 
+            '_season': "1",
+            '_description': args[5].value,
+            '_discordLink': args[8].value,
+            '_dateAdded': "",
+            '_deckType': args[6].value,
+            '_hasPrimer': primerBool
+        }
+        let aliasSave = {
+            '_name': args[0].value, 
+            '_server': message.guild.id
+        }
+        return new Promise ((resolve, reject)=>{
+            deck(deckSave).save(function(err, res){
+                if (res){
+                    alias(aliasSave).save(function(err, res){
+                        if (res){
+                            resolve(args[0].value)
+                            //DEBUG: console.log("DEBUG: Successfully saved to ALIAS DB")
+                        }
+                        else{
+                            resolve("Error 1")
+                        }
+                    })
+                    //DEBUG: console.log("DEBUG: Successfully saved to DECK DB")
+                }
+                else{
+                    resolve("Error 1")
+                }
+            })
         })
     },
     /** 
