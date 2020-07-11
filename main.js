@@ -455,9 +455,9 @@ function processCommand(receivedMessage){
         case "decks":
             listDecks(receivedMessage, arguments)
             break;
-        case "decksdetailed":
-            listDecksDetailed(receivedMessage, responseFormatted);
-            break;
+        // case "decksdetailed":
+        //     listDecksDetailed(receivedMessage, responseFormatted);
+        //     break;
         case "deckstats":
             deckStats(receivedMessage, arguments);
             break;
