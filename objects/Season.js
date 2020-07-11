@@ -11,8 +11,32 @@ module.exports = {
     /**
      * Starts a new season
      */
-    startSeason() {
+    startSeason(receivedMessage, args) {
+        const season = require('../Schema/Seasons')
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+        
+        today = mm + '/' + dd + '/' + yyyy;
 
+        let newSeason = {
+            _id: "",
+            _server: receivedMessage.guild.id,
+            _season_name: "1",
+            _season_start: today,
+            _season_end: today,
+            _is_current: "yes"
+        }
+
+        return new Promise ((resolve, reject)=>{
+            season(newSeason).save(function(err, res){
+                if (err){
+                    console.log(err)
+                }
+                resolve(res)
+            })
+        })
     },
 
     /**

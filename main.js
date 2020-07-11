@@ -26,8 +26,6 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
-const Deck = require('./Schema/Deck')
-const { manageReaction } = require('./Helpers/ManageReactionHelper')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -177,6 +175,9 @@ function processCommand(receivedMessage){
         case "top":
             top(receivedMessage)
             break;
+        case "startseason":
+            startSeason(receivedMessage, arguments)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -184,7 +185,10 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-
+async function startSeason(receivedMessage, args){
+    let promiseRet = await seasonObj.startSeason(receivedMessage)
+    console.log(promiseRet)
+}
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await seasonObj.leaderBoard(receivedMessage)

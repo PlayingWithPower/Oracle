@@ -6,6 +6,7 @@ var season = new mongoose.Schema({
     _season_name: String,
     _season_start: Date,
     _season_end: Date,
+    _is_current: String
 });
 
 module.exports = mongoose.model('Seasons', season);
