@@ -1,6 +1,7 @@
 const { db } = require('../Schema/Deck')
 const { resolve } = require('dns')
 const Deck = require('../Schema/Deck')
+const { type } = require('os')
 
 /**
  * Deck Object
@@ -73,68 +74,102 @@ module.exports = {
     },
     /**
      * Returns stats about a deck alias
+     * TODO: !deckstats <deckname> should return the current season by default. ATM 
+     *  it returns the same as !deckstats <deckname> | all
      */
     deckStats(receivedMessage, args){
-        try{
-            args = args.join(' ')
-            .toLowerCase()
-            .split(' ')
-            .map(function(word) {
-                // console.log("First capital letter: "+word[0]);
-                // console.log("remain letters: "+ word.substr(1));
-                return word[0].toUpperCase() + word.substr(1);
-            })
-            .join(' ');
-        }
-        catch{
-            args = ""
-        }
+        const DeckHelper = require('../Helpers/DeckHelper')
         const matches = require('../Schema/Games')
 
-        let query = { $or: [ { _player1Deck: args }, { _player2Deck: args },{ _player3Deck: args }, { _player4Deck: args } ] }
-        let wins = 0
-        let losses = 0
-        var deckPlayers = new Array()
-        var passingResult
-
-        return new Promise((resolve, reject) =>{
-            matches.find(query, function(err, res){
-                if (err){
-                    throw err;
-                }
-                passingResult = res;
-            }).then(function(passingResult){
-                if (passingResult != ""){
-                    passingResult.forEach((entry)=>{
-                        if (entry._player1Deck == args){
-                            wins = wins + 1
-                            deckPlayers.push(entry._player1)
-                        }
-                        else if (entry._player2Deck == args){
-                            losses = losses + 1
-                            deckPlayers.push(entry._player2)
-                        }
-                        else if (entry._player3Deck == args){
-                            losses = losses + 1
-                            deckPlayers.push(entry._player3)
-                        }
-                        else if (entry._player4Deck == args){
-                            losses = losses + 1
-                            deckPlayers.push(entry._player4)
-                        }
-                    })
-                    let passedArray = new Array
-                    deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
-                        return inputArray.indexOf(item) == index;
-                    });
-                    passedArray.push(args, wins, losses, deckPlayers)
-                    resolve(passedArray)
-                }
-                else{
-                    resolve("Can't find deck")
-                }
+        // Yeah just a sec
+        // !deckstats
+        // Raw dump of decks
+        // !deckstats {deck nickname}
+        // Stats for a given deck
+        // !deckstats @user
+        // Stats for a given user
+        // !deckstats {Deck Nickname} | {Season Name}
+        // or !deckstats {Deck Nickname} | all)
+       
+        if (args.length == 0){
+            return new Promise((resolve, reject)=>{
+                resolve("test")
             })
-        })
+        }
+        else if (args[0].slice(0,3) == "<@!"){
+            const user = require('../Schema/Users')
+            var holderArr = new Array
+            return new Promise((resolve, reject) => {
+                user.find({'_mentionValue': args[0],'_server' : receivedMessage.guild.id}).then((res) =>{
+                    var resolveArr = new Array();
+                    resolveArr.push("User Lookup", res)
+                    resolve(resolveArr)
+                })
+            })
+        }
+        else{
+            args = args.join(' ')
+            args = DeckHelper.toUpper(args)
+            var query
+
+            let argsWithCommas = args.toString()
+            let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+            let splitArgs = argsWithSpaces.split(" | ")
+            if (splitArgs[1] == undefined){
+                query = { $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
+            }
+            else if (splitArgs[1] == "All"){
+                query = { $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
+            }
+            else{
+                query = {_season: splitArgs[1], $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
+            }
+            
+            let wins = 0
+            let losses = 0
+            var deckPlayers = new Array()
+            var passingResult
+
+            return new Promise((resolve, reject) =>{
+                matches.find(query, function(err, res){
+                    if (err){
+                        throw err;
+                    }
+                    passingResult = res;
+                }).then(function(passingResult){
+                    if (passingResult != ""){
+                        passingResult.forEach((entry)=>{
+                            if (entry._player1Deck == splitArgs[0]){
+                                wins = wins + 1
+                                deckPlayers.push(entry._player1)
+                            }
+                            if (entry._player2Deck == splitArgs[0]){
+                                losses = losses + 1
+                                deckPlayers.push(entry._player2)
+                            }
+                            if (entry._player3Deck == splitArgs[0]){
+                                losses = losses + 1
+                                deckPlayers.push(entry._player3)
+                            }
+                            if (entry._player4Deck == splitArgs[0]){
+                                losses = losses + 1
+                                deckPlayers.push(entry._player4)
+                            }
+                        })
+                        let passedArray = new Array
+                        deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
+                            return inputArray.indexOf(item) == index;
+                        });
+                        passedArray.push(args, wins, losses, deckPlayers)
+                        resolve(passedArray)
+                    }
+                    else{
+                        resolve("Can't find deck")
+                    }
+                })
+            })
+        }
+        
         
     },
 
