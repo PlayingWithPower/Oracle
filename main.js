@@ -294,11 +294,12 @@ async function removeDeck(receivedMessage, args){
  * @param {*} receivedMessage 
  * @param {*} args 
  */
-async function deckStats(receivedMessage,args){
+async function deckStats(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const useEmbed = new Discord.MessageEmbed()
     const usersList = new Discord.MessageEmbed()
     let returnArr = await deckObj.deckStats(receivedMessage, args)
+    console.log(returnArr)
     if (returnArr != "Can't find deck"){
         useEmbed
         .setColor(messageColorBlue) //blue
