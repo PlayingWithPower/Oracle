@@ -1,3 +1,6 @@
+const { resolve } = require('path')
+const { rejects } = require('assert')
+
 /**
  * Season Object
  *
@@ -46,7 +49,20 @@ module.exports = {
      * Get leaderboard info for a number of different data points
      * Top games, score, winrate
      */
-    leaderBoard() {
+    leaderBoard(receivedMessage) {
+        const user = require('../Schema/Users')
+        let userQuery = {_server: receivedMessage.guild.id}
+
+        return new Promise((resolve,reject)=>{
+            user.find(userQuery, function(err, res){
+                if (res){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
+            })
+        })
 
     },
     /**
