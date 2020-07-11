@@ -7,7 +7,7 @@ const client = new Discord.Client()
 const deckObj = require('./objects/Deck')
 const gameObj = require('./objects/Game')
 const leagueObj = require('./objects/League')
-const seaonObj = require('./objects/Season')
+const seasonObj = require('./objects/Season')
 const userObj = require('./objects/User')
 
 //Helper files
@@ -174,11 +174,50 @@ function processCommand(receivedMessage){
                 nonAdminAccess(receivedMessage, primaryCommand)
             }
             break;
+        case "top":
+            top(receivedMessage)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+    }
+}
+
+async function top(receivedMessage){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await seasonObj.leaderBoard(receivedMessage)
+    const returnEmbed = new Discord.MessageEmbed()
+        
+    if (returnArr == "Error 1"){
+        returnEmbed
+            .setColor(messageColorRed)
+        generalChannel.send(returnEmbed)
+    }
+    else{
+        returnArr.sort(function(a, b) {
+            return parseFloat(b._elo) - parseFloat(a._elo);
+        });
+        returnEmbed
+            .setColor(messageColorGreen)
+
+        returnArr.forEach(user =>{
+            let calculatedWinrate = ((user._wins)/(user._wins+user._losses))*100
+            if (isNaN(calculatedWinrate)){
+                calculatedWinrate = 0
+            }
+            else{
+                calculatedWinrate = Math.round(calculatedWinrate)
+            }
+            returnEmbed.addFields(
+                { name: "Username", value: user._name, inline: true},
+                { name: "Elo", value: user._elo, inline: true},
+                //{ name: "Games Played", value: user._wins+user._losses, inline: true},
+                { name: "Winrate", value: calculatedWinrate + "%", inline: true},
+            )
+        })
+        generalChannel.send(returnEmbed)
     }
 }
 
