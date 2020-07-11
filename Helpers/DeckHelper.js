@@ -16,10 +16,17 @@ module.exports = {
         const someEmbed = new Discord.MessageEmbed()
             .setColor(messageColorBlue)
             .setAuthor(colorNum)
-        for(i = 0; i < colorArr.length; i++){
+        if (colorArr.length == 0){
             someEmbed.addFields(
-                { name: " \u200b",value: colorArr[i], inline: true},
+                { name: " \u200b",value: "No Decks of these color registered", inline: true},
             )
+        }
+        else{
+            for(i = 0; i < colorArr.length; i++){
+                someEmbed.addFields(
+                    { name: " \u200b",value: colorArr[i], inline: true},
+                )
+            }
         }
         return someEmbed
     },
