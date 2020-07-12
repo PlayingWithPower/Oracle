@@ -13,29 +13,47 @@ module.exports = {
      */
     startSeason(receivedMessage, args) {
         const season = require('../Schema/Seasons')
-        var today = new Date();
-        var dd = String(today.getDate()).padStart(2, '0');
-        var mm = String(today.getMonth() + 1).padStart(2, '0');
-        var yyyy = today.getFullYear();
-        
-        today = mm + '/' + dd + '/' + yyyy;
+        var seasonName = "1"
+        var futureDate = new Date();
+        var currentDate = new Date();
+        futureDate = new Date(futureDate.setDate(futureDate.getDate() + 30))
+        futureDate = new Date(futureDate.setHours(0,0,0,0))
+        currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
+        futureDate = futureDate.toLocaleString("en-US", {timeZone: "America/New_York"});
 
         let newSeason = {
-            _id: "",
+            '_server': receivedMessage.guild.id,
+            '_season_name': seasonName,
+            '_season_start': currentDate,
+            '_season_end': futureDate,
+            '_is_current': "yes"
+        }
+        let checkCurrent = {
             _server: receivedMessage.guild.id,
-            _season_name: "1",
-            _season_start: today,
-            _season_end: today,
             _is_current: "yes"
         }
-
         return new Promise ((resolve, reject)=>{
-            season(newSeason).save(function(err, res){
+            season.findOne(checkCurrent, function(err, res){
                 if (err){
-                    console.log(err)
+                    resolve("Error 1")
                 }
-                resolve(res)
+                if (res){
+                    var foundArr = new Array();
+                    foundArr.push("found", res._season_start, res._season_end, res._season_name)
+                    resolve(foundArr)
+                }
+                else{
+                    season(newSeason).save(function(err, res){
+                        if (err){
+                            resolve("Error 2")
+                        }
+                        var seasonArr = new Array();
+                        seasonArr.push("saved", currentDate, futureDate, seasonName)
+                        resolve(seasonArr)
+                    })
+                }
             })
+            
         })
     },
 
@@ -65,8 +83,17 @@ module.exports = {
     /**
      * Summary info for the season
      */
-    getInfo() {
-
+    getInfo(receivedMessage) {
+        const season = require('../Schema/Seasons')
+        let seasonSearch = {
+            '_server': receivedMessage.guild.id,
+            '_is_current': "yes"
+        }
+        return new Promise((resolve, reject)=>{
+            season.findOne(seasonSearch, function(err,res){
+                resolve(res)
+            })
+        })
     },
 
     /**
