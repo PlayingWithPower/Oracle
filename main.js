@@ -14,6 +14,7 @@ const userObj = require('./objects/User')
 const FunctionHelper = require('./Helpers/FunctionHelper')
 const DeckHelper = require('./Helpers/DeckHelper')
 const ManageReactHelper = require('./Helpers/ManageReactionHelper')
+const CronJobHelper = require('./Helpers/CronJobHelper')
 
 //Bot prefix
 const botListeningPrefix = "!";
@@ -28,6 +29,8 @@ const generalID = require('./constants')
 const moongoose = require('mongoose')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
+client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
+
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 client.on('ready', (on) =>{
     console.log("Debug log: Successfully connected as " + client.user.tag)
@@ -39,7 +42,7 @@ client.on('ready', (on) =>{
         status: 'online'
     })
     
-    
+
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.id)
@@ -84,6 +87,7 @@ function processCommand(receivedMessage){
 
     let channel = receivedMessage.channel.id
     let channelResponseFormatted = client.channels.cache.get(channel)
+
 
     switch(primaryCommand){
         case "setup":
@@ -208,6 +212,8 @@ async function startSeason(receivedMessage, args){
     let promiseRet = await seasonObj.startSeason(receivedMessage)
     
     if (promiseRet[0] == "found"){
+        let cleanedJob = await CronJobHelper.cleanJobFormat(promiseRet[2])
+        console.log(cleanedJob)
         const foundEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
         .setTitle("There is an ongoing season. \nCheck !seasoninfo for information on the current season.")
@@ -220,6 +226,8 @@ async function startSeason(receivedMessage, args){
         generalChannel.send(foundEmbed)
     }
     else if (promiseRet[0] == "saved"){
+        // job1.start();
+        
         const savedEmbed = new Discord.MessageEmbed()
         .setColor(messageColorGreen)
         .setTitle("Succesfully created a new season! Default ending time is one month from today. Default name is a number.")
@@ -1499,4 +1507,3 @@ function credits(argument, receivedMessage){
 function getChannelID(receivedMessage) {
     return client.channels.cache.get(receivedMessage.channel.id)
 }
-client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")

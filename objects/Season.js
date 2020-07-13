@@ -16,8 +16,8 @@ module.exports = {
         var seasonName = "1"
         var futureDate = new Date();
         var currentDate = new Date();
-        futureDate = new Date(futureDate.setDate(futureDate.getDate() + 30))
-        futureDate = new Date(futureDate.setHours(0,0,0,0))
+        futureDate = new Date(futureDate.setDate(futureDate.getDate()))
+        futureDate = new Date(futureDate.setHours(17,52,30,0))
         currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
         futureDate = futureDate.toLocaleString("en-US", {timeZone: "America/New_York"});
 
