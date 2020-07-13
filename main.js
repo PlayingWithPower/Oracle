@@ -274,7 +274,7 @@ function nonAdminAccess(receivedMessage, command){
 async function updateDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const updateDeckEmbed = new Discord.MessageEmbed()
-    let promiseReturn = await deckObj.findDeckToUpdate(receivedMessage, args);
+    let promiseReturn = await DeckHelper.findDeckToUpdate(receivedMessage, args);
     if (promiseReturn == "Error 1"){
         updateDeckEmbed
         .setColor(messageColorRed) //red
@@ -304,7 +304,7 @@ async function updateDeck(receivedMessage, args){
 async function removeDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const addingDeckEmbed = new Discord.MessageEmbed()
-    let promiseReturn = await deckObj.findDeckToRemove(receivedMessage, args);
+    let promiseReturn = await DeckHelper.findDeckToRemove(receivedMessage, args);
     if (promiseReturn == "Error 1"){
         addingDeckEmbed
         .setColor(messageColorRed) //red
@@ -758,7 +758,6 @@ function listDecksDetailed(receivedMessage, channel){
  * Calling method checks for admin privs before getting here.
  */
 async function addDeck(receivedMessage, args){
-    var promiseReturnArr = new Array();
     let generalChannel = getChannelID(receivedMessage)
 
     let argsWithCommas = args.toString()
@@ -806,7 +805,7 @@ async function addDeck(receivedMessage, args){
                 errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
                 It looks like you're having trouble with the Color. Correct input includes the 5 letters 'WUBRG' in some combination")
                 generalChannel.send(errorEmbed)
-              break;
+                return;
             }
           }
             

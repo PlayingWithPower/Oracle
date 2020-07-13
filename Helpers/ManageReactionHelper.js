@@ -9,6 +9,7 @@ const messageColorBlue = "#0099ff"
 //Objects
 const deckObj = require('../objects/Deck')
 const gameObj = require('../objects/Game')
+const DeckHelper = require('./DeckHelper')
 
 module.exports = {
 /**
@@ -300,7 +301,7 @@ module.exports = {
         //End of Update Deck Block
         //Start of Add Deck Block
         else if ((embeds.length > 4 && embeds[0] == "Trying"&& reaction.emoji.name === '👍' && user.id != "717073766030508072")){
-            let promiseReturn = await deckObj.addDeckHelper(reaction.message, upperLevelEmbeds.fields)
+            let promiseReturn = await DeckHelper.addDeckHelper(reaction.message, upperLevelEmbeds.fields)
             if (promiseReturn == ""){
                 const editedWarningEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
