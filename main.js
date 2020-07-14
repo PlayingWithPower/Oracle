@@ -232,6 +232,9 @@ async function deckinfo(receivedMessage, args){
     }
     else{
         let fixedColors = returnArr._colors.replace(/,/g, ' ');
+        if (returnArr._link == "No Link Provided"){
+            returnArr._link = " "
+        }
         const resultEmbed = new Discord.MessageEmbed()
             .setColor(messageColorGreen)
             .setDescription("Deck Information about **"+ returnArr._name + "**")
@@ -244,7 +247,7 @@ async function deckinfo(receivedMessage, args){
                 { name: 'Description', value: returnArr._description},
                 { name: 'Discord Link', value: returnArr._discordLink},
                 { name: 'Deck Type', value: returnArr._deckType},
-                { name: 'Has Primer?', value: returnArr._hasPrimer.toString()},
+                { name: 'Has Primer?', value: DeckHelper.toUpper(returnArr._hasPrimer.toString())},
             )
 
         generalChannel.send(resultEmbed)
@@ -282,16 +285,34 @@ async function updateDeck(receivedMessage, args){
         generalChannel.send(updateDeckEmbed)
     }
     else{
+        if (promiseReturn[0]._link == "No Link Provided"){
+            promiseReturn[0]._link = " "
+        }
         updateDeckEmbed
         .setColor(messageColorBlue)
         .setAuthor("You are attempting to update the deck: "+ promiseReturn[0]._name)
         .setTitle('Deck ID: ' + promiseReturn[0]._id)
         .setURL(promiseReturn[0]._link)
-        .setDescription("React with the **1** to update the **Deck Name**.\nReact with the **2** to update the **Deck Link**.\nReact with the **thumbs down** at any time to cancel.")
+        .setDescription("React with the **1** to update the **Commander**.\
+        \nReact with the **2** to update the **Deck Colors**.\
+        \nReact with the **3** to update the **Deck Link**.\
+        \nReact with the **4** to update the **Author(s)**.\
+        \nReact with the **5** to update the **Deck Description**.\
+        \nReact with the **6** to update the **Deck Type**.\
+        \nReact with the **7** to update the **Primer**.\
+        \nReact with the **8** to update the **Discord Link**.\
+        \nReact with the **thumbs down** at any time to cancel.")
+        .setFooter("You cannot update the Deck Name due to analytics.")
         generalChannel.send(updateDeckEmbed)
         .then(function (message, callback){
-            message.react("1️⃣")
-            message.react("2️⃣")
+            message.react("1️⃣")//commander
+            message.react("2️⃣")//colors
+            message.react("3️⃣")//decklink
+            message.react("4️⃣")//author
+            message.react("5️⃣")//deck description
+            message.react("6️⃣")//deck type
+            message.react("7️⃣")//primer
+            message.react("8️⃣")//discord
             message.react("👎")
         })
     }
@@ -800,8 +821,8 @@ async function addDeck(receivedMessage, args){
         }
 
         colorIdentity = colorIdentity.replace(/ /g, '');
-        for (let el of colorIdentity) {
-            if (el !== ("w") &&el !== ("u") &&el !== ("b") &&el !== ("r") &&el !== ("g")){
+        for (let letter of colorIdentity) {
+            if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g")){
                 errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
                 It looks like you're having trouble with the Color. Correct input includes the 5 letters 'WUBRG' in some combination")
                 generalChannel.send(errorEmbed)

@@ -2,6 +2,7 @@ const { db } = require('../Schema/Deck')
 const { resolve } = require('dns')
 const Deck = require('../Schema/Deck')
 const { type } = require('os')
+const DeckHelper = require('../Helpers/DeckHelper')
 
 /**
  * Deck Object
@@ -171,6 +172,178 @@ module.exports = {
         }
         
         
+    },
+    /**
+     * Used in ManageReactionHelper
+     * Updates the Type of a Deck
+     */
+    updateType(newAuthorMessage, oldID){
+        const deck = require('../Schema/Deck')
+        const DeckHelper = require('../Helpers/DeckHelper')
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+
+        if ((newAuthorMessage.content.toLowerCase() != "proactive")&& (newAuthorMessage.content.toLowerCase() != "adaptive")&&(newAuthorMessage.content.toLowerCase() != "disruptive")){
+            resolve("Error 1")
+        }
+        else{
+            newDeckType = newAuthorMessage.content
+            newDeckType = DeckHelper.toUpper(newDeckType)
+    
+            return new Promise ((resolve, reject)=>{
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, {$set: {_deckType: newDeckType}}, function (err, deckUpdateRes){
+                            promiseArr.push(deckFindRes[0]._name)
+                            promiseArr.push(deckFindRes[0]._deckType)
+                            promiseArr.push(newDeckType)
+                            resolve(promiseArr)
+                        })
+                    }
+                })
+            })
+        }  
+    },
+    /**
+     * Used in ManageReactionHelper
+     * Updates the author of a Deck
+     */
+    updateAuthor(newAuthorMessage, oldID){
+        const deck = require('../Schema/Deck')
+
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+
+        let bulkAuthors = newAuthorMessage.content
+        bulkAuthors = bulkAuthors.replace(/ /g, "")
+        bulkAuthors = bulkAuthors.split(',')
+
+        let commaAuthors = ""
+        bulkAuthors.forEach(author =>{
+            commaAuthors += author + ", " 
+        })
+        commaAuthors = commaAuthors.replace(/,([^,]*)$/, '$1')
+        commaAuthors = commaAuthors.replace(/ ([^ ]*)$/, '$1')
+        return new Promise ((resolve, reject)=>{
+            deck.find(deckQuery, function(err, deckFindRes){
+                if (deckFindRes){
+                    deck.updateOne(deckQuery, {$set: {_author: commaAuthors}}, function (err, deckUpdateRes){
+                        promiseArr.push(deckFindRes[0]._name)
+                        promiseArr.push(deckFindRes[0]._author)
+                        promiseArr.push(commaAuthors)
+                        resolve(promiseArr)
+                    })
+                }
+            })
+        })
+    },
+    /**
+     * Used in ManageReactionHelper
+     * Updates the description of a Deck
+     */
+    updateDescription(newDescriptionMessage, oldID){
+        const deck = require('../Schema/Deck')
+
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+        let newDescription = newDescriptionMessage.content
+
+        return new Promise((resolve, reject)=>{
+            if (newDescription.length > 750){
+                resolve("Error 1")
+            }
+            else{
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, {$set: {_description: newDescription}}, function(err, deckUpdateRes){
+                            if (deckUpdateRes){
+                                promiseArr.push(deckFindRes[0]._name)
+                                resolve(promiseArr)
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    },
+    /**
+     * Used in ManageReactionHelper
+     * Updates the color of a Deck
+     */
+    updateColors(newColorMessage, oldID){
+        const deck = require('../Schema/Deck')
+
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+
+        let colorIdentity = newColorMessage.content
+        let catchBool = new Boolean
+        catchBool = true
+        
+        return new Promise((resolve, reject)=>{
+            for (let letter of colorIdentity.toLowerCase()) {
+                if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g")){
+                    catchBool = false
+                    resolve("Error 1")
+                }
+            }
+            if (catchBool == true){
+                colorIdentity = colorIdentity.toUpperCase()
+                colorIdentity = colorIdentity.split('').join(' ')
+                colorIdentity = colorIdentity.replace(/ /g, ', ');
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, {$set: {_colors: colorIdentity}}, function(err, deckUpdateRes){
+                            if (deckUpdateRes){
+                                promiseArr.push(deckFindRes[0]._name)
+                                promiseArr.push(deckFindRes[0]._colors)
+                                promiseArr.push(colorIdentity)
+                                resolve(promiseArr)
+                            }
+                        })
+                    }
+                })
+            }
+            else{
+                return
+            }
+        })
+        
+    },
+    /**
+     * Used in ManageReactionHelper
+     * Updates the Commander of a Deck
+     */
+    updateCommander(newNameMessage, oldID){
+        const deck = require('../Schema/Deck')
+        const DeckHelper = require('../Helpers/DeckHelper')
+
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+        let newName
+
+        newName = DeckHelper.toUpper(newNameMessage.content)
+
+        return new Promise((resolve, reject) =>{
+            deck.find(deckQuery, function(err, deckFindRes){
+                if (deckFindRes){
+                    deck.updateOne(deckQuery, {$set: {_commander: newName}}, function (err, deckUpdateRes){
+                        if (deckUpdateRes){
+                            promiseArr.push(deckFindRes[0]._name)
+                            promiseArr.push(deckFindRes[0]._commander)
+                            promiseArr.push(newName)
+                            resolve(promiseArr)
+                        }
+                        else{
+                            console.log("error 1")
+                        }
+                    })
+                }
+                else{
+                    console.log("error 2")
+                }
+            })
+        })
     },
     /**
      * Updates the Deck Name of a deck 

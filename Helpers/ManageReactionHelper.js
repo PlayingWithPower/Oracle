@@ -180,17 +180,15 @@ module.exports = {
         //End of Remove Deck Reacts
 
         //Start of Update Deck Reacts
+        //Commander
         else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '1️⃣' && user.id != "717073766030508072")){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
-            var oldDeckName = ""
-            var newDeckName = ""
 
             const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 })
-            
             const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(messageColorBlue)
-                .setDescription("**Selected Deck Name**. Please **type** the new deck name.")
+                .setDescription("**Selected Commander**. Please **type** the new Commander.")
             reaction.message.edit(selectedEditEmbed);
 
             collector.on('collect', async(message) => {
@@ -199,15 +197,13 @@ module.exports = {
                     return
                 }
                 else{
-                    let promiseReturn = await deckObj.updateDeckName(message, deckID)
+                    let promiseReturn = await deckObj.updateCommander(message, deckID)
                     if (promiseReturn){
-                        newDeckName = promiseReturn[0][1]
-                        oldDeckName = promiseReturn[1][1] 
-
                         const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
                             .setColor(messageColorGreen)
                             .setAuthor("Success!")
-                            .setDescription("**Updated** deck name of **" + oldDeckName + "** to **" + newDeckName + "**")
+                            .setDescription("Updated Commander of the deck: **" + promiseReturn[0] + "**  \
+                            from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**")
                         reaction.message.edit(updatedDeckEmbed);
                     }
                     else{
@@ -225,7 +221,7 @@ module.exports = {
                     if (collected.size == 0 && editedEmbed[0] == "You"){
                         const editedEndingMessage = new Discord.MessageEmbed()
                             .setColor(messageColorRed)
-                            .setTitle("Update Deck Timeout. Please type !updatedeck <deckname> again.")
+                            .setTitle("Update Commander Timeout. Please type !updatedeck <deckname> again.")
                         reaction.message.edit(editedEndingMessage);
                     }
                 }
@@ -235,7 +231,70 @@ module.exports = {
             })
     
         }
+        //Colors
         else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '2️⃣' && user.id != "717073766030508072")){
+            let channel = reaction.message.channel
+            let deckID = upperLevelEmbeds.title.slice(9)
+
+            const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 })
+            
+            const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
+                .setColor(messageColorBlue)
+                .setDescription("**Selected Deck Colors**. Please **type** the new Deck Colors \
+                \nBe careful of formatting. I understand WUBRG and combinations of it. \
+                \n**Example Input:** UBG")
+            reaction.message.edit(selectedEditEmbed);
+
+            collector.on('collect', async(message) => {
+                var grabEmbed = reaction.message.embeds[0]
+                if (grabEmbed.title.toString().split(' ')[0] == "Update"){
+                    return
+                }
+                else{
+                    let promiseReturn = await deckObj.updateColors(message, deckID)
+                    if (promiseReturn == "Error 1"){
+                        const nonValidURLEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorRed)
+                            .setAuthor("Error")
+                            .setDescription("You have entered a non-valid Color combination. Please try again. \
+                            \nI understand WUBRG and combinations of it")
+                        reaction.message.edit(nonValidURLEmbed);
+                    }
+                    else if (promiseReturn){
+                        const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorGreen)
+                            .setAuthor("Success!")
+                            .setDescription("Updated Deck Colors of the deck: **" + promiseReturn[0] + "**  \
+                            from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**")
+                        reaction.message.edit(updatedDeckEmbed);
+                    }
+                    else{
+                        const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorRed)
+                            .setAuthor("Error")
+                            .setDescription("An error has occurred. Please try again.")
+                        reaction.message.edit(errorDeckEmbed);
+                    }
+                }
+            })
+            collector.on('end', collected =>{
+                if (reaction.message.embeds[0].author != null){
+                    let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
+                    if (collected.size == 0 && editedEmbed[0] == "You"){
+                        const editedEndingMessage = new Discord.MessageEmbed()
+                            .setColor(messageColorRed)
+                            .setTitle("Update Color Timeout. Please type !updatedeck <deckname> again.")
+                        reaction.message.edit(editedEndingMessage);
+                    }
+                }
+                else{
+                    return
+                }
+            })
+    
+        }
+        //Deck Link
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '3️⃣' && user.id != "717073766030508072")){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
 
@@ -247,6 +306,7 @@ module.exports = {
             reaction.message.edit(selectedEditEmbed);
 
             collector.on('collect', async(message) => {
+                var grabEmbed = reaction.message.embeds[0]
                 if (grabEmbed.title.toString().split(' ')[0] == "Update"){
                     return
                 }
@@ -264,7 +324,7 @@ module.exports = {
                             .setColor(messageColorGreen)
                             .setAuthor("Success!")
                             .setURL(promiseReturn[0])
-                            .setDescription("**Updated** deck list of **" + promiseReturn[1] + "**")
+                            .setDescription("Updated Deck List of **" + promiseReturn[1] + "**")
                         reaction.message.edit(updatedDeckEmbed);
                     }
                     else{
@@ -291,6 +351,186 @@ module.exports = {
                 }
             })
     
+        }
+        //Author
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '4️⃣' && user.id != "717073766030508072")){
+            let channel = reaction.message.channel
+            let deckID = upperLevelEmbeds.title.slice(9)
+
+            const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 })
+            
+            const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
+                .setColor(messageColorBlue)
+                .setDescription("**Selected Author**. Please **type** the new author(s).\n\
+                Seperate Authors with a comma. \n Example Input: Gnarwhal, PWP Bot")
+            reaction.message.edit(selectedEditEmbed);
+
+            collector.on('collect', async(message) => {
+                var grabEmbed = reaction.message.embeds[0]
+                if (grabEmbed.title.toString().split(' ')[0] == "Update"){
+                    return
+                }
+                else{
+                    let promiseReturn = await deckObj.updateAuthor(message, deckID)
+                    if (promiseReturn){
+                        const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorGreen)
+                            .setAuthor("Success!")
+                            .setDescription("Updated Author(s) of the deck: **" + promiseReturn[0] + "**  \
+                            from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**")
+                        reaction.message.edit(updatedDeckEmbed);
+                    }
+                    else{
+                        const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorRed)
+                            .setAuthor("Error")
+                            .setDescription("An error has occurred. Please try again.")
+                        reaction.message.edit(errorDeckEmbed);
+                    }
+                }
+            })
+            collector.on('end', collected =>{
+                if (reaction.message.embeds[0].author != null){
+                    let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
+                    if (collected.size == 0 && editedEmbed[0] == "You"){
+                        const editedEndingMessage = new Discord.MessageEmbed()
+                            .setColor(messageColorRed)
+                            .setTitle("Update Author Timeout. Please type !updatedeck <deckname> again.")
+                        reaction.message.edit(editedEndingMessage);
+                    }
+                }
+                else{
+                    return
+                }
+            })
+        }
+        //Deck Description
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '5️⃣' && user.id != "717073766030508072")){
+            let channel = reaction.message.channel
+            let deckID = upperLevelEmbeds.title.slice(9)
+
+            const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 20000, max: 1 })
+            
+            const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
+                .setColor(messageColorBlue)
+                .setDescription("**Selected Description**. Please **type** the new Description.\n\
+                **Recommendation:** Write description elsewhere and copy and paste in \n\
+                **Warning:** Character limit of 750.")
+            reaction.message.edit(selectedEditEmbed);
+
+            collector.on('collect', async(message) => {
+                var grabEmbed = reaction.message.embeds[0]
+                if (grabEmbed.title.toString().split(' ')[0] == "Update"){
+                    return
+                }
+                else{
+                    let promiseReturn = await deckObj.updateDescription(message, deckID)
+                    if (promiseReturn == "Error 1"){
+                        const tooManyCharsEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                        .setColor(messageColorRed)
+                        .setAuthor("Error")
+                        .setDescription("Your message is above the character count. \
+                         Your new description had: **" + message.content.length +"** characters \n\
+                         The character limit is **750**")
+                    reaction.message.edit(tooManyCharsEmbed);
+                    }
+                    else if (promiseReturn){
+                        const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorGreen)
+                            .setAuthor("Success!")
+                            .setDescription("Updated Deck Description of the deck: **" + promiseReturn[0] + "**  \n\
+                            Check **!deckinfo " + promiseReturn[0] +"** to see your new description")
+                        reaction.message.edit(updatedDeckEmbed);
+                    }
+                    else{
+                        const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorRed)
+                            .setAuthor("Error")
+                            .setDescription("An error has occurred. Please try again.")
+                        reaction.message.edit(errorDeckEmbed);
+                    }
+                }
+            })
+            collector.on('end', collected =>{
+                if (reaction.message.embeds[0].author != null){
+                    let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
+                    if (collected.size == 0 && editedEmbed[0] == "You"){
+                        const editedEndingMessage = new Discord.MessageEmbed()
+                            .setColor(messageColorRed)
+                            .setTitle("Update Description Timeout. Please type !updatedeck <deckname> again.")
+                        reaction.message.edit(editedEndingMessage);
+                    }
+                }
+                else{
+                    return
+                }
+            })
+        }
+        //Deck Type
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '6️⃣' && user.id != "717073766030508072")){
+            let channel = reaction.message.channel
+            let deckID = upperLevelEmbeds.title.slice(9)
+
+            const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 20000, max: 1 })
+            
+            const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
+                .setColor(messageColorBlue)
+                .setDescription("**Selected Deck Type**. Please **type** the new Type.\n\
+                The three types of decks are: **Proactive, Adaptive and Disruptive**")
+            reaction.message.edit(selectedEditEmbed);
+
+            collector.on('collect', async(message) => {
+                var grabEmbed = reaction.message.embeds[0]
+                if (grabEmbed.title.toString().split(' ')[0] == "Update"){
+                    return
+                }
+                else{
+                    let promiseReturn = await deckObj.updateType(message, deckID)
+                    if (promiseReturn == "Error 1"){
+                        const tooManyCharsEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                        .setColor(messageColorRed)
+                        .setAuthor("Error")
+                        .setDescription("You have entered an invalid Deck Type\n\
+                        The three types of decks are: **Proactive, Adaptive and Disruptive**")
+                    reaction.message.edit(tooManyCharsEmbed);
+                    }
+                    else if (promiseReturn){
+                        const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorGreen)
+                            .setAuthor("Success!")
+                            .setDescription("Updated Deck Type of the deck: **" + promiseReturn[0] + "**  \
+                            from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**")
+                        reaction.message.edit(updatedDeckEmbed);
+                    }
+                    else{
+                        const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorRed)
+                            .setAuthor("Error")
+                            .setDescription("An error has occurred. Please try again.")
+                        reaction.message.edit(errorDeckEmbed);
+                    }
+                }
+            })
+            collector.on('end', collected =>{
+                if (reaction.message.embeds[0].author != null){
+                    let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
+                    if (collected.size == 0 && editedEmbed[0] == "You"){
+                        const editedEndingMessage = new Discord.MessageEmbed()
+                            .setColor(messageColorRed)
+                            .setTitle("Update Link Timeout. Please type !updatedeck <deckname> again.")
+                        reaction.message.edit(editedEndingMessage);
+                    }
+                }
+                else{
+                    return
+                }
+            })
+        }
+        //Primer
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '7️⃣' && user.id != "717073766030508072")){
+        }
+        //Discord Link
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '8️⃣' && user.id != "717073766030508072")){
         }
         else if((embeds.length > 4 && embeds[4] == "update" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
             const editedWarningEmbed = new Discord.MessageEmbed()
