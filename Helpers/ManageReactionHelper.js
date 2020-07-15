@@ -324,7 +324,7 @@ module.exports = {
                             .setColor(messageColorGreen)
                             .setAuthor("Success!")
                             .setURL(promiseReturn[0])
-                            .setDescription("Updated Deck List of **" + promiseReturn[1] + "**")
+                            .setDescription("Updated Deck List of the deck: **" + promiseReturn[1] + "**")
                         reaction.message.edit(updatedDeckEmbed);
                     }
                     else{
@@ -589,6 +589,62 @@ module.exports = {
         }
         //Discord Link
         else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '8️⃣' && user.id != "717073766030508072")){
+            let channel = reaction.message.channel
+            let deckID = upperLevelEmbeds.title.slice(9)
+
+            const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 })
+            
+            const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
+                .setColor(messageColorBlue)
+                .setDescription("**Selected Discord Link**. Please **enter** the new Discord Link.")
+            reaction.message.edit(selectedEditEmbed);
+
+            collector.on('collect', async(message) => {
+                var grabEmbed = reaction.message.embeds[0]
+                if (grabEmbed.title.toString().split(' ')[0] == "Update"){
+                    return
+                }
+                else{
+                    let promiseReturn = await deckObj.updateDiscordLink(message, deckID)
+                    if (promiseReturn == "Error 1"){
+                        const nonValidURLEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorRed)
+                            .setAuthor("Error")
+                            .setDescription("You have entered a non-valid url. Please try again")
+                        reaction.message.edit(nonValidURLEmbed);
+                    }
+                    else if (promiseReturn){
+                        const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorGreen)
+                            .setAuthor("Success!")
+                            .setURL(promiseReturn[0])
+                            .setDescription("Updated Discord Link of the deck: **" + promiseReturn[1] + "**")
+                        reaction.message.edit(updatedDeckEmbed);
+                    }
+                    else{
+                        const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorRed)
+                            .setAuthor("Error")
+                            .setDescription("An error has occurred. Please try again.")
+                        reaction.message.edit(errorDeckEmbed);
+                    }
+                }
+            })
+            collector.on('end', collected =>{
+                if (reaction.message.embeds[0].author != null){
+                    let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
+                    if (collected.size == 0 && editedEmbed[0] == "You"){
+                        const editedEndingMessage = new Discord.MessageEmbed()
+                            .setColor(messageColorRed)
+                            .setTitle("Update Link Timeout. Please type !updatedeck <deckname> again.")
+                        reaction.message.edit(editedEndingMessage);
+                    }
+                }
+                else{
+                    return
+                }
+            })
+    
         }
         else if((embeds.length > 4 && embeds[4] == "update" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
             const editedWarningEmbed = new Discord.MessageEmbed()

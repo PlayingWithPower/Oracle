@@ -92,14 +92,15 @@ module.exports = {
         // !deckstats {Deck Nickname} | {Season Name}
         // or !deckstats {Deck Nickname} | all)
        
+        //implement !deckstats here
         if (args.length == 0){
             return new Promise((resolve, reject)=>{
                 resolve("test")
             })
         }
+        //currently finds 1 result (only 1 season user per), need to update for all seasons
         else if (args[0].slice(0,3) == "<@!"){
             const user = require('../Schema/Users')
-            var holderArr = new Array
             return new Promise((resolve, reject) => {
                 user.find({'_mentionValue': args[0],'_server' : receivedMessage.guild.id}).then((res) =>{
                     var resolveArr = new Array();
@@ -161,7 +162,7 @@ module.exports = {
                         deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
                             return inputArray.indexOf(item) == index;
                         });
-                        passedArray.push(args, wins, losses, deckPlayers)
+                        passedArray.push("Deck Lookup",args, wins, losses, deckPlayers)
                         resolve(passedArray)
                     }
                     else{
@@ -396,6 +397,40 @@ module.exports = {
                 deck.find(deckQuery, function(err, deckFindRes){
                     if (deckFindRes){
                         deck.updateOne(deckQuery, { $set: {_link: newURLMessage.content} }, function(err, deckUpdateRes){
+                         if(deckUpdateRes){
+                             checkingArr.push(newURLMessage.content)
+                             checkingArr.push(deckFindRes[0]._name)
+                             resolve(checkingArr)
+                         }
+                         else{
+                             resolve("Error 3")
+                         }
+                        })
+                    }
+                    else{
+                        resolve("Error 2")
+                    }
+                })
+            }
+            else{
+                resolve("Error 1")
+            }
+        })
+    },
+    /**
+     * Updates the URL of a deck
+     */
+    updateDiscordLink(newURLMessage, oldNameID){
+        const deck = require('../Schema/Deck')
+
+        let checkingArr = new Array();
+
+        let deckQuery = {_id: oldNameID}
+        return new Promise ((resolve, reject)=>{
+            if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(newURLMessage.content)) {
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, { $set: {_discordLink: newURLMessage.content} }, function(err, deckUpdateRes){
                          if(deckUpdateRes){
                              checkingArr.push(newURLMessage.content)
                              checkingArr.push(deckFindRes[0]._name)

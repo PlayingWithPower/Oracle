@@ -356,38 +356,74 @@ async function removeDeck(receivedMessage, args){
  */
 async function deckStats(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-    const useEmbed = new Discord.MessageEmbed()
+    const deckStatsEmbed = new Discord.MessageEmbed()
     const usersList = new Discord.MessageEmbed()
     let returnArr = await deckObj.deckStats(receivedMessage, args)
-    console.log(returnArr)
-    if (returnArr != "Can't find deck"){
-        useEmbed
+    if (returnArr[0] == "Deck Lookup"){
+        let deckName = returnArr[1].split(" | ")
+        if (deckName[1]===undefined){
+            seasonName = "Across all seasons"
+        }else{ seasonName = deckName[1]}
+        deckStatsEmbed
         .setColor(messageColorBlue) //blue
-        .setTitle(returnArr[0] + " Deckstats")
+        .setAuthor(deckName[0] + " Deckstats")
+        .setTitle("For Season Name: " + seasonName)
         .addFields(
-            { name: 'Wins', value: returnArr[1], inline: true},
-            { name: 'Losses', value: returnArr[2], inline: true},
-            { name: 'Number of Matches', value: returnArr[1] + returnArr[2], inline: true}, 
-            { name: 'Winrate', value: Math.round((returnArr[1]/(returnArr[1]+returnArr[2]))*100) + "%", inline: true}, 
-            
+            { name: 'Wins', value: returnArr[2], inline: true},
+            { name: 'Losses', value: returnArr[3], inline: true},
+            { name: 'Number of Matches', value: returnArr[2] + returnArr[3], inline: true}, 
+            { name: 'Winrate', value: Math.round((returnArr[2]/(returnArr[2]+returnArr[3]))*100) + "%"}, 
         )
-
         usersList
             .setColor(messageColorBlue) //blue
             .setTitle("People who play this deck")
-        for (i = 0; i < returnArr[3].length; i++){
+        for (i = 0; i < returnArr[4].length; i++){
             usersList.addFields(
-                {name: " \u200b", value: returnArr[3][i], inline: true}
+                {name: " \u200b", value: returnArr[4][i], inline: true}
             )
         }
-        generalChannel.send(useEmbed)
-        generalChannel.send(usersList)
+        generalChannel.send(deckStatsEmbed)
+        generalChannel.send(usersList) 
+    }
+    else if (returnArr[0] == "User Lookup"){
+        deckStatsEmbed
+        .setColor(messageColorBlue)
+        .setAuthor(returnArr[1][0]._name + "'s Deck Stats")
+        .addFields(
+            { name: 'Wins', value: returnArr[1][0]._wins, inline: true},
+            { name: 'Losses', value: returnArr[1][0]._losses, inline: true},
+            { name: 'Number of Matches', value: returnArr[1][0]._wins + returnArr[1][0]._losses, inline: true}, 
+            { name: 'Winrate', value: Math.round((returnArr[1][0]._wins/(returnArr[1][0]._wins+returnArr[1][0]._losses))*100) + "%"}, 
+        )
+        .setFooter("For Season Name: " + returnArr[1][0]._season)
+        const perDeckEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setFooter("For Season Name: " + returnArr[1][0]._season)
+        for (i = 1; i < returnArr[1][0]._deck.length; i++){
+            if ((returnArr[1][0]._deck[i].Wins + returnArr[1][0]._deck[i].Losses) == 0 ){ }
+            else{
+                perDeckEmbed.addFields(
+                    {name: "Deck Name", value: returnArr[1][0]._deck[i].Deck},
+                    {name: "Wins", value: returnArr[1][0]._deck[i].Wins, inline: true},
+                    {name: "Losses", value: returnArr[1][0]._deck[i].Losses, inline: true},
+                    {name: 'Winrate', value: Math.round((returnArr[1][0]._deck[i].Wins/(returnArr[1][0]._deck[i].Wins+returnArr[1][0]._deck[i].Losses))*100) + "%", inline: true}, 
+                )
+            }
+        }
+            
+        generalChannel.send(deckStatsEmbed)
+        generalChannel.send(perDeckEmbed)
     }
     else{
-        useEmbed
+        deckStatsEmbed
         .setColor(messageColorRed) //red
-        .setDescription("No games have been logged with that name. \n Try !decks to find a list of decks for this server \n Or !deckstats <deckname> to find information about a deck.")
-        generalChannel.send(useEmbed)
+        .setDescription("No games have been logged with that name in that season. \n\
+         Try !decks to find a list of decks for this server \n\
+         Example Commands involving deckstats: \n\
+         !deckstats <deckname> to find information about a deck across all seasons.\n\
+         !deckstats <deckname> | <seasonname> to find information about a deck in a specific season.\n\
+         !deckstats @user to find information about a user's deckstats.")
+        generalChannel.send(deckStatsEmbed)
     }
 }
 
