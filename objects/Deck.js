@@ -2,6 +2,7 @@ const { db } = require('../Schema/Deck')
 const { resolve } = require('dns')
 const Deck = require('../Schema/Deck')
 const { type } = require('os')
+const DeckHelper = require('../Helpers/DeckHelper')
 
 /**
  * Deck Object
@@ -91,14 +92,15 @@ module.exports = {
         // !deckstats {Deck Nickname} | {Season Name}
         // or !deckstats {Deck Nickname} | all)
        
+        //implement !deckstats here
         if (args.length == 0){
             return new Promise((resolve, reject)=>{
                 resolve("test")
             })
         }
+        //currently finds 1 result (only 1 season user per), need to update for all seasons
         else if (args[0].slice(0,3) == "<@!"){
             const user = require('../Schema/Users')
-            var holderArr = new Array
             return new Promise((resolve, reject) => {
                 user.find({'_mentionValue': args[0],'_server' : receivedMessage.guild.id}).then((res) =>{
                     var resolveArr = new Array();
@@ -160,7 +162,7 @@ module.exports = {
                         deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
                             return inputArray.indexOf(item) == index;
                         });
-                        passedArray.push(args, wins, losses, deckPlayers)
+                        passedArray.push("Deck Lookup",args, wins, losses, deckPlayers)
                         resolve(passedArray)
                     }
                     else{
@@ -172,87 +174,213 @@ module.exports = {
         
         
     },
-
     /**
-     * Checks if the deck a user is trying to update is valid. 
-     * Helper Function to the two below updateDeckName() and updateDeckList()
+     * Used in ManageReactionHelper
+     * Updates the Primer of a Deck
      */
-    findDeckToUpdate(receivedMessage, args){
+    updatePrimer(newPrimerMessage, oldID){
         const deck = require('../Schema/Deck')
-        args = args.join(' ')
-        let lowerArgs = args.toString().toLowerCase()
-        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
-        return new Promise((resolve, reject)=>{
-            deck.find(deckQuery, function(err, res){
-                if (res.length > 0){
-                    resolve(res)
-                }
-                else{
-                    resolve("Error 1")
+        const DeckHelper = require('../Helpers/DeckHelper')
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+
+        if((newPrimerMessage.content.toLowerCase() != "yes") && (newPrimerMessage.content.toLowerCase() !="no")){
+            resolve("Error 1")
+        }
+        else{
+            newPrimer = newPrimerMessage.content
+            newPrimer = DeckHelper.toUpper(newPrimer)
+            if (newPrimer == "Yes"){
+                newPrimer = true
+            }else{
+                newPrimer = false
+            }
+    
+            return new Promise ((resolve, reject)=>{
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, {$set: {_hasPrimer: newPrimer}}, function (err, deckUpdateRes){
+                            promiseArr.push(deckFindRes[0]._name)
+                            promiseArr.push(deckFindRes[0]._hasPrimer)
+                            promiseArr.push(newPrimer)
+                            resolve(promiseArr)
+                        })
+                    }
+                })
+            })
+        }
+
+    },
+    /**
+     * Used in ManageReactionHelper
+     * Updates the Type of a Deck
+     */
+    updateType(newAuthorMessage, oldID){
+        const deck = require('../Schema/Deck')
+        const DeckHelper = require('../Helpers/DeckHelper')
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+
+        if ((newAuthorMessage.content.toLowerCase() != "proactive")&& (newAuthorMessage.content.toLowerCase() != "adaptive")&&(newAuthorMessage.content.toLowerCase() != "disruptive")){
+            resolve("Error 1")
+        }
+        else{
+            newDeckType = newAuthorMessage.content
+            newDeckType = DeckHelper.toUpper(newDeckType)
+    
+            return new Promise ((resolve, reject)=>{
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, {$set: {_deckType: newDeckType}}, function (err, deckUpdateRes){
+                            promiseArr.push(deckFindRes[0]._name)
+                            promiseArr.push(deckFindRes[0]._deckType)
+                            promiseArr.push(newDeckType)
+                            resolve(promiseArr)
+                        })
+                    }
+                })
+            })
+        }  
+    },
+    /**
+     * Used in ManageReactionHelper
+     * Updates the author of a Deck
+     */
+    updateAuthor(newAuthorMessage, oldID){
+        const deck = require('../Schema/Deck')
+
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+
+        let bulkAuthors = newAuthorMessage.content
+        bulkAuthors = bulkAuthors.replace(/ /g, "")
+        bulkAuthors = bulkAuthors.split(',')
+
+        let commaAuthors = ""
+        bulkAuthors.forEach(author =>{
+            commaAuthors += author + ", " 
+        })
+        commaAuthors = commaAuthors.replace(/,([^,]*)$/, '$1')
+        commaAuthors = commaAuthors.replace(/ ([^ ]*)$/, '$1')
+        return new Promise ((resolve, reject)=>{
+            deck.find(deckQuery, function(err, deckFindRes){
+                if (deckFindRes){
+                    deck.updateOne(deckQuery, {$set: {_author: commaAuthors}}, function (err, deckUpdateRes){
+                        promiseArr.push(deckFindRes[0]._name)
+                        promiseArr.push(deckFindRes[0]._author)
+                        promiseArr.push(commaAuthors)
+                        resolve(promiseArr)
+                    })
                 }
             })
         })
     },
     /**
-     * Updates the Deck Name of a deck 
+     * Used in ManageReactionHelper
+     * Updates the description of a Deck
      */
-    updateDeckName(newNameMessage, oldNameID){
+    updateDescription(newDescriptionMessage, oldID){
         const deck = require('../Schema/Deck')
-        const alias = require('../Schema/Alias')
 
-        let checkingArr = new Array();
-        let newName
-        let newAlias
-        var newStr = newNameMessage.content
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+        let newDescription = newDescriptionMessage.content
 
-        newAlias = newStr.toLowerCase()
-        newName = newStr.toLowerCase()
-        .split(' ')
-        .map(function(word) {
-            return word[0].toUpperCase() + word.substr(1);
-        })
-        .join(' ');
-
-        let deckQuery = {_id: oldNameID}
-        return new Promise ((resolve, reject)=>{
-           deck.find(deckQuery, function(err, deckFindRes){
-               if (deckFindRes){
-                   deck.updateOne(deckQuery, { $set: {_name: newName, _alias: newAlias } }, function(err, deckUpdateRes){
-                    if(deckUpdateRes){
-                        checkingArr.push(["New Name", newName])
-                    }
-                    else{
-                        resolve("Error 2")
-                    }
-                   })
-                   convertedAlias = deckFindRes[0]._alias.toLowerCase()
-                        .split(' ')
-                        .map(function(word) {
-                            return word[0].toUpperCase() + word.substr(1);
+        return new Promise((resolve, reject)=>{
+            if (newDescription.length > 750){
+                resolve("Error 1")
+            }
+            else{
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, {$set: {_description: newDescription}}, function(err, deckUpdateRes){
+                            if (deckUpdateRes){
+                                promiseArr.push(deckFindRes[0]._name)
+                                resolve(promiseArr)
+                            }
                         })
-                        .join(' ');
-                    let aliasQuery = {_name: convertedAlias, _server: deckFindRes[0]._server}
-                    alias.findOne(aliasQuery, function(err, aliasFindRes){
-                       if (aliasFindRes){
-                           alias.updateOne(aliasQuery, {$set: {_name: newName}}, function (err, aliasUpdateRes){
-                                if (aliasUpdateRes){
-                                    checkingArr.push(["Old Name", deckFindRes[0]._name])
-                                    resolve(checkingArr)
-                                }
-                                else{
-                                    resolve("Error 4")
-                                }
-                           })
-                       }
-                       else{
-                           resolve("Error 3")
-                       }
-                   })
-               }
-               else{
-                   resolve("Error 1")
-               }
-           })
+                    }
+                })
+            }
+        })
+    },
+    /**
+     * Used in ManageReactionHelper
+     * Updates the color of a Deck
+     */
+    updateColors(newColorMessage, oldID){
+        const deck = require('../Schema/Deck')
+
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+
+        let colorIdentity = newColorMessage.content
+        let catchBool = new Boolean
+        catchBool = true
+        
+        return new Promise((resolve, reject)=>{
+            for (let letter of colorIdentity.toLowerCase()) {
+                if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g")){
+                    catchBool = false
+                    resolve("Error 1")
+                }
+            }
+            if (catchBool == true){
+                colorIdentity = colorIdentity.toUpperCase()
+                colorIdentity = colorIdentity.split('').join(' ')
+                colorIdentity = colorIdentity.replace(/ /g, ', ');
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, {$set: {_colors: colorIdentity}}, function(err, deckUpdateRes){
+                            if (deckUpdateRes){
+                                promiseArr.push(deckFindRes[0]._name)
+                                promiseArr.push(deckFindRes[0]._colors)
+                                promiseArr.push(colorIdentity)
+                                resolve(promiseArr)
+                            }
+                        })
+                    }
+                })
+            }
+            else{
+                return
+            }
+        })
+        
+    },
+    /**
+     * Used in ManageReactionHelper
+     * Updates the Commander of a Deck
+     */
+    updateCommander(newNameMessage, oldID){
+        const deck = require('../Schema/Deck')
+        const DeckHelper = require('../Helpers/DeckHelper')
+
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+        let newName
+
+        newName = DeckHelper.toUpper(newNameMessage.content)
+
+        return new Promise((resolve, reject) =>{
+            deck.find(deckQuery, function(err, deckFindRes){
+                if (deckFindRes){
+                    deck.updateOne(deckQuery, {$set: {_commander: newName}}, function (err, deckUpdateRes){
+                        if (deckUpdateRes){
+                            promiseArr.push(deckFindRes[0]._name)
+                            promiseArr.push(deckFindRes[0]._commander)
+                            promiseArr.push(newName)
+                            resolve(promiseArr)
+                        }
+                        else{
+                            console.log("error 1")
+                        }
+                    })
+                }
+                else{
+                    console.log("error 2")
+                }
+            })
         })
     },
     /**
@@ -269,6 +397,40 @@ module.exports = {
                 deck.find(deckQuery, function(err, deckFindRes){
                     if (deckFindRes){
                         deck.updateOne(deckQuery, { $set: {_link: newURLMessage.content} }, function(err, deckUpdateRes){
+                         if(deckUpdateRes){
+                             checkingArr.push(newURLMessage.content)
+                             checkingArr.push(deckFindRes[0]._name)
+                             resolve(checkingArr)
+                         }
+                         else{
+                             resolve("Error 3")
+                         }
+                        })
+                    }
+                    else{
+                        resolve("Error 2")
+                    }
+                })
+            }
+            else{
+                resolve("Error 1")
+            }
+        })
+    },
+    /**
+     * Updates the URL of a deck
+     */
+    updateDiscordLink(newURLMessage, oldNameID){
+        const deck = require('../Schema/Deck')
+
+        let checkingArr = new Array();
+
+        let deckQuery = {_id: oldNameID}
+        return new Promise ((resolve, reject)=>{
+            if(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(newURLMessage.content)) {
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, { $set: {_discordLink: newURLMessage.content} }, function(err, deckUpdateRes){
                          if(deckUpdateRes){
                              checkingArr.push(newURLMessage.content)
                              checkingArr.push(deckFindRes[0]._name)
@@ -341,74 +503,6 @@ module.exports = {
                     resolve(sendBackArr)
                 }
             })       
-        })
-    },
-    addDeckHelper(message, args){
-        const deck = require('../Schema/Deck')
-        const alias = require('../Schema/Alias')
-        let primerBool
-        if (args[7].value == "False"){
-            primerBool = false
-        }
-        else{
-            primerBool = true
-        }
-        let deckSave = {
-            '_link': args[3].value, 
-            '_name': args[0].value, 
-            '_alias': args[0].value.toLowerCase(),
-            '_commander': args[1].value,
-            '_colors': args[2].value,
-            '_author': args[4].value,
-            '_server': message.guild.id, 
-            '_season': "1",
-            '_description': args[5].value,
-            '_discordLink': args[8].value,
-            '_dateAdded': "",
-            '_deckType': args[6].value,
-            '_hasPrimer': primerBool
-        }
-        let aliasSave = {
-            '_name': args[0].value, 
-            '_server': message.guild.id
-        }
-        return new Promise ((resolve, reject)=>{
-            deck(deckSave).save(function(err, res){
-                if (res){
-                    alias(aliasSave).save(function(err, res){
-                        if (res){
-                            resolve(args[0].value)
-                            //DEBUG: console.log("DEBUG: Successfully saved to ALIAS DB")
-                        }
-                        else{
-                            resolve("Error 1")
-                        }
-                    })
-                    //DEBUG: console.log("DEBUG: Successfully saved to DECK DB")
-                }
-                else{
-                    resolve("Error 1")
-                }
-            })
-        })
-    },
-    /** 
-     * Locates the deck to remove. Then waits for user reaction
-     */
-    findDeckToRemove(receivedMessage, args){
-        const deck = require('../Schema/Deck')
-        args = args.join(' ')
-        let lowerArgs = args.toString().toLowerCase()
-        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
-        return new Promise((resolve, reject)=>{
-            deck.find(deckQuery, function(err, res){
-                if (res.length > 0){
-                    resolve(res)
-                }
-                else{
-                    resolve("Error 1")
-                }
-            })
         })
     },
     /** 
