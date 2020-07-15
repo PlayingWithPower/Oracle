@@ -82,15 +82,32 @@ module.exports = {
         const DeckHelper = require('../Helpers/DeckHelper')
         const matches = require('../Schema/Games')
 
-        // Yeah just a sec
+        //Notes:
+            //     !deckstats
+            // Raw dump of decks against the current season for the server
+            //     Deck Name / Alias
+            //     Matches / Wins / Losses / Winrate
+            // Decks with no matches for the season will not show up in the list
+            // Default sorting is number of matches
+            //         !deckstats {deck alias}
+            // Dump of the deck passed against the current season for the server
+            //     Alias / Matches / Wins / Losses / Winrate
+            // Secondary piece of data pertaining to the users using that deck in the server
+            //     Username / Wins / Losses / Winrate (for that deck only)
+            // Don't give deck meta data (color identity, url, etc.), instead give a footer reminder note of the command to get that data.
+
+        //Include in all of these:
+            //deck name, wins, losses, number of matches, win rate
         // !deckstats
-        // Raw dump of decks
+            // All Decks for current season
         // !deckstats {deck nickname}
-        // Stats for a given deck
+            // Stats for a given deck, *CURRENT SEASON* change me
         // !deckstats @user
-        // Stats for a given user
+            // Stats for a given user
+            // Make this a helper for !profile @user
         // !deckstats {Deck Nickname} | {Season Name}
         // or !deckstats {Deck Nickname} | all)
+        //   "For season name: all" vs "For season name: across all seasons"
        
         //implement !deckstats here
         if (args.length == 0){
@@ -126,7 +143,6 @@ module.exports = {
             else{
                 query = {_season: splitArgs[1], $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
             }
-            
             let wins = 0
             let losses = 0
             var deckPlayers = new Array()
