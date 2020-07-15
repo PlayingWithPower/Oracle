@@ -232,6 +232,9 @@ async function deckinfo(receivedMessage, args){
     }
     else{
         let fixedColors = returnArr._colors.replace(/,/g, ' ');
+        if (returnArr._link == "No Link Provided"){
+            returnArr._link = " "
+        }
         const resultEmbed = new Discord.MessageEmbed()
             .setColor(messageColorGreen)
             .setDescription("Deck Information about **"+ returnArr._name + "**")
@@ -244,7 +247,7 @@ async function deckinfo(receivedMessage, args){
                 { name: 'Description', value: returnArr._description},
                 { name: 'Discord Link', value: returnArr._discordLink},
                 { name: 'Deck Type', value: returnArr._deckType},
-                { name: 'Has Primer?', value: returnArr._hasPrimer.toString()},
+                { name: 'Has Primer?', value: DeckHelper.toUpper(returnArr._hasPrimer.toString())},
             )
 
         generalChannel.send(resultEmbed)
@@ -274,7 +277,7 @@ function nonAdminAccess(receivedMessage, command){
 async function updateDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const updateDeckEmbed = new Discord.MessageEmbed()
-    let promiseReturn = await deckObj.findDeckToUpdate(receivedMessage, args);
+    let promiseReturn = await DeckHelper.findDeckToUpdate(receivedMessage, args);
     if (promiseReturn == "Error 1"){
         updateDeckEmbed
         .setColor(messageColorRed) //red
@@ -282,16 +285,34 @@ async function updateDeck(receivedMessage, args){
         generalChannel.send(updateDeckEmbed)
     }
     else{
+        if (promiseReturn[0]._link == "No Link Provided"){
+            promiseReturn[0]._link = " "
+        }
         updateDeckEmbed
         .setColor(messageColorBlue)
         .setAuthor("You are attempting to update the deck: "+ promiseReturn[0]._name)
         .setTitle('Deck ID: ' + promiseReturn[0]._id)
         .setURL(promiseReturn[0]._link)
-        .setDescription("React with the **1** to update the **Deck Name**.\nReact with the **2** to update the **Deck Link**.\nReact with the **thumbs down** at any time to cancel.")
+        .setDescription("React with the **1** to update the **Commander**.\
+        \nReact with the **2** to update the **Deck Colors**.\
+        \nReact with the **3** to update the **Deck Link**.\
+        \nReact with the **4** to update the **Author(s)**.\
+        \nReact with the **5** to update the **Deck Description**.\
+        \nReact with the **6** to update the **Deck Type**.\
+        \nReact with the **7** to update the **Primer**.\
+        \nReact with the **8** to update the **Discord Link**.\
+        \nReact with the **thumbs down** at any time to cancel.")
+        .setFooter("You cannot update the Deck Name due to analytics.")
         generalChannel.send(updateDeckEmbed)
         .then(function (message, callback){
-            message.react("1️⃣")
-            message.react("2️⃣")
+            message.react("1️⃣")//commander
+            message.react("2️⃣")//colors
+            message.react("3️⃣")//decklink
+            message.react("4️⃣")//author
+            message.react("5️⃣")//deck description
+            message.react("6️⃣")//deck type
+            message.react("7️⃣")//primer
+            message.react("8️⃣")//discord
             message.react("👎")
         })
     }
@@ -304,7 +325,7 @@ async function updateDeck(receivedMessage, args){
 async function removeDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const addingDeckEmbed = new Discord.MessageEmbed()
-    let promiseReturn = await deckObj.findDeckToRemove(receivedMessage, args);
+    let promiseReturn = await DeckHelper.findDeckToRemove(receivedMessage, args);
     if (promiseReturn == "Error 1"){
         addingDeckEmbed
         .setColor(messageColorRed) //red
@@ -335,38 +356,74 @@ async function removeDeck(receivedMessage, args){
  */
 async function deckStats(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-    const useEmbed = new Discord.MessageEmbed()
+    const deckStatsEmbed = new Discord.MessageEmbed()
     const usersList = new Discord.MessageEmbed()
     let returnArr = await deckObj.deckStats(receivedMessage, args)
-    console.log(returnArr)
-    if (returnArr != "Can't find deck"){
-        useEmbed
+    if (returnArr[0] == "Deck Lookup"){
+        let deckName = returnArr[1].split(" | ")
+        if (deckName[1]===undefined){
+            seasonName = "Across all seasons"
+        }else{ seasonName = deckName[1]}
+        deckStatsEmbed
         .setColor(messageColorBlue) //blue
-        .setTitle(returnArr[0] + " Deckstats")
+        .setAuthor(deckName[0] + " Deckstats")
+        .setTitle("For Season Name: " + seasonName)
         .addFields(
-            { name: 'Wins', value: returnArr[1], inline: true},
-            { name: 'Losses', value: returnArr[2], inline: true},
-            { name: 'Number of Matches', value: returnArr[1] + returnArr[2], inline: true}, 
-            { name: 'Winrate', value: Math.round((returnArr[1]/(returnArr[1]+returnArr[2]))*100) + "%", inline: true}, 
-            
+            { name: 'Wins', value: returnArr[2], inline: true},
+            { name: 'Losses', value: returnArr[3], inline: true},
+            { name: 'Number of Matches', value: returnArr[2] + returnArr[3], inline: true}, 
+            { name: 'Winrate', value: Math.round((returnArr[2]/(returnArr[2]+returnArr[3]))*100) + "%"}, 
         )
-
         usersList
             .setColor(messageColorBlue) //blue
             .setTitle("People who play this deck")
-        for (i = 0; i < returnArr[3].length; i++){
+        for (i = 0; i < returnArr[4].length; i++){
             usersList.addFields(
-                {name: " \u200b", value: returnArr[3][i], inline: true}
+                {name: " \u200b", value: returnArr[4][i], inline: true}
             )
         }
-        generalChannel.send(useEmbed)
-        generalChannel.send(usersList)
+        generalChannel.send(deckStatsEmbed)
+        generalChannel.send(usersList) 
+    }
+    else if (returnArr[0] == "User Lookup"){
+        deckStatsEmbed
+        .setColor(messageColorBlue)
+        .setAuthor(returnArr[1][0]._name + "'s Deck Stats")
+        .addFields(
+            { name: 'Wins', value: returnArr[1][0]._wins, inline: true},
+            { name: 'Losses', value: returnArr[1][0]._losses, inline: true},
+            { name: 'Number of Matches', value: returnArr[1][0]._wins + returnArr[1][0]._losses, inline: true}, 
+            { name: 'Winrate', value: Math.round((returnArr[1][0]._wins/(returnArr[1][0]._wins+returnArr[1][0]._losses))*100) + "%"}, 
+        )
+        .setFooter("For Season Name: " + returnArr[1][0]._season)
+        const perDeckEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setFooter("For Season Name: " + returnArr[1][0]._season)
+        for (i = 1; i < returnArr[1][0]._deck.length; i++){
+            if ((returnArr[1][0]._deck[i].Wins + returnArr[1][0]._deck[i].Losses) == 0 ){ }
+            else{
+                perDeckEmbed.addFields(
+                    {name: "Deck Name", value: returnArr[1][0]._deck[i].Deck},
+                    {name: "Wins", value: returnArr[1][0]._deck[i].Wins, inline: true},
+                    {name: "Losses", value: returnArr[1][0]._deck[i].Losses, inline: true},
+                    {name: 'Winrate', value: Math.round((returnArr[1][0]._deck[i].Wins/(returnArr[1][0]._deck[i].Wins+returnArr[1][0]._deck[i].Losses))*100) + "%", inline: true}, 
+                )
+            }
+        }
+            
+        generalChannel.send(deckStatsEmbed)
+        generalChannel.send(perDeckEmbed)
     }
     else{
-        useEmbed
+        deckStatsEmbed
         .setColor(messageColorRed) //red
-        .setDescription("No games have been logged with that name. \n Try !decks to find a list of decks for this server \n Or !deckstats <deckname> to find information about a deck.")
-        generalChannel.send(useEmbed)
+        .setDescription("No games have been logged with that name in that season. \n\
+         Try !decks to find a list of decks for this server \n\
+         Example Commands involving deckstats: \n\
+         !deckstats <deckname> to find information about a deck across all seasons.\n\
+         !deckstats <deckname> | <seasonname> to find information about a deck in a specific season.\n\
+         !deckstats @user to find information about a user's deckstats.")
+        generalChannel.send(deckStatsEmbed)
     }
 }
 
@@ -758,7 +815,6 @@ function listDecksDetailed(receivedMessage, channel){
  * Calling method checks for admin privs before getting here.
  */
 async function addDeck(receivedMessage, args){
-    var promiseReturnArr = new Array();
     let generalChannel = getChannelID(receivedMessage)
 
     let argsWithCommas = args.toString()
@@ -801,12 +857,12 @@ async function addDeck(receivedMessage, args){
         }
 
         colorIdentity = colorIdentity.replace(/ /g, '');
-        for (let el of colorIdentity) {
-            if (el !== ("w") &&el !== ("u") &&el !== ("b") &&el !== ("r") &&el !== ("g")){
+        for (let letter of colorIdentity) {
+            if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g")){
                 errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
                 It looks like you're having trouble with the Color. Correct input includes the 5 letters 'WUBRG' in some combination")
                 generalChannel.send(errorEmbed)
-              break;
+                return;
             }
           }
             
