@@ -528,6 +528,64 @@ module.exports = {
         }
         //Primer
         else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '7️⃣' && user.id != "717073766030508072")){
+            let channel = reaction.message.channel
+            let deckID = upperLevelEmbeds.title.slice(9)
+
+            const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 20000, max: 1 })
+            
+            const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
+                .setColor(messageColorBlue)
+                .setDescription("**Selected Primer**. Please type **Yes** or **No**.\n\
+                Note: This category is simply to indicate whether a deck **has** a primer in the \
+                **Deck List Link** provided. It is not where you **link to** a primer.")
+            reaction.message.edit(selectedEditEmbed);
+
+            collector.on('collect', async(message) => {
+                var grabEmbed = reaction.message.embeds[0]
+                if (grabEmbed.title.toString().split(' ')[0] == "Update"){
+                    return
+                }
+                else{
+                    let promiseReturn = await deckObj.updatePrimer(message, deckID)
+                    if (promiseReturn == "Error 1"){
+                        const tooManyCharsEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                        .setColor(messageColorRed)
+                        .setAuthor("Error")
+                        .setDescription("You have entered an invalid Primer input\n\
+                        The two input types are:**Yes** and **No**")
+                    reaction.message.edit(tooManyCharsEmbed);
+                    }
+                    else if (promiseReturn){
+                        const updatedDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorGreen)
+                            .setAuthor("Success!")
+                            .setDescription("Updated Deck Type of the deck: **" + promiseReturn[0] + "**  \
+                            from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**")
+                        reaction.message.edit(updatedDeckEmbed);
+                    }
+                    else{
+                        const errorDeckEmbed = new Discord.MessageEmbed(selectedEditEmbed)
+                            .setColor(messageColorRed)
+                            .setAuthor("Error")
+                            .setDescription("An error has occurred. Please try again.")
+                        reaction.message.edit(errorDeckEmbed);
+                    }
+                }
+            })
+            collector.on('end', collected =>{
+                if (reaction.message.embeds[0].author != null){
+                    let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ')
+                    if (collected.size == 0 && editedEmbed[0] == "You"){
+                        const editedEndingMessage = new Discord.MessageEmbed()
+                            .setColor(messageColorRed)
+                            .setTitle("Update Link Timeout. Please type !updatedeck <deckname> again.")
+                        reaction.message.edit(editedEndingMessage);
+                    }
+                }
+                else{
+                    return
+                }
+            })
         }
         //Discord Link
         else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '8️⃣' && user.id != "717073766030508072")){

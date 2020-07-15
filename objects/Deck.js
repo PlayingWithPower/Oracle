@@ -175,6 +175,43 @@ module.exports = {
     },
     /**
      * Used in ManageReactionHelper
+     * Updates the Primer of a Deck
+     */
+    updatePrimer(newPrimerMessage, oldID){
+        const deck = require('../Schema/Deck')
+        const DeckHelper = require('../Helpers/DeckHelper')
+        let promiseArr = new Array();
+        let deckQuery = {_id: oldID}
+
+        if((newPrimerMessage.content.toLowerCase() != "yes") && (newPrimerMessage.content.toLowerCase() !="no")){
+            resolve("Error 1")
+        }
+        else{
+            newPrimer = newPrimerMessage.content
+            newPrimer = DeckHelper.toUpper(newPrimer)
+            if (newPrimer == "Yes"){
+                newPrimer = true
+            }else{
+                newPrimer = false
+            }
+    
+            return new Promise ((resolve, reject)=>{
+                deck.find(deckQuery, function(err, deckFindRes){
+                    if (deckFindRes){
+                        deck.updateOne(deckQuery, {$set: {_hasPrimer: newPrimer}}, function (err, deckUpdateRes){
+                            promiseArr.push(deckFindRes[0]._name)
+                            promiseArr.push(deckFindRes[0]._hasPrimer)
+                            promiseArr.push(newPrimer)
+                            resolve(promiseArr)
+                        })
+                    }
+                })
+            })
+        }
+
+    },
+    /**
+     * Used in ManageReactionHelper
      * Updates the Type of a Deck
      */
     updateType(newAuthorMessage, oldID){
@@ -343,68 +380,6 @@ module.exports = {
                     console.log("error 2")
                 }
             })
-        })
-    },
-    /**
-     * Updates the Deck Name of a deck 
-     */
-    updateDeckName(newNameMessage, oldNameID){
-        const deck = require('../Schema/Deck')
-        const alias = require('../Schema/Alias')
-
-        let checkingArr = new Array();
-        let newName
-        let newAlias
-        var newStr = newNameMessage.content
-
-        newAlias = newStr.toLowerCase()
-        newName = newStr.toLowerCase()
-        .split(' ')
-        .map(function(word) {
-            return word[0].toUpperCase() + word.substr(1);
-        })
-        .join(' ');
-
-        let deckQuery = {_id: oldNameID}
-        return new Promise ((resolve, reject)=>{
-           deck.find(deckQuery, function(err, deckFindRes){
-               if (deckFindRes){
-                   deck.updateOne(deckQuery, { $set: {_name: newName, _alias: newAlias } }, function(err, deckUpdateRes){
-                    if(deckUpdateRes){
-                        checkingArr.push(["New Name", newName])
-                    }
-                    else{
-                        resolve("Error 2")
-                    }
-                   })
-                   convertedAlias = deckFindRes[0]._alias.toLowerCase()
-                        .split(' ')
-                        .map(function(word) {
-                            return word[0].toUpperCase() + word.substr(1);
-                        })
-                        .join(' ');
-                    let aliasQuery = {_name: convertedAlias, _server: deckFindRes[0]._server}
-                    alias.findOne(aliasQuery, function(err, aliasFindRes){
-                       if (aliasFindRes){
-                           alias.updateOne(aliasQuery, {$set: {_name: newName}}, function (err, aliasUpdateRes){
-                                if (aliasUpdateRes){
-                                    checkingArr.push(["Old Name", deckFindRes[0]._name])
-                                    resolve(checkingArr)
-                                }
-                                else{
-                                    resolve("Error 4")
-                                }
-                           })
-                       }
-                       else{
-                           resolve("Error 3")
-                       }
-                   })
-               }
-               else{
-                   resolve("Error 1")
-               }
-           })
         })
     },
     /**
