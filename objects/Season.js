@@ -11,8 +11,50 @@ module.exports = {
     /**
      * Starts a new season
      */
-    startSeason() {
+    startSeason(receivedMessage, args) {
+        const season = require('../Schema/Seasons')
+        var seasonName = "1"
+        var futureDate = new Date();
+        var currentDate = new Date();
+        futureDate = new Date(futureDate.setDate(futureDate.getDate()))
+        futureDate = new Date(futureDate.setHours(17,52,30,0))
+        currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
+        futureDate = futureDate.toLocaleString("en-US", {timeZone: "America/New_York"});
 
+        let newSeason = {
+            '_server': receivedMessage.guild.id,
+            '_season_name': seasonName,
+            '_season_start': currentDate,
+            '_season_end': futureDate,
+            '_is_current': "yes"
+        }
+        let checkCurrent = {
+            _server: receivedMessage.guild.id,
+            _is_current: "yes"
+        }
+        return new Promise ((resolve, reject)=>{
+            season.findOne(checkCurrent, function(err, res){
+                if (err){
+                    resolve("Error 1")
+                }
+                if (res){
+                    var foundArr = new Array();
+                    foundArr.push("found", res._season_start, res._season_end, res._season_name)
+                    resolve(foundArr)
+                }
+                else{
+                    season(newSeason).save(function(err, res){
+                        if (err){
+                            resolve("Error 2")
+                        }
+                        var seasonArr = new Array();
+                        seasonArr.push("saved", currentDate, futureDate, seasonName)
+                        resolve(seasonArr)
+                    })
+                }
+            })
+            
+        })
     },
 
     /**
@@ -41,8 +83,17 @@ module.exports = {
     /**
      * Summary info for the season
      */
-    getInfo() {
-
+    getInfo(receivedMessage) {
+        const season = require('../Schema/Seasons')
+        let seasonSearch = {
+            '_server': receivedMessage.guild.id,
+            '_is_current': "yes"
+        }
+        return new Promise((resolve, reject)=>{
+            season.findOne(seasonSearch, function(err,res){
+                resolve(res)
+            })
+        })
     },
 
     /**
