@@ -134,8 +134,9 @@ module.exports = {
             let argsWithCommas = args.toString()
             let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
             let splitArgs = argsWithSpaces.split(" | ")
+            let currentSeason = "1" //UPDATE ME
             if (splitArgs[1] == undefined){
-                query = { $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
+                query = {_season: currentSeason, $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
             }
             else if (splitArgs[1] == "All"){
                 query = { $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
