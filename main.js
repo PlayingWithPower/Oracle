@@ -1,5 +1,9 @@
 //The main hub for the bot, more comments coming soon.
-//Most of the commands are labeled apprioriately so far. More organization coming soon.
+//Most of the commands are labeled appropriately so far. More organization coming soon.
+
+// Bot Configuration
+const config = require('./etc/env.js');
+
 const Discord = require('discord.js')
 const client = new Discord.Client()
 
@@ -27,11 +31,10 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
-const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
-client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
+client.login(config.discordKey)
 
-moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+moongoose.connect(config.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 client.on('ready', (on) =>{
     console.log("Debug log: Successfully connected as " + client.user.tag)
     client.user.setPresence({
