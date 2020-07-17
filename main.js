@@ -31,7 +31,6 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
-const { match } = require('assert')
 client.login(config.discordKey)
 
 moongoose.connect(config.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -75,7 +74,7 @@ client.on('message', (receivedMessage) =>{
  * TODO: 
  */
 client.on('messageReactionAdd', (reaction, user) => {
-    ManageReactHelper.manageReaction(reaction, user)
+    ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
 })
 
 /**
@@ -1136,14 +1135,14 @@ function startMatch(receivedMessage, args){
     }
     // Make sure every user in message (and message sender) are different users [Block out if testing]
     // var tempArr = args
-    // tempArr.push(sanitizedString)
-    // if (gameObj.hasDuplicates(tempArr)){
-    //     const errorMsg = new Discord.MessageEmbed()
-    //             .setColor('#af0000')
-    //             .setDescription("**Error**: You can't log a match with duplicate players")
-    //     generalChannel.send(errorMsg)
-    //     return
-    // }
+    tempArr.push(sanitizedString)
+    if (gameObj.hasDuplicates(tempArr)){
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: You can't log a match with duplicate players")
+        generalChannel.send(errorMsg)
+        return
+    }
     // Check if User who sent the message is registered
     let findQuery = {_mentionValue: sanitizedString}
     user.findOne(findQuery, function(err, res){
