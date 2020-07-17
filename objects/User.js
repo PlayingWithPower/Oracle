@@ -6,7 +6,9 @@
 
 const Alias = require('../Schema/Alias')
 const Deck = require('../Schema/Deck')
-const matches = require('../Schema/Games')
+const User = require('../Schema/Users')
+const Matches = require('../Schema/Games')
+const DeckHelper = require('../Helpers/DeckHelper')
 
 module.exports = {
 
@@ -14,17 +16,70 @@ module.exports = {
      * Get user league profile
      */
     profile(receivedMessage, args, callback) {
-        const user = require('../Schema/Users')
+        
         var currentSeason = "1" //UPDATE ME
         return new Promise((resolve, reject)=>{
-        let query = {
-            _mentionValue: "<@!"+receivedMessage.author.id+">",
-            _server: receivedMessage.guild.id,
-            _season: currentSeason
-        }
+            if (typeof args === 'undefined'){
+                args = "Not Defined"
+            }
+            else{
+                args = args.join(' ')
+                args = DeckHelper.toUpper(args)
+            }
+            
+            var conditionalQuery
+
+            let argsWithCommas = args.toString()
+            let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+            let splitArgs = argsWithSpaces.split(" | ")
+            
+            let wins = 0
+            let losses = 0
+            var passingResult
+            
+            if (splitArgs[0] == undefined){
+                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
+                    [
+                    {_player1: "<@!"+receivedMessage.author.id+">"}, 
+                    {_player2: "<@!"+receivedMessage.author.id+">"},
+                    {_player3: "<@!"+receivedMessage.author.id+">"},
+                    {_player4: "<@!"+receivedMessage.author.id+">"},
+                    ]
+                }
+            }
+            else if (splitArgs[1] == undefined){
+                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
+                    [
+                    {_player1: splitArgs[0]}, 
+                    {_player2: splitArgs[0]},
+                    {_player3: splitArgs[0]},
+                    {_player4: splitArgs[0]},
+                    ]
+                }
+            }
+            else if (splitArgs[1].toLowerCase() == "all"){
+                conditionalQuery = {_server: receivedMessage.guild.id, $or: 
+                    [
+                    {_player1: splitArgs[0]}, 
+                    {_player2: splitArgs[0]},
+                    {_player3: splitArgs[0]},
+                    {_player4: splitArgs[0]},
+                    ]
+                }
+            }
+            else{
+                conditionalQuery = {_server: receivedMessage.guild.id, _season: splitArgs[1], $or: 
+                    [
+                    {_player1: splitArgs[0]}, 
+                    {_player2: splitArgs[0]},
+                    {_player3: splitArgs[0]},
+                    {_player4: splitArgs[0]},
+                    ]
+                }
+            }
             var passingResult
             var passedArray = new Array()
-            matches.find(query, function(err, res){
+            Matches.find(conditionalQuery, function(err, res){
                 if (res){
                     passingResult = res
                     console.log(res)
