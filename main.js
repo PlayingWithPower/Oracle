@@ -1,5 +1,9 @@
 //The main hub for the bot, more comments coming soon.
-//Most of the commands are labeled apprioriately so far. More organization coming soon.
+//Most of the commands are labeled appropriately so far. More organization coming soon.
+
+// Bot Configuration
+const config = require('./etc/env.js');
+
 const Discord = require('discord.js')
 const client = new Discord.Client()
 
@@ -26,10 +30,11 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
-const Deck = require('./Schema/Deck')
-const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
-moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+client.login(config.discordKey)
+
+moongoose.connect(config.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+
 client.on('ready', (on) =>{
     console.log("Debug log: Successfully connected as " + client.user.tag)
     client.user.setPresence({
@@ -70,7 +75,7 @@ client.on('message', (receivedMessage) =>{
  * TODO: 
  */
 client.on('messageReactionAdd', (reaction, user) => {
-    ManageReactHelper.manageReaction(reaction, user)
+    ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
 })
 
 /**
@@ -361,24 +366,24 @@ async function deckStats(receivedMessage, args){
     if (returnArr[0] == "Deck Lookup"){
         let deckName = returnArr[1].split(" | ")
         if (deckName[1]===undefined){
-            seasonName = "Across all seasons"
+            seasonName = returnArr[2]
         }else{ seasonName = deckName[1]}
         deckStatsEmbed
-        .setColor(messageColorBlue) //blue
+        .setColor(messageColorBlue)
         .setAuthor(deckName[0] + " Deckstats")
         .setTitle("For Season Name: " + seasonName)
         .addFields(
-            { name: 'Wins', value: returnArr[2], inline: true},
-            { name: 'Losses', value: returnArr[3], inline: true},
-            { name: 'Number of Matches', value: returnArr[2] + returnArr[3], inline: true}, 
-            { name: 'Winrate', value: Math.round((returnArr[2]/(returnArr[2]+returnArr[3]))*100) + "%"}, 
+            { name: 'Wins', value: returnArr[3], inline: true},
+            { name: 'Losses', value: returnArr[4], inline: true},
+            { name: 'Number of Matches', value: returnArr[3] + returnArr[4], inline: true}, 
+            { name: 'Winrate', value: Math.round((returnArr[3]/(returnArr[3]+returnArr[4]))*100) + "%"}, 
         )
         usersList
-            .setColor(messageColorBlue) //blue
-            .setTitle("People who play this deck")
-        for (i = 0; i < returnArr[4].length; i++){
+            .setColor(messageColorBlue)
+            .setTitle("People who've played this deck in the time frame provided.")
+        for (i = 0; i < returnArr[5].length; i++){
             usersList.addFields(
-                {name: " \u200b", value: returnArr[4][i], inline: true}
+                {name: " \u200b", value: returnArr[5][i], inline: true}
             )
         }
         generalChannel.send(deckStatsEmbed)
@@ -412,6 +417,14 @@ async function deckStats(receivedMessage, args){
             
         generalChannel.send(deckStatsEmbed)
         generalChannel.send(perDeckEmbed)
+    }
+    else if (returnArr[0] == "Raw Deck Lookup"){
+        var eachDeck = new Array()
+        for(loss in returnArr[2]) {
+            eachDeck.push([loss, 0, returnArr[2][loss] ])
+        }
+        //var concatenated = new Map([...returnArr[1]].concat([...returnArr[2]]));
+        console.log(returnArr[1])
     }
     else{
         deckStatsEmbed
@@ -1066,14 +1079,14 @@ function startMatch(receivedMessage, args){
     }
     // Make sure every user in message (and message sender) are different users [Block out if testing]
     // var tempArr = args
-    // tempArr.push(sanitizedString)
-    // if (gameObj.hasDuplicates(tempArr)){
-    //     const errorMsg = new Discord.MessageEmbed()
-    //             .setColor('#af0000')
-    //             .setDescription("**Error**: You can't log a match with duplicate players")
-    //     generalChannel.send(errorMsg)
-    //     return
-    // }
+    tempArr.push(sanitizedString)
+    if (gameObj.hasDuplicates(tempArr)){
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: You can't log a match with duplicate players")
+        generalChannel.send(errorMsg)
+        return
+    }
     // Check if User who sent the message is registered
     let findQuery = {_mentionValue: sanitizedString}
     user.findOne(findQuery, function(err, res){
@@ -1504,4 +1517,3 @@ function credits(argument, receivedMessage){
 function getChannelID(receivedMessage) {
     return client.channels.cache.get(receivedMessage.channel.id)
 }
-client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
