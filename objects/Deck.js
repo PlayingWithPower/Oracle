@@ -131,30 +131,30 @@ module.exports = {
                     if (passingResult != ""){
                         var matchResults = []
                         for (var i=0; i <passingResult.length; i++){
-                            var exists = matchResults.find(el => el[0] === passingResult[i]._player1Deck);
+                            var exists = matchResults.find(el => el[0] === passingResult[i]._player1Deck)
+                            var exists2 = matchResults.find(el => el[0] === passingResult[i]._player2Deck)
+                            var exists3 = matchResults.find(el => el[0] === passingResult[i]._player3Deck)
+                            var exists4 = matchResults.find(el => el[0] === passingResult[i]._player4Deck)
                             if (exists) {
                                 exists[1] += 1;
                               } else {
                                 matchResults.push([passingResult[i]._player1Deck, 1, 0]);
                               }
-                            var exists2 = matchResults.find(el => el[0] === passingResult[i]._player2Deck); 
                             if (exists2) {
-                            exists2[2] += 1;
-                            } else {
-                            matchResults.push([passingResult[i]._player2Deck, 0, 1]);
-                            }
-                            var exists3 = matchResults.find(el => el[0] === passingResult[i]._player3Deck); 
+                                exists2[2] += 1;
+                                } else {
+                                matchResults.push([passingResult[i]._player2Deck, 0, 1]);
+                                } 
                             if (exists3) {
-                            exists3[2] += 1;
-                            } else {
-                            matchResults.push([passingResult[i]._player3Deck, 0, 1]);
-                            }
-                            var exists4 = matchResults.find(el => el[0] === passingResult[i]._player4Deck); 
+                                exists3[2] += 1;
+                                } else {
+                                matchResults.push([passingResult[i]._player3Deck, 0, 1]);
+                                }
                             if (exists4) {
-                            exists4[2] += 1;
-                            } else {
-                            matchResults.push([passingResult[i]._player4Deck, 0, 1]);
-                            }
+                                exists4[2] += 1;
+                                } else {
+                                matchResults.push([passingResult[i]._player4Deck, 0, 1]);
+                                }
                         }
                         passedArray.push("Raw Deck Lookup",matchResults, currentSeason)
                         resolve(passedArray)
