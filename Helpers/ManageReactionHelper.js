@@ -1,5 +1,5 @@
-
 const Discord = require('discord.js')
+const client = new Discord.Client()
 
 //Colors
 const messageColorRed = "#af0000"
@@ -22,13 +22,18 @@ module.exports = {
  * 
  * TODO: Confirm with current deck user is using
  */
-    async manageReaction(reaction, user) {
+    /**
+     * getChannelID()
+     * @param {Discord Message Object} receivedMessage Message user submitted
+     * 
+     * @returns Discord Channel obj to send message to
+     */
+    async manageReaction(reaction, user, channel) {
         const msg = reaction.message.content.toString().split(' ');
         var embeds = reaction.message.embeds[0]
         var upperLevelEmbeds = reaction.message.embeds[0]
         //Resolving issues where a user would upvote/downvote, then do it again. It would cause embeds.author to be null
         //  causing error log later on
-        //console.log(embeds)
         if (embeds.author === null){
             return
         }
@@ -60,16 +65,15 @@ module.exports = {
                         if (next == "SUCCESS") {
                             gameObj.logMatch(grabMatchID).then(function(final) {
                                 gameObj.finishMatch(grabMatchID).then(function(){
-                                    let generalChannel = getChannelID(reaction.message)
                                     const logMessage = new Discord.MessageEmbed()
                                             .setColor(messageColorGreen)
                                             .setDescription("Match logged!")
-                                    generalChannel.send(logMessage)
+                                    channel.send(logMessage)
                                     final.forEach(message => {
                                         const confirmMessage = new Discord.MessageEmbed()
                                             .setColor(messageColorGreen)
                                             .setDescription(message)
-                                        generalChannel.send(confirmMessage)
+                                            channel.send(confirmMessage)
                                     })
                                     console.log("Game #" + grabMatchID + " success")
                                     return
@@ -103,11 +107,10 @@ module.exports = {
                 console.log("Closing Game #" + grabMatchID + " failed.")
             })
             if (result == 'SUCCESS'){
-                let generalChannel = getChannelID(reaction.message)
                 const cancelledEmbed = new Discord.MessageEmbed()
                     .setColor(messageColorGreen)
                     .setDescription(grabMentionValue + " cancelled the Match Log")
-                generalChannel.send(cancelledEmbed)
+                channel.send(cancelledEmbed)
             }
             else {
                 return
@@ -121,8 +124,6 @@ module.exports = {
             if (sanitizedString != grabMentionValue[0]) {
                 return
             }
-            var generalChannel = getChannelID(reaction.message)
-            console.log(grabMatchID)
             gameObj.confirmedDeleteMatch(grabMatchID[2], reaction.message).then((message) => {  
                 const successEmbed = new Discord.MessageEmbed()
                     .setColor(messageColorGreen)

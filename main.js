@@ -1,5 +1,9 @@
 //The main hub for the bot, more comments coming soon.
-//Most of the commands are labeled apprioriately so far. More organization coming soon.
+//Most of the commands are labeled appropriately so far. More organization coming soon.
+
+// Bot Configuration
+const config = require('./etc/env.js');
+
 const Discord = require('discord.js')
 const client = new Discord.Client()
 
@@ -14,7 +18,6 @@ const userObj = require('./objects/User')
 const FunctionHelper = require('./Helpers/FunctionHelper')
 const DeckHelper = require('./Helpers/DeckHelper')
 const ManageReactHelper = require('./Helpers/ManageReactionHelper')
-const CronJobHelper = require('./Helpers/CronJobHelper')
 
 //Bot prefix
 const botListeningPrefix = "!";
@@ -27,11 +30,11 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
-const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
-client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
+client.login(config.discordKey)
 
-moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+moongoose.connect(config.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+
 client.on('ready', (on) =>{
     console.log("Debug log: Successfully connected as " + client.user.tag)
     client.user.setPresence({
@@ -42,7 +45,7 @@ client.on('ready', (on) =>{
         status: 'online'
     })
     
-
+    
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.id)
@@ -72,7 +75,7 @@ client.on('message', (receivedMessage) =>{
  * TODO: 
  */
 client.on('messageReactionAdd', (reaction, user) => {
-    ManageReactHelper.manageReaction(reaction, user)
+    ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
 })
 
 /**
@@ -87,7 +90,6 @@ function processCommand(receivedMessage){
 
     let channel = receivedMessage.channel.id
     let channelResponseFormatted = client.channels.cache.get(channel)
-
 
     switch(primaryCommand){
         case "setup":
@@ -179,12 +181,6 @@ function processCommand(receivedMessage){
         case "top":
             top(receivedMessage)
             break;
-        case "startseason":
-            startSeason(receivedMessage, arguments)
-            break;
-        case "seasoninfo":
-            seasonInfo(receivedMessage, arguments)
-            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -192,57 +188,7 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-async function seasonInfo(receivedMessage, args){
-    let generalChannel = getChannelID(receivedMessage)
-    let promiseRet = await seasonObj.getInfo(receivedMessage)
-    
-    const returnEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorGreen)
-        .setTitle("Showing information about the Current Season: " + promiseRet._season_name)
-        .setFooter("Time is Converted to EST/EDT")
-        .addFields(
-            {name: "Start Time", value: promiseRet._season_start.toLocaleString("en-US", {timeZone: "America/Chicago"}),inline: true},
-            {name: "End Time", value: promiseRet._season_end.toLocaleString("en-US", {timeZone: "America/Chicago"}),inline: true}
-            
-        )
-    generalChannel.send(returnEmbed)
-}
-async function startSeason(receivedMessage, args){
-    let generalChannel = getChannelID(receivedMessage)
-    let promiseRet = await seasonObj.startSeason(receivedMessage)
-    
-    if (promiseRet[0] == "found"){
-        let cleanedJob = await CronJobHelper.cleanJobFormat(promiseRet[2])
-        console.log(cleanedJob)
-        const foundEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorRed)
-        .setTitle("There is an ongoing season. \nCheck !seasoninfo for information on the current season.")
-        .addFields(
-            {name: "Start Date", value: promiseRet[1], inline: true},
-            {name: "End Date", value: promiseRet[2], inline: true},
-            {name: "Season Name", value: promiseRet[3], inline: true},
-        )
-        .setFooter("Time is Converted to EST/EDT")
-        generalChannel.send(foundEmbed)
-    }
-    else if (promiseRet[0] == "saved"){
-        // job1.start();
-        
-        const savedEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorGreen)
-        .setTitle("Succesfully created a new season! Default ending time is one month from today. Default name is a number.")
-        .addFields(
-            {name: "Start Date", value: promiseRet[1], inline: true},
-            {name: "End Date", value: promiseRet[2], inline: true},
-            {name: "Season Name", value: promiseRet[3], inline: true},
-        )
-        .setFooter("Time is Converted to EST/EDT")
-        generalChannel.send(savedEmbed)
-    }
-    else{
 
-    }
-}
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await seasonObj.leaderBoard(receivedMessage)
@@ -420,24 +366,24 @@ async function deckStats(receivedMessage, args){
     if (returnArr[0] == "Deck Lookup"){
         let deckName = returnArr[1].split(" | ")
         if (deckName[1]===undefined){
-            seasonName = "Across all seasons"
+            seasonName = returnArr[2]
         }else{ seasonName = deckName[1]}
         deckStatsEmbed
-        .setColor(messageColorBlue) //blue
+        .setColor(messageColorBlue)
         .setAuthor(deckName[0] + " Deckstats")
         .setTitle("For Season Name: " + seasonName)
         .addFields(
-            { name: 'Wins', value: returnArr[2], inline: true},
-            { name: 'Losses', value: returnArr[3], inline: true},
-            { name: 'Number of Matches', value: returnArr[2] + returnArr[3], inline: true}, 
-            { name: 'Winrate', value: Math.round((returnArr[2]/(returnArr[2]+returnArr[3]))*100) + "%"}, 
+            { name: 'Wins', value: returnArr[3], inline: true},
+            { name: 'Losses', value: returnArr[4], inline: true},
+            { name: 'Number of Matches', value: returnArr[3] + returnArr[4], inline: true}, 
+            { name: 'Winrate', value: Math.round((returnArr[3]/(returnArr[3]+returnArr[4]))*100) + "%"}, 
         )
         usersList
-            .setColor(messageColorBlue) //blue
-            .setTitle("People who play this deck")
-        for (i = 0; i < returnArr[4].length; i++){
+            .setColor(messageColorBlue)
+            .setTitle("People who've played this deck in the time frame provided.")
+        for (i = 0; i < returnArr[5].length; i++){
             usersList.addFields(
-                {name: " \u200b", value: returnArr[4][i], inline: true}
+                {name: " \u200b", value: returnArr[5][i], inline: true}
             )
         }
         generalChannel.send(deckStatsEmbed)
@@ -471,6 +417,14 @@ async function deckStats(receivedMessage, args){
             
         generalChannel.send(deckStatsEmbed)
         generalChannel.send(perDeckEmbed)
+    }
+    else if (returnArr[0] == "Raw Deck Lookup"){
+        var eachDeck = new Array()
+        for(loss in returnArr[2]) {
+            eachDeck.push([loss, 0, returnArr[2][loss] ])
+        }
+        //var concatenated = new Map([...returnArr[1]].concat([...returnArr[2]]));
+        console.log(returnArr[1])
     }
     else{
         deckStatsEmbed
@@ -740,7 +694,7 @@ async function recent(receivedMessage, args) {
     //Main loop
     let tempEmbed
     matches_arr.forEach(async(match) => {
-        var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/New_York"})
+        var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
 
         //const bot = await getUserFromMention('<@!717073766030508072>')
         const winner = await getUserFromMention(match[4])
@@ -753,7 +707,7 @@ async function recent(receivedMessage, args) {
             //.setThumbnail(getUserAvatarUrl(winner))
             .addFields(
                 { name: 'Season: ', value: match[3], inline: true},
-                { name: 'Time (Converted to EST/EDT)', value:convertedToCentralTime, inline: true},
+                { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
                 { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**', inline: true},
                 //{ name: 'Opponents:', value: 
                 //'**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
@@ -1125,14 +1079,14 @@ function startMatch(receivedMessage, args){
     }
     // Make sure every user in message (and message sender) are different users [Block out if testing]
     // var tempArr = args
-    // tempArr.push(sanitizedString)
-    // if (gameObj.hasDuplicates(tempArr)){
-    //     const errorMsg = new Discord.MessageEmbed()
-    //             .setColor('#af0000')
-    //             .setDescription("**Error**: You can't log a match with duplicate players")
-    //     generalChannel.send(errorMsg)
-    //     return
-    // }
+    tempArr.push(sanitizedString)
+    if (gameObj.hasDuplicates(tempArr)){
+        const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: You can't log a match with duplicate players")
+        generalChannel.send(errorMsg)
+        return
+    }
     // Check if User who sent the message is registered
     let findQuery = {_mentionValue: sanitizedString}
     user.findOne(findQuery, function(err, res){
