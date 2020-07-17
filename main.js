@@ -467,7 +467,7 @@ function listCollection(receivedMessage, args){
                     }
 
                     profileEmbed.addFields(
-                        { name: 'Deck Name', value: callbackName[i]},
+                        { name: " \u200b", value: callbackName[i]},
                         { name: 'Wins', value: callbackWins[i], inline: true },
                         { name: 'Losses', value: callbackLosses[i], inline: true },
                         { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
@@ -915,44 +915,6 @@ async function addDeck(receivedMessage, args){
         errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link")
         generalChannel.send(errorEmbed)
     }
-
-    
-
-
-    //let promiseReturn = await deckObj.addDeck(receivedMessage, args);
-        // if (promiseReturn == "Error 1"){
-        //     addingDeckEmbed
-        //     .setColor(messageColorRed) //red
-        //     .setDescription("Deck name already used. Try !decks to see a list of in use names.")
-        // }
-        // else if (promiseReturn == "Error 2"){
-        //     addingDeckEmbed
-        //     .setColor(messageColorRed) //red
-        //     .setDescription("Unable to save to Database, please try again later.")
-        // }
-        // else if (promiseReturn == "Error 3"){
-        //     addingDeckEmbed
-        //     .setColor(messageColorRed) //red
-        //     .setDescription("Not a valid URL, please follow the format !adddeck <url> <deck name>.")
-        // }
-        // !add {Deck Nickname} | {Commander Name} | {Color Identity} | {Deck Link} | {Deck Author} | {Deck Description}
-            // promiseReturn.forEach(item => {
-            //     promiseReturnArr.push(item)
-            // });
-
-            // var grabURL = promiseReturnArr[0].toString()
-            // var grabName = promiseReturnArr[1].toString()
-            
-            // addingDeckEmbed
-            // .setTitle("Successfully uploaded new Decklist!")
-            // .setColor(messageColorGreen) //green
-            // .addFields(
-            //     { name: 'Decklist', value: "[Link]("+grabURL+")"},
-            //     { name: 'Name', value: grabName},
-            // )
-        
-            // generalChannel.send(addingDeckEmbed)   
-             
 }
 /**
  * profile()
@@ -962,25 +924,41 @@ async function addDeck(receivedMessage, args){
 async function profile(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await userObj.profile(receivedMessage, args)
-    var win 
-    var losses 
-    var winrate
-    var favoriteDeck
+    var compareDeck = 0
+    var favDeck = ""
     if (returnArr[0] == "Profile Look Up"){
+        for (i=0; i<returnArr[1].length;i++){
+            if (returnArr[1][i][1]+returnArr[1][i][2]>compareDeck) {
+                compareDeck = returnArr[1][i][1]+returnArr[1][i][2]
+                favDeck = returnArr[1][i][0]
+            }
+        }
         const profileEmbed = new Discord.MessageEmbed()
-        returnArr[1].forEach((deck) =>{
-            
-        })
-        
         .setColor(messageColorBlue)
         .setFooter("Showing information about the current season. Season name: " + returnArr[2])
         .addFields(
             { name: 'User', value: returnArr[3], inline: true },
             { name: 'Current Deck', value: returnArr[5], inline: true },
             { name: 'Current Rating', value: returnArr[4], inline: true },
-           
+            { name: 'Favorite Deck', value: favDeck, inline: true },
         )
+        const decksEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setFooter("Note: The threshold to appear on this list is X games, this is configurable.")
+        returnArr[1].forEach((deck) =>{
+            if (deck[1] + deck[2] < 5){ }
+            else{
+                decksEmbed
+                .addFields(
+                    { name: " \u200b", value: deck[0]},
+                    { name: 'Wins', value: deck[1], inline: true },
+                    { name: 'Losses', value: deck[2], inline: true },
+                    { name: 'Win Rate', value: Math.round((deck[1]/(deck[2]+deck[1])*100)) + "%", inline: true },
+                )
+            }
+        })
         generalChannel.send(profileEmbed)
+        generalChannel.send(decksEmbed)
     }
     else{
 
