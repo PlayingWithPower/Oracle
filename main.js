@@ -27,7 +27,6 @@ const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
 const Deck = require('./Schema/Deck')
-const { manageReaction } = require('./Helpers/ManageReactionHelper')
 const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
 
 moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
