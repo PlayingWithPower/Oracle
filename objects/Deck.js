@@ -218,7 +218,7 @@ module.exports = {
                     passingResult = res;
                 }).then(function(passingResult){
                     if (passingResult != ""){
-                        passingResult.forEach((entry)=>{
+                        passingResult.forEach((entry)=>{   
                             if (entry._player1 == splitArgs[0]){
                                 wins = wins + 1
                             }
