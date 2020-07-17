@@ -6,7 +6,12 @@ const messageColorGreen = "#5fff00"
 const messageColorBlue = "#0099ff"
 
 module.exports = {
-
+    /**
+     * Counts the number of times of a value occurrs
+     */
+    getOccurrence(array, value) {
+        return array.filter((v) => (v === value)).length;
+    },
     /**
      * This is used in !deck to quickly create 5 embeds, one for each color
      * @param {*} colorArr 

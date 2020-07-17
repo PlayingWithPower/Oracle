@@ -1,5 +1,5 @@
-
 const Discord = require('discord.js')
+const client = new Discord.Client()
 
 //Colors
 const messageColorRed = "#af0000"
@@ -10,6 +10,8 @@ const messageColorBlue = "#0099ff"
 const deckObj = require('../objects/Deck')
 const gameObj = require('../objects/Game')
 const DeckHelper = require('./DeckHelper')
+
+const main = require('../Helpers/ClientHelper')
 
 module.exports = {
 /**
@@ -22,6 +24,12 @@ module.exports = {
  * 
  * TODO: Confirm with current deck user is using
  */
+    /**
+     * getChannelID()
+     * @param {Discord Message Object} receivedMessage Message user submitted
+     * 
+     * @returns Discord Channel obj to send message to
+     */
     async manageReaction(reaction, user) {
         const msg = reaction.message.content.toString().split(' ');
         var embeds = reaction.message.embeds[0]
@@ -60,7 +68,6 @@ module.exports = {
                         if (next == "SUCCESS") {
                             gameObj.logMatch(grabMatchID).then(function(final) {
                                 gameObj.finishMatch(grabMatchID).then(function(){
-                                    let generalChannel = getChannelID(reaction.message)
                                     const logMessage = new Discord.MessageEmbed()
                                             .setColor(messageColorGreen)
                                             .setDescription("Match logged!")
@@ -103,7 +110,7 @@ module.exports = {
                 console.log("Closing Game #" + grabMatchID + " failed.")
             })
             if (result == 'SUCCESS'){
-                let generalChannel = getChannelID(reaction.message)
+                let generalChannel = this.getChannelID(reaction.message)
                 const cancelledEmbed = new Discord.MessageEmbed()
                     .setColor(messageColorGreen)
                     .setDescription(grabMentionValue + " cancelled the Match Log")
@@ -121,7 +128,7 @@ module.exports = {
             if (sanitizedString != grabMentionValue[0]) {
                 return
             }
-            var generalChannel = getChannelID(reaction.message)
+            var generalChannel = this.getChannelID(reaction.message)
             console.log(grabMatchID)
             gameObj.confirmedDeleteMatch(grabMatchID[2], reaction.message).then((message) => {  
                 const successEmbed = new Discord.MessageEmbed()
