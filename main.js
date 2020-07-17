@@ -1,8 +1,8 @@
 //The main hub for the bot, more comments coming soon.
-//Most of the commands are labeled apprioriately so far. More organization coming soon.
+//Most of the commands are labeled appropriately so far. More organization coming soon.
 
-//Bot Configuration
-const config = require('./etc/env.js')
+// Bot Configuration
+const config = require('./etc/env.js');
 
 const Discord = require('discord.js')
 const client = new Discord.Client()
@@ -31,6 +31,7 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose')
+
 client.login(config.discordKey)
 
 moongoose.connect(config.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
