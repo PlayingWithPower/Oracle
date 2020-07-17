@@ -19,25 +19,24 @@ module.exports = {
         
         var currentSeason = "1" //UPDATE ME
         return new Promise((resolve, reject)=>{
-            if (typeof args === 'undefined'){
+            var argsWithCommas = ""
+            var argsWithSpaces =""
+            var splitArgs =""
+            if (typeof args[0] === 'undefined'){
                 args = "Not Defined"
             }
             else{
                 args = args.join(' ')
                 args = DeckHelper.toUpper(args)
+                argsWithCommas = args.toString()
+                argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+                splitArgs = argsWithSpaces.split(" | ")
             }
             
             var conditionalQuery
-
-            let argsWithCommas = args.toString()
-            let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
-            let splitArgs = argsWithSpaces.split(" | ")
-            
-            let wins = 0
-            let losses = 0
             var passingResult
             
-            if (splitArgs[0] == undefined){
+            if (splitArgs[0] === undefined){
                 conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
                     [
                     {_player1: "<@!"+receivedMessage.author.id+">"}, 
@@ -47,7 +46,7 @@ module.exports = {
                     ]
                 }
             }
-            else if (splitArgs[1] == undefined){
+            else if (splitArgs[1] === undefined){
                 conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
                     [
                     {_player1: splitArgs[0]}, 
@@ -77,12 +76,10 @@ module.exports = {
                     ]
                 }
             }
-            var passingResult
             var passedArray = new Array()
             Matches.find(conditionalQuery, function(err, res){
                 if (res){
                     passingResult = res
-                    console.log(res)
                 }
                 else{
                     resolve("Error 1")
@@ -92,24 +89,24 @@ module.exports = {
                     var matchResults = []
                     for (var i=0; i <passingResult.length; i++){
                         var exists = matchResults.find(el => el[0] === passingResult[i]._player1Deck)
-                        var exists2 = matchResults.find(el => el[0] === passingResult[i]._player2Deck)
-                        var exists3 = matchResults.find(el => el[0] === passingResult[i]._player3Deck)
-                        var exists4 = matchResults.find(el => el[0] === passingResult[i]._player4Deck)
                         if (exists) {
                             exists[1] += 1;
                           } else {
                             matchResults.push([passingResult[i]._player1Deck, 1, 0]);
                           }
+                        var exists2 = matchResults.find(el => el[0] === passingResult[i]._player2Deck)
                         if (exists2) {
                             exists2[2] += 1;
                             } else {
                             matchResults.push([passingResult[i]._player2Deck, 0, 1]);
                             } 
+                        var exists3 = matchResults.find(el => el[0] === passingResult[i]._player3Deck)
                         if (exists3) {
                             exists3[2] += 1;
                             } else {
                             matchResults.push([passingResult[i]._player3Deck, 0, 1]);
                             }
+                        var exists4 = matchResults.find(el => el[0] === passingResult[i]._player4Deck)
                         if (exists4) {
                             exists4[2] += 1;
                             } else {
