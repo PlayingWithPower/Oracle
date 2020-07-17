@@ -6,7 +6,6 @@
 
 const Alias = require('../Schema/Alias')
 const Deck = require('../Schema/Deck')
-const { User } = require('discord.js')
 
 module.exports = {
 
@@ -15,9 +14,11 @@ module.exports = {
      */
     profile(receivedMessage, args, callback) {
         const user = require('../Schema/Users')
+        var currentSeason = "1" //UPDATE ME
         let query = {
             _mentionValue: "<@!"+receivedMessage.author.id+">",
-            _server: receivedMessage.guild.id
+            _server: receivedMessage.guild.id,
+            _season: currentSeason
         }
         user.findOne(query, function(err, res){
             callback(res)
