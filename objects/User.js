@@ -6,6 +6,7 @@
 
 const Alias = require('../Schema/Alias')
 const Deck = require('../Schema/Deck')
+const matches = require('../Schema/Games')
 
 module.exports = {
 
@@ -15,13 +16,59 @@ module.exports = {
     profile(receivedMessage, args, callback) {
         const user = require('../Schema/Users')
         var currentSeason = "1" //UPDATE ME
+        return new Promise((resolve, reject)=>{
         let query = {
             _mentionValue: "<@!"+receivedMessage.author.id+">",
             _server: receivedMessage.guild.id,
             _season: currentSeason
         }
-        user.findOne(query, function(err, res){
-            callback(res)
+            var passingResult
+            var passedArray = new Array()
+            matches.find(query, function(err, res){
+                if (res){
+                    passingResult = res
+                    console.log(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
+            }).then(function(passingResult){
+                if (passingResult != ""){
+                    var matchResults = []
+                    for (var i=0; i <passingResult.length; i++){
+                        var exists = matchResults.find(el => el[0] === passingResult[i]._player1Deck)
+                        var exists2 = matchResults.find(el => el[0] === passingResult[i]._player2Deck)
+                        var exists3 = matchResults.find(el => el[0] === passingResult[i]._player3Deck)
+                        var exists4 = matchResults.find(el => el[0] === passingResult[i]._player4Deck)
+                        if (exists) {
+                            exists[1] += 1;
+                          } else {
+                            matchResults.push([passingResult[i]._player1Deck, 1, 0]);
+                          }
+                        if (exists2) {
+                            exists2[2] += 1;
+                            } else {
+                            matchResults.push([passingResult[i]._player2Deck, 0, 1]);
+                            } 
+                        if (exists3) {
+                            exists3[2] += 1;
+                            } else {
+                            matchResults.push([passingResult[i]._player3Deck, 0, 1]);
+                            }
+                        if (exists4) {
+                            exists4[2] += 1;
+                            } else {
+                            matchResults.push([passingResult[i]._player4Deck, 0, 1]);
+                            }
+                    }
+                    passedArray.push("Raw Deck Lookup",matchResults, currentSeason)
+                    console.log(passedArray)
+                    //resolve(passedArray)
+                }
+                else{
+                    resolve("Can't find deck")
+                }
+            })
         })
     },
     sortFunction(a, b) {
