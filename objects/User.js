@@ -9,34 +9,32 @@ const Deck = require('../Schema/Deck')
 const User = require('../Schema/Users')
 const Matches = require('../Schema/Games')
 const DeckHelper = require('../Helpers/DeckHelper')
+const { lookup } = require('dns')
 
 module.exports = {
 
     /**
      * Get user league profile
      */
-    profile(receivedMessage, args, callback) {
+    profile(receivedMessage, args) {
         
         var currentSeason = "1" //UPDATE ME
+        var lookUpID
         return new Promise((resolve, reject)=>{
-            var argsWithCommas = ""
-            var argsWithSpaces =""
-            var splitArgs =""
             if (typeof args[0] === 'undefined'){
-                args = "Not Defined"
+                args[0] = "Not Defined"
+                lookUpID = "<@!" + receivedMessage.author.id + ">"
+                console.log("no argument provided")
             }
             else{
-                args = args.join(' ')
-                args = DeckHelper.toUpper(args)
-                argsWithCommas = args.toString()
-                argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
-                splitArgs = argsWithSpaces.split(" | ")
+                lookUpID = args[0]
             }
-            
             var conditionalQuery
             var passingResult
+            var passedArray = new Array()
             
-            if (splitArgs[0] === undefined){
+            //Query
+            if (args[0] == "Not Defined"){
                 conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
                     [
                     {_player1: "<@!"+receivedMessage.author.id+">"}, 
@@ -46,37 +44,16 @@ module.exports = {
                     ]
                 }
             }
-            else if (splitArgs[1] === undefined){
+            else{
                 conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
                     [
-                    {_player1: splitArgs[0]}, 
-                    {_player2: splitArgs[0]},
-                    {_player3: splitArgs[0]},
-                    {_player4: splitArgs[0]},
+                    {_player1: args[0]}, 
+                    {_player2: args[0]},
+                    {_player3: args[0]},
+                    {_player4: args[0]},
                     ]
                 }
             }
-            else if (splitArgs[1].toLowerCase() == "all"){
-                conditionalQuery = {_server: receivedMessage.guild.id, $or: 
-                    [
-                    {_player1: splitArgs[0]}, 
-                    {_player2: splitArgs[0]},
-                    {_player3: splitArgs[0]},
-                    {_player4: splitArgs[0]},
-                    ]
-                }
-            }
-            else{
-                conditionalQuery = {_server: receivedMessage.guild.id, _season: splitArgs[1], $or: 
-                    [
-                    {_player1: splitArgs[0]}, 
-                    {_player2: splitArgs[0]},
-                    {_player3: splitArgs[0]},
-                    {_player4: splitArgs[0]},
-                    ]
-                }
-            }
-            var passedArray = new Array()
             Matches.find(conditionalQuery, function(err, res){
                 if (res){
                     passingResult = res
@@ -113,13 +90,18 @@ module.exports = {
                             matchResults.push([passingResult[i]._player4Deck, 0, 1]);
                             }
                     }
-                    passedArray.push("Raw Deck Lookup",matchResults, currentSeason)
-                    console.log(passedArray)
-                    //resolve(passedArray)
+                    passedArray.push("Profile Look Up",matchResults, currentSeason, lookUpID)
+                   
                 }
                 else{
-                    resolve("Can't find deck")
+                    resolve("Can't find user")
                 }
+            }).then(function(){
+                let query = {_server: receivedMessage.guild.id, _season: currentSeason, _mentionValue: lookUpID}
+                User.find(query,function(err, res){
+                    passedArray.push(res[0]._elo, res[0]._currentDeck)
+                    resolve(passedArray)
+                })
             })
         })
     },

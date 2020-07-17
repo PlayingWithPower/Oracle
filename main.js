@@ -959,48 +959,42 @@ async function addDeck(receivedMessage, args){
  * @param {*} receivedMessage 
  * @param {*} args 
  */
-function profile(receivedMessage, args){
-    var generalChannel = getChannelID(receivedMessage)
-    userObj.profile(receivedMessage, args, function(callback, err){
-        var embedOutput;
-        var highest = Number.NEGATIVE_INFINITY;
-        var output;
-        var tmp;
-        for (var i= callback._deck.length-1; i>=1; i--) {
-            tmp = (callback._deck[i].Wins) + (callback._deck[i].Losses);
-            if (tmp > highest){
-                highest = tmp;
-                output = callback._deck[i]
-            }
-        }
-        if (output === undefined || highest == 0){
-            embedOutput = "No Data Yet."
-        }
-        else{
-            embedOutput = output.Deck
-        }
-
-        var calculatedWinrate = (callback._wins/((callback._losses)+(callback._wins)))*100
-        if (isNaN(calculatedWinrate)){
-            calculatedWinrate = 0;
-        }
-
+async function profile(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await userObj.profile(receivedMessage, args)
+    var win 
+    var losses 
+    var winrate
+    var favoriteDeck
+    if (returnArr[0] == "Profile Look Up"){
         const profileEmbed = new Discord.MessageEmbed()
+        returnArr[1].forEach((deck) =>{
+            
+        })
+        
         .setColor(messageColorBlue)
-            .setURL('')
-            .addFields(
-                { name: 'User', value: callback._mentionValue, inline: true },
-                { name: 'Season', value: callback._season, inline: true },
-                { name: 'Current Deck', value: callback._currentDeck, inline: true },
-                { name: 'Current Rating', value: callback._elo, inline: true },
-                { name: 'Wins', value:  callback._wins, inline: true },
-                { name: 'Losses', value:  callback._losses, inline: true },
-                { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
-                { name: 'Favorite Deck', value: embedOutput, inline: true },
-            )
+        .setFooter("Showing information about the current season. Season name: " + returnArr[2])
+        .addFields(
+            { name: 'User', value: returnArr[3], inline: true },
+            { name: 'Current Deck', value: returnArr[5], inline: true },
+            { name: 'Current Rating', value: returnArr[4], inline: true },
+           
+        )
         generalChannel.send(profileEmbed)
-    });
-    
+    }
+    else{
+
+    }
+        
+        // const deckListEmbed = new Discord.MessageEmbed()
+        // returnArr.forEach((deck)=>{
+        //     var calculatedWinrate = (returnArr[1][1]/(returnArr[1][2])+(returnArr[1][1]))*100
+        //     if (isNaN(calculatedWinrate)){
+        //         calculatedWinrate = 0;
+        //     }
+        // })
+            
+       
 }
 /**
  * logLosers()
