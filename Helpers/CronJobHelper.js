@@ -1,7 +1,6 @@
 const Discord = require('discord.js')
 const client = new Discord.Client()
 const cron = require('cron');
-const { time } = require('console');
 
 
 module.exports = {
