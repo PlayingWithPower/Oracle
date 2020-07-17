@@ -80,27 +80,90 @@ module.exports = {
      */
     deckStats(receivedMessage, args){
         const DeckHelper = require('../Helpers/DeckHelper')
+        
+        const user = require('../Schema/Users')
         const matches = require('../Schema/Games')
 
-        // Yeah just a sec
+        //Notes:
+            //     !deckstats
+            // Raw dump of decks against the current season for the server
+            //     Deck Name / Alias
+            //     Matches / Wins / Losses / Winrate
+            // Decks with no matches for the season will not show up in the list
+            // Default sorting is number of matches
+            //         !deckstats {deck alias}
+            // Dump of the deck passed against the current season for the server
+            //     Alias / Matches / Wins / Losses / Winrate
+            // Secondary piece of data pertaining to the users using that deck in the server
+            //     Username / Wins / Losses / Winrate (for that deck only)
+            // Don't give deck meta data (color identity, url, etc.), instead give a footer reminder note of the command to get that data.
+
+        //Include in all of these:
+            //deck name, wins, losses, number of matches, win rate
         // !deckstats
-        // Raw dump of decks
+            // All Decks for current season
         // !deckstats {deck nickname}
-        // Stats for a given deck
+            // Stats for a given deck, *CURRENT SEASON* change me
         // !deckstats @user
-        // Stats for a given user
+            // Stats for a given user
+            // Make this a helper for !profile @user
         // !deckstats {Deck Nickname} | {Season Name}
         // or !deckstats {Deck Nickname} | all)
+        //   "For season name: all" vs "For season name: across all seasons"
        
+        var currentSeason = "1" //UPDATE ME
         //implement !deckstats here
         if (args.length == 0){
             return new Promise((resolve, reject)=>{
-                resolve("test")
+                let query = {'_server': receivedMessage.guild.id, '_season': currentSeason}
+                var passingResult
+                var preFilteredArrayOfDecksWins = new Array()
+                var preFilteredArrayOfDecksLosses = new Array()
+                var passedArray = new Array()
+                matches.find(query, function(err, res){
+                    if (res){
+                        passingResult = res
+                    }
+                    else{
+                        resolve("Error 1")
+                    }
+                }).then(function(passingResult){
+                    if (passingResult != ""){
+                        passingResult.forEach((entry)=>{
+                            preFilteredArrayOfDecksWins.push(entry._player1Deck)
+                            preFilteredArrayOfDecksLosses.push(entry._player2Deck)
+                            preFilteredArrayOfDecksLosses.push(entry._player3Deck)
+                            preFilteredArrayOfDecksLosses.push(entry._player4Deck)
+                        })
+                        var counts = {};
+                        for (var i = 0; i < preFilteredArrayOfDecksWins.length; i++){
+                            if (!counts.hasOwnProperty(preFilteredArrayOfDecksWins[i]))
+                            {
+                                counts[preFilteredArrayOfDecksWins[i]] = 1;
+                            }
+                            else 
+                            {
+                                counts[preFilteredArrayOfDecksWins[i]]++;
+                            }
+                        }
+
+                        console.log(counts);
+                        var filteredAndCountedWins = {};
+                        preFilteredArrayOfDecksWins.map( function (a) { if (a in filteredAndCountedWins) filteredAndCountedWins[a] ++; else filteredAndCountedWins[a] = 1; } );
+                        var filteredAndCountedLosses = {};
+                        preFilteredArrayOfDecksLosses.map( function (a) { if (a in filteredAndCountedLosses) filteredAndCountedLosses[a] ++; else filteredAndCountedLosses[a] = 1; } );
+                        
+                        passedArray.push("Raw Deck Lookup",filteredAndCountedWins, filteredAndCountedLosses)
+                        resolve(passedArray)
+                    }
+                    else{
+                        resolve("Can't find deck")
+                    }
+                })
             })
         }
         //currently finds 1 result (only 1 season user per), need to update for all seasons
         else if (args[0].slice(0,3) == "<@!"){
-            const user = require('../Schema/Users')
             return new Promise((resolve, reject) => {
                 user.find({'_mentionValue': args[0],'_server' : receivedMessage.guild.id}).then((res) =>{
                     var resolveArr = new Array();
@@ -118,7 +181,7 @@ module.exports = {
             let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
             let splitArgs = argsWithSpaces.split(" | ")
             if (splitArgs[1] == undefined){
-                query = { $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
+                query = {_season: currentSeason, $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
             }
             else if (splitArgs[1] == "All"){
                 query = { $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
@@ -126,7 +189,6 @@ module.exports = {
             else{
                 query = {_season: splitArgs[1], $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
             }
-            
             let wins = 0
             let losses = 0
             var deckPlayers = new Array()
@@ -162,7 +224,7 @@ module.exports = {
                         deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
                             return inputArray.indexOf(item) == index;
                         });
-                        passedArray.push("Deck Lookup",args, wins, losses, deckPlayers)
+                        passedArray.push("Deck Lookup",args, currentSeason, wins, losses, deckPlayers)
                         resolve(passedArray)
                     }
                     else{
@@ -171,8 +233,6 @@ module.exports = {
                 })
             })
         }
-        
-        
     },
     /**
      * Used in ManageReactionHelper
