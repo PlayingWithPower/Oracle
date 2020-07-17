@@ -392,39 +392,44 @@ async function deckStats(receivedMessage, args){
     else if (returnArr[0] == "User Lookup"){
         deckStatsEmbed
         .setColor(messageColorBlue)
-        .setAuthor(returnArr[1][0]._name + "'s Deck Stats")
+        .setTitle("Deck Stats")
+        .setDescription("For user: "+ returnArr[1])
+        .setFooter("For Season Name: " + returnArr[4] + "\nLooking for detailed deck breakdown? Try !profile @user to see exactly what decks this user plays.")
         .addFields(
-            { name: 'Wins', value: returnArr[1][0]._wins, inline: true},
-            { name: 'Losses', value: returnArr[1][0]._losses, inline: true},
-            { name: 'Number of Matches', value: returnArr[1][0]._wins + returnArr[1][0]._losses, inline: true}, 
-            { name: 'Winrate', value: Math.round((returnArr[1][0]._wins/(returnArr[1][0]._wins+returnArr[1][0]._losses))*100) + "%"}, 
-        )
-        .setFooter("For Season Name: " + returnArr[1][0]._season)
-        const perDeckEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorBlue)
-        .setFooter("For Season Name: " + returnArr[1][0]._season)
-        for (i = 1; i < returnArr[1][0]._deck.length; i++){
-            if ((returnArr[1][0]._deck[i].Wins + returnArr[1][0]._deck[i].Losses) == 0 ){ }
-            else{
-                perDeckEmbed.addFields(
-                    {name: "Deck Name", value: returnArr[1][0]._deck[i].Deck},
-                    {name: "Wins", value: returnArr[1][0]._deck[i].Wins, inline: true},
-                    {name: "Losses", value: returnArr[1][0]._deck[i].Losses, inline: true},
-                    {name: 'Winrate', value: Math.round((returnArr[1][0]._deck[i].Wins/(returnArr[1][0]._deck[i].Wins+returnArr[1][0]._deck[i].Losses))*100) + "%", inline: true}, 
-                )
-            }
-        }
-            
+            { name: 'Wins', value: returnArr[2], inline: true},
+            { name: 'Losses', value: returnArr[3], inline: true},
+            { name: 'Number of Matches', value: returnArr[2] + returnArr[3], inline: true}, 
+            { name: 'Winrate', value: Math.round((returnArr[2]/(returnArr[2]+returnArr[3]))*100) + "%"}, 
+        ) 
         generalChannel.send(deckStatsEmbed)
-        generalChannel.send(perDeckEmbed)
+        
     }
     else if (returnArr[0] == "Raw Deck Lookup"){
-        var eachDeck = new Array()
-        for(loss in returnArr[2]) {
-            eachDeck.push([loss, 0, returnArr[2][loss] ])
-        }
-        //var concatenated = new Map([...returnArr[1]].concat([...returnArr[2]]));
-        console.log(returnArr[1])
+        const allDecksEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setTitle("Deck Stats")
+        .setFooter("Data for the current season. Season Name: " + returnArr[2] + "\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see exactly what decks this user plays.")
+         
+        var nameVar = ""
+        var winVar = ""
+        var lossVar = ""
+        returnArr[1].forEach((deck)=>{
+            // nameVar += deck[0] + "\n"
+            // if (deck[1] + deck[2] > 1){//THRESHOLD CONFIG HERE
+            //     winVar += deck[1] + "\n"
+            //     lossVar += deck[2] + "\n"
+            // }
+            allDecksEmbed
+            .addFields(
+                { name: "Deck Names", value: deck[0]},
+                { name: "Wins", value: deck[1],inline: true},
+                { name: "Losses", value: deck[2],inline: true},
+                { name: 'Number of Matches', value: deck[1] + deck[2], inline: true}, 
+                { name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true}, 
+            )
+        })
+        generalChannel.send(allDecksEmbed)
+
     }
     else{
         deckStatsEmbed
@@ -1079,14 +1084,14 @@ function startMatch(receivedMessage, args){
     }
     // Make sure every user in message (and message sender) are different users [Block out if testing]
     // var tempArr = args
-    tempArr.push(sanitizedString)
-    if (gameObj.hasDuplicates(tempArr)){
-        const errorMsg = new Discord.MessageEmbed()
-                .setColor('#af0000')
-                .setDescription("**Error**: You can't log a match with duplicate players")
-        generalChannel.send(errorMsg)
-        return
-    }
+    // tempArr.push(sanitizedString)
+    // if (gameObj.hasDuplicates(tempArr)){
+    //     const errorMsg = new Discord.MessageEmbed()
+    //             .setColor('#af0000')
+    //             .setDescription("**Error**: You can't log a match with duplicate players")
+    //     generalChannel.send(errorMsg)
+    //     return
+    // }
     // Check if User who sent the message is registered
     let findQuery = {_mentionValue: sanitizedString}
     user.findOne(findQuery, function(err, res){
