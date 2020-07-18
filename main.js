@@ -1096,7 +1096,7 @@ async function profile(receivedMessage, args){
     if (returnArr == "Can't find user"){
         const errorUserEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
-        .setDescription("Cannot find specified user: " + "<@!"+ receivedMessage.author.id +">")
+        .setDescription("Cannot find specified user: " + args)
         .setFooter("User is not registered for this league. Have them type !register")
         generalChannel.send(errorUserEmbed)
     }

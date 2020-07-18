@@ -23,7 +23,6 @@ module.exports = {
             if (typeof args[0] === 'undefined'){
                 args[0] = "Not Defined"
                 lookUpID = "<@!" + receivedMessage.author.id + ">"
-                console.log("no argument provided")
             }
             else{
                 lookUpID = args[0]
@@ -96,7 +95,7 @@ module.exports = {
                     resolve("Can't find user")
                 }
             }).then(function(){
-                let query = {_server: receivedMessage.guild.id, _season: currentSeason, _mentionValue: lookUpID}
+                let query = {_server: receivedMessage.guild.id, _mentionValue: lookUpID}
                 User.findOne(query,function(err, res){
                     if (res){
                         passedArray.push(res._elo, res._currentDeck)
