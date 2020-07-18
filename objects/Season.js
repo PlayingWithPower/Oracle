@@ -1,5 +1,3 @@
-const { currentDeck } = require('./User');
-
 /**
  * Season Object
  *
@@ -112,17 +110,43 @@ module.exports = {
     /**
      * Summary info for the season
      */
-    getInfo(receivedMessage) {
+    async getInfo(receivedMessage, args) {
         const season = require('../Schema/Seasons')
-        let seasonSearch = {
-            '_server': receivedMessage.guild.id,
-            '_is_current': "yes"
-        }
-        return new Promise((resolve, reject)=>{
-            season.findOne(seasonSearch, function(err,res){
-                resolve(res)
+        const SeasonHelper = require('../Helpers/SeasonHelper')
+        
+        if (args == "Current"){
+            let seasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+            return new Promise((resolve, reject)=>{
+                resolve(seasonReturn)
             })
-        })
+        }
+        else if (args[0].toLowerCase() == "all"){
+            return new Promise((resolve, reject)=>{
+                let query = {_server: receivedMessage.guild.id}
+                season.find(query, function(err,res){
+                    if (res){
+                        console.log(res)
+                        resolve(res)
+                    }
+                    else{
+                        resolve("Can't Find Season")
+                    }
+                })
+            })
+        }
+        else{
+            return new Promise((resolve, reject)=>{
+                let query = {_server: receivedMessage.guild.id, _season_name: args}
+                season.findOne(query, function(err,res){
+                    if (res){
+                        resolve(res)
+                    }
+                    else{
+                        resolve("Can't Find Season")
+                    }
+                })
+            })
+        }
     },
 
     /**

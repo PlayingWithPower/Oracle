@@ -30,7 +30,8 @@ const messageColorBlue = "#0099ff"
 
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
-const moongoose = require('mongoose')
+const moongoose = require('mongoose');
+const { getInfo } = require('./objects/League');
 
 client.login(config.discordKey)
 
@@ -188,11 +189,80 @@ function processCommand(receivedMessage){
         case "endseason":
             endSeason(receivedMessage, arguments)
             break;
+        case "seasoninfo":
+            seasonInfo(receivedMessage, arguments)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+    }
+}
+async function seasonInfo(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    if (args[0] === undefined){
+        let returnArr = await seasonObj.getInfo(receivedMessage, "Current")
+        if (returnArr == "No Current"){
+            const noSeasonEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("There is no ongoing season")
+            .setDescription("To start a new season, try !startseason\nTo see information about another season, try !seasoninfo <Season Name>")
+            generalChannel.send(noSeasonEmbed)
+        }
+        else{
+            const seasonInfo = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("Displaying Season Info about the Season named: " + returnArr._season_name)
+            .addFields(
+                {name: "Season Start", value: returnArr._season_start, inline: true},
+                {name: "Season End", value: returnArr._season_end, inline: true},
+            )
+            generalChannel.send(seasonInfo)
+        }
+    }
+    else if (args[0] == "all"){
+        let returnArr = await seasonObj.getInfo(receivedMessage, "all")
+
+        if (returnArr != ""){
+            returnArr.forEach((season)=>{
+                const seasonInfo = new Discord.MessageEmbed()
+                .setColor(messageColorGreen)
+                .setAuthor("Displaying Season Info about the Season named: " + season._season_name)
+                .addFields(
+                    {name: "Season Start", value: season._season_start, inline: true},
+                    {name: "Season End", value: season._season_end, inline: true},
+                )
+                generalChannel.send(seasonInfo)
+            })
+        }
+        else{
+            const noSeasonEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("There have been no Seasons on this server")
+            .setDescription("To start a new season, try !startseason")
+            generalChannel.send(noSeasonEmbed)
+        }
+    }
+    else{
+        let returnArr = await seasonObj.getInfo(receivedMessage, args)
+        if (returnArr == "Can't Find Season"){
+            const cantFindEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("Cannot Find Specified Season: " + args.join(' ').toString())
+            .setDescription("To find a season, try !seasoninfo <Season Name>.\nTo find information on all seasons, try !seasoninfo all")
+            generalChannel.send(cantFindEmbed)
+        }
+        else{
+            const seasonInfo = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("Displaying Season Info about the Season named: " + returnArr._season_name)
+            .addFields(
+                {name: "Season Start", value: returnArr._season_start, inline: true},
+                {name: "Season End", value: returnArr._season_end, inline: true},
+            )
+            generalChannel.send(seasonInfo)
+        }
     }
 }
 async function endSeason(receivedMessage, args){
