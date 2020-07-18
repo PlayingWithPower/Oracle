@@ -18,6 +18,7 @@ const userObj = require('./objects/User')
 const FunctionHelper = require('./Helpers/FunctionHelper')
 const DeckHelper = require('./Helpers/DeckHelper')
 const ManageReactHelper = require('./Helpers/ManageReactionHelper')
+const SeasonHelper = require('./Helpers/SeasonHelper')
 
 //Bot prefix
 const botListeningPrefix = "!";
@@ -29,7 +30,8 @@ const messageColorBlue = "#0099ff"
 
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
-const moongoose = require('mongoose')
+const moongoose = require('mongoose');
+const { getInfo } = require('./objects/League');
 
 client.login(config.discordKey)
 
@@ -181,6 +183,15 @@ function processCommand(receivedMessage){
         case "top":
             top(receivedMessage)
             break;
+        case "startseason":
+            startSeason(receivedMessage, arguments)
+            break;
+        case "endseason":
+            endSeason(receivedMessage, arguments)
+            break;
+        case "seasoninfo":
+            seasonInfo(receivedMessage, arguments)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -188,7 +199,153 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+async function seasonInfo(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    if (args[0] === undefined){
+        let returnArr = await seasonObj.getInfo(receivedMessage, "Current")
+        if (returnArr == "No Current"){
+            const noSeasonEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("There is no ongoing season")
+            .setDescription("To start a new season, try !startseason\nTo see information about another season, try !seasoninfo <Season Name>")
+            generalChannel.send(noSeasonEmbed)
+        }
+        else{
+            const seasonInfo = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("Displaying Season Info about the Season named: " + returnArr._season_name)
+            .addFields(
+                {name: "Season Start", value: returnArr._season_start, inline: true},
+                {name: "Season End", value: returnArr._season_end, inline: true},
+            )
+            generalChannel.send(seasonInfo)
+        }
+    }
+    else if (args[0] == "all"){
+        let returnArr = await seasonObj.getInfo(receivedMessage, "all")
 
+        if (returnArr != ""){
+            returnArr.forEach((season)=>{
+                const seasonInfo = new Discord.MessageEmbed()
+                .setColor(messageColorGreen)
+                .setAuthor("Displaying Season Info about the Season named: " + season._season_name)
+                .addFields(
+                    {name: "Season Start", value: season._season_start, inline: true},
+                    {name: "Season End", value: season._season_end, inline: true},
+                )
+                generalChannel.send(seasonInfo)
+            })
+        }
+        else{
+            const noSeasonEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("There have been no Seasons on this server")
+            .setDescription("To start a new season, try !startseason")
+            generalChannel.send(noSeasonEmbed)
+        }
+    }
+    else{
+        let returnArr = await seasonObj.getInfo(receivedMessage, args)
+        if (returnArr == "Can't Find Season"){
+            const cantFindEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("Cannot Find Specified Season: " + args.join(' ').toString())
+            .setDescription("To find a season, try !seasoninfo <Season Name>.\nTo find information on all seasons, try !seasoninfo all")
+            generalChannel.send(cantFindEmbed)
+        }
+        else{
+            const seasonInfo = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("Displaying Season Info about the Season named: " + returnArr._season_name)
+            .addFields(
+                {name: "Season Start", value: returnArr._season_start, inline: true},
+                {name: "Season End", value: returnArr._season_end, inline: true},
+            )
+            generalChannel.send(seasonInfo)
+        }
+    }
+}
+async function endSeason(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+    const confirmEndSeason = new Discord.MessageEmbed()
+    if (currentSeason == "No Current"){
+        confirmEndSeason
+        .setColor(messageColorRed)
+        .setAuthor("There is no ongoing season")
+        .setDescription("To start a new season, try !startseason")
+        generalChannel.send(confirmEndSeason)
+    }
+    else{
+        confirmEndSeason
+        .setColor(messageColorBlue)
+        .setAuthor("WARNING: You are attempting to end the current season named: " + currentSeason._season_name)
+        .setDescription("Are you sure you want to end the current season? React below according")
+        generalChannel.send(confirmEndSeason)
+        .then(function (message, callback){
+            message.react("👍")
+            message.react("👎")
+        })
+    }
+    
+}
+async function startSeason(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await seasonObj.startSeason(receivedMessage)
+
+    if (returnArr[0] == "Season Ongoing"){
+        const ongoingEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorBlue)
+            .setTitle("There is already an ongoing Season")
+            .addFields(
+                {name: "Start Date", value: returnArr[1], inline: true}
+            )
+        if (returnArr[2] == "Not Specified"){
+            ongoingEmbed.addFields(
+                {name: "End Date", value: "No end date set", inline: true}
+            )
+            .setFooter("Looks like you don't have a set end date. \nEnd the season at any time with !endseason or set an end date in advanced with !setendseason")
+        }
+        else{
+            ongoingEmbed.addFields(
+                {name: "End Date", value: returnArr[2], inline: true}
+            )
+        }
+            ongoingEmbed
+            .addFields(
+                {name: "Season Name", value: returnArr[3], inline: true},
+                {name: "Current Date", value: returnArr[4], inline: true}
+            )
+        generalChannel.send(ongoingEmbed)
+    }
+    else if (returnArr[0] == "Successfully Saved"){
+        const startSeason = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setTitle("Successfully started a new Season")
+            .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonName - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
+            .setFooter("End the season at any time with !endseason or set an end date in advanced with !setendseason")
+            .addFields(
+                {name: "Start Date", value: returnArr[1], inline: true},
+                {name: "End Date", value: "No end date set", inline: true},
+                {name: "Season Name", value: returnArr[3], inline: true}
+            )
+        generalChannel.send(startSeason)
+    }
+    // else if (returnArr[0] == "First Season"){
+    //     const startSeason = new Discord.MessageEmbed()
+    //         .setColor(messageColorGreen)
+    //         .setAuthor("Congrats on starting your first season!")
+    //         .setTitle("Successfully started a new Season")
+    //         .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonName - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
+    //         .setFooter("End the season at any time with !endseason or set an end date in advanced with !setendseason")
+    //         .addFields(
+    //             {name: "Start Date", value: returnArr[1], inline: true},
+    //             {name: "End Date", value: "No end date set", inline: true},
+    //             {name: "Season Name", value: returnArr[3], inline: true}
+    //         )
+    //     generalChannel.send(startSeason)
+    // }
+}
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await seasonObj.leaderBoard(receivedMessage)
@@ -475,7 +632,7 @@ function listCollection(receivedMessage, args){
                     }
 
                     profileEmbed.addFields(
-                        { name: 'Deck Name', value: callbackName[i]},
+                        { name: " \u200b", value: callbackName[i]},
                         { name: 'Wins', value: callbackWins[i], inline: true },
                         { name: 'Losses', value: callbackLosses[i], inline: true },
                         { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
@@ -923,92 +1080,72 @@ async function addDeck(receivedMessage, args){
         errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link")
         generalChannel.send(errorEmbed)
     }
-
-    
-
-
-    //let promiseReturn = await deckObj.addDeck(receivedMessage, args);
-        // if (promiseReturn == "Error 1"){
-        //     addingDeckEmbed
-        //     .setColor(messageColorRed) //red
-        //     .setDescription("Deck name already used. Try !decks to see a list of in use names.")
-        // }
-        // else if (promiseReturn == "Error 2"){
-        //     addingDeckEmbed
-        //     .setColor(messageColorRed) //red
-        //     .setDescription("Unable to save to Database, please try again later.")
-        // }
-        // else if (promiseReturn == "Error 3"){
-        //     addingDeckEmbed
-        //     .setColor(messageColorRed) //red
-        //     .setDescription("Not a valid URL, please follow the format !adddeck <url> <deck name>.")
-        // }
-        // !add {Deck Nickname} | {Commander Name} | {Color Identity} | {Deck Link} | {Deck Author} | {Deck Description}
-            // promiseReturn.forEach(item => {
-            //     promiseReturnArr.push(item)
-            // });
-
-            // var grabURL = promiseReturnArr[0].toString()
-            // var grabName = promiseReturnArr[1].toString()
-            
-            // addingDeckEmbed
-            // .setTitle("Successfully uploaded new Decklist!")
-            // .setColor(messageColorGreen) //green
-            // .addFields(
-            //     { name: 'Decklist', value: "[Link]("+grabURL+")"},
-            //     { name: 'Name', value: grabName},
-            // )
-        
-            // generalChannel.send(addingDeckEmbed)   
-             
 }
 /**
  * profile()
  * @param {*} receivedMessage 
  * @param {*} args 
  */
-function profile(receivedMessage, args){
-    var generalChannel = getChannelID(receivedMessage)
-    userObj.profile(receivedMessage, args, function(callback, err){
-        var embedOutput;
-        var highest = Number.NEGATIVE_INFINITY;
-        var output;
-        var tmp;
-        for (var i= callback._deck.length-1; i>=1; i--) {
-            tmp = (callback._deck[i].Wins) + (callback._deck[i].Losses);
-            if (tmp > highest){
-                highest = tmp;
-                output = callback._deck[i]
+async function profile(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await userObj.profile(receivedMessage, args)
+    var compareDeck = 0
+    var favDeck = ""
+    var overallWins = 0
+    var overallLosses = 0
+    if (returnArr[0] == "Profile Look Up"){
+        for (i=0; i<returnArr[1].length;i++){
+            if (returnArr[1][i][1]+returnArr[1][i][2]>compareDeck) {
+                compareDeck = returnArr[1][i][1]+returnArr[1][i][2]
+                favDeck = returnArr[1][i][0]
             }
         }
-        if (output === undefined || highest == 0){
-            embedOutput = "No Data Yet."
-        }
-        else{
-            embedOutput = output.Deck
-        }
-
-        var calculatedWinrate = (callback._wins/((callback._losses)+(callback._wins)))*100
-        if (isNaN(calculatedWinrate)){
-            calculatedWinrate = 0;
-        }
-
         const profileEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-            .setURL('')
-            .addFields(
-                { name: 'User', value: callback._mentionValue, inline: true },
-                { name: 'Season', value: callback._season, inline: true },
-                { name: 'Current Deck', value: callback._currentDeck, inline: true },
-                { name: 'Current Rating', value: callback._elo, inline: true },
-                { name: 'Wins', value:  callback._wins, inline: true },
-                { name: 'Losses', value:  callback._losses, inline: true },
-                { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
-                { name: 'Favorite Deck', value: embedOutput, inline: true },
-            )
+        .setFooter("Showing information about the current season. Season name: " + returnArr[2] +". \nNote: 'Overall winrate' includes the games that are under your set threshold")
+        .addFields(
+            { name: 'User', value: returnArr[3], inline: true },
+            { name: 'Current Deck', value: returnArr[5], inline: true },
+            { name: 'Current Rating', value: returnArr[4], inline: true },
+            { name: 'Favorite Deck', value: favDeck, inline: true },
+        )
+        const decksEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setFooter("Note: The threshold to appear on this list is X games, this is configurable.")
+        returnArr[1].forEach((deck) =>{
+            overallWins = overallWins + deck[1]
+            overallLosses = overallLosses + deck[2]
+            if (deck[1] + deck[2] < 5){ }
+            else{
+                decksEmbed
+                .addFields(
+                    { name: " \u200b", value: deck[0]},
+                    { name: 'Wins', value: deck[1], inline: true },
+                    { name: 'Losses', value: deck[2], inline: true },
+                    { name: 'Win Rate', value: Math.round((deck[1]/(deck[2]+deck[1])*100)) + "%", inline: true },
+                )
+            }
+        })
+        profileEmbed
+        .addFields(
+            {name: "Overall Winrate", value: Math.round((overallWins/(overallLosses+overallWins)*100)) + "%", inline: true}
+        )
         generalChannel.send(profileEmbed)
-    });
-    
+        generalChannel.send(decksEmbed)
+    }
+    else{
+
+    }
+        
+        // const deckListEmbed = new Discord.MessageEmbed()
+        // returnArr.forEach((deck)=>{
+        //     var calculatedWinrate = (returnArr[1][1]/(returnArr[1][2])+(returnArr[1][1]))*100
+        //     if (isNaN(calculatedWinrate)){
+        //         calculatedWinrate = 0;
+        //     }
+        // })
+            
+       
 }
 /**
  * logLosers()
