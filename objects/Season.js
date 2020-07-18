@@ -14,18 +14,14 @@ module.exports = {
     startSeason(receivedMessage, args) {
         const season = require('../Schema/Seasons')
         var seasonName = "1"
-        var futureDate = new Date();
         var currentDate = new Date();
-        futureDate = new Date(futureDate.setDate(futureDate.getDate()))
-        futureDate = new Date(futureDate.setHours(17,52,30,0))
         currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
-        futureDate = futureDate.toLocaleString("en-US", {timeZone: "America/New_York"});
 
         let newSeason = {
             '_server': receivedMessage.guild.id,
             '_season_name': seasonName,
             '_season_start': currentDate,
-            '_season_end': futureDate,
+            '_season_end': "Not Specified",
             '_is_current': "yes"
         }
         let checkCurrent = {
