@@ -181,6 +181,9 @@ function processCommand(receivedMessage){
         case "top":
             top(receivedMessage)
             break;
+        case "startseason":
+            startSeason(receivedMessage, arguments)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -188,7 +191,36 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+async function startSeason(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await seasonObj.startSeason(receivedMessage)
 
+    if (returnArr[0] == "Season Ongoing"){
+        const ongoingEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorBlue)
+            .setTitle("There is already an ongoing Season")
+            .addFields(
+                {name: "Start Date", value: returnArr[1], inline: true}
+            )
+        if (returnArr[2] == "Not Specified"){
+            ongoingEmbed.addFields(
+                {name: "End Date", value: "Not end date set", inline: true}
+            )
+            .setFooter("Looks like you don't have a set end date. \nEnd the season at any time with !endseason or set an end date in advanced with !setendseason")
+        }
+        else{
+            ongoingEmbed.addFields(
+                {name: "End Date", value: returnArr[2], inline: true}
+            )
+        }
+            ongoingEmbed
+            .addFields(
+                {name: "Season Name", value: returnArr[3], inline: true},
+                {name: "Current Date", value: returnArr[4], inline: true}
+            )
+        generalChannel.send(ongoingEmbed)
+    }
+}
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await seasonObj.leaderBoard(receivedMessage)
