@@ -1599,28 +1599,28 @@ function users(receivedMessage, args){
  * @param {*} args 
  * @param {*} channel 
  */
-function register(receivedMessage, args, channel){
-    leagueObj.register(receivedMessage, function(callback,err){
-        const messageEmbed = new Discord.MessageEmbed()
-        if (callback == "1"){ 
-            messageEmbed
-            .setColor(messageColorGreen)
-            .setDescription(receivedMessage.author.username + " is now registered.")
-            channel.send(messageEmbed)
-        }
-        else if (callback == "2"){
-            messageEmbed
-            .setColor(messageColorRed)
-            .setDescription(receivedMessage.author.username + " is already registered.")
-            channel.send(messageEmbed)
-        }
-        else if (callback == "3"){
-            messageEmbed
-            .setColor(messageColorRed)
-            .setDescription("Critical Error. Try again. If problem persists, please reach out to developers.")
-            channel.send(messageEmbed)
-        }
-    })
+async function register(receivedMessage){
+    let returnArr = await leagueObj.register(receivedMessage)
+    let generalChannel = getChannelID(receivedMessage)
+    const messageEmbed = new Discord.MessageEmbed()
+    if (returnArr == "Success"){
+        messageEmbed
+        .setColor(messageColorGreen)
+        .setDescription(receivedMessage.author.username + " is now registered.")
+        generalChannel.send(messageEmbed)
+    }
+    if (returnArr == "Already Registered"){
+        messageEmbed
+        .setColor(messageColorRed)
+        .setDescription(receivedMessage.author.username + " is already registered.")
+        generalChannel.send(messageEmbed)
+    }
+    else if (returnArr == "Error"){
+        messageEmbed
+        .setColor(messageColorRed)
+        .setDescription("Critical Error. Try again. If problem persists, please reach out to developers.")
+        generalChannel.send(messageEmbed)
+    }
 }
 /**
  * helpCommand()
