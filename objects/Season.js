@@ -11,64 +11,66 @@ module.exports = {
     /**
      * Starts a new season
      */
-    startSeason(receivedMessage, args) {
+    async startSeason(receivedMessage, args) {
         const season = require('../Schema/Seasons')
         const SeasonHelper = require('../Helpers/SeasonHelper')
         var seasonName = "1"
         var currentDate = new Date();
         currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
 
-        SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        let getSeasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        
+        let checkCurrent = {
+            '_server': getSeasonReturn._server,
+            '_season_name': getSeasonReturn._season_name
+        }
+        return new Promise ((resolve, reject)=>{
+            season.findOne(checkCurrent, function(err, result){
+                console.log(getSeasonReturn._season_name)
 
-        // let checkCurrent = {
-        //     '_server': receivedMessage.guild.id
-        // }
-        // return new Promise ((resolve, reject)=>{
-        //     season.findOne(checkCurrent, function(err, result){
-                
-        //         if (err){
-        //             resolve("Error 1")
-        //         }
-        //         if (result){
-        //             if ((result._season_end == "Not Specified") || (new Date(result._season_end) >= new Date(currentDate))){
-        //                 var ongoingSeasonArr = new Array();
-        //                 ongoingSeasonArr.push("Season Ongoing", result._season_start, result._season_end, result._season_name, currentDate)
-        //                 resolve(ongoingSeasonArr)
-        //             }
-        //             else{
-        //                 let newSeason = {
-        //                     '_server': receivedMessage.guild.id,
-        //                     '_season_name': seasonName,
-        //                     '_season_start': currentDate,
-        //                     '_season_end': "Not Specified"
-        //                 }
-        //                 season(newSeason).save(function(err, otherRes){
-        //                     if (err){
-        //                         resolve("Error 2")
-        //                     }
-        //                     var seasonArr = new Array();
-        //                     seasonArr.push("saved", currentDate, "Not Specified", seasonName)
-        //                     resolve(seasonArr)
-        //                 })
-        //             }
-        //         }else{
-        //             let newSeason = {
-        //                 '_server': receivedMessage.guild.id,
-        //                 '_season_name': seasonName,
-        //                 '_season_start': currentDate,
-        //                 '_season_end': "Not Specified"
-        //             }
-        //             season(newSeason).save(function(err, otherRes){
-        //                 if (err){
-        //                     resolve("Error 2")
-        //                 }
-        //                 var seasonArr = new Array();
-        //                 seasonArr.push("saved", currentDate, "Not Specified", seasonName)
-        //                 resolve(seasonArr)
-        //             })
-        //         }
-        //     })
-        // })
+                if (err){
+                    resolve("Error 1")
+                }
+                if (result){
+                    if ((result._season_end == "Not Specified") || (new Date(result._season_end) >= new Date(currentDate))){
+                        var ongoingSeasonArr = new Array();
+                        ongoingSeasonArr.push("Season Ongoing", result._season_start, result._season_end, result._season_name, currentDate)
+                        resolve(ongoingSeasonArr)
+                    }
+                    else{
+                        let newSeason = {
+                            '_server': receivedMessage.guild.id,
+                            '_season_name': seasonName,
+                            '_season_start': currentDate,
+                            '_season_end': "Not Specified"
+                        }
+                        season(newSeason).save(function(err, otherRes){
+                            if (err){
+                                resolve("Error 2")
+                            }
+                            var seasonArr = new Array();
+                            seasonArr.push("saved", currentDate, "Not Specified", seasonName)
+                            resolve(seasonArr)
+                        })
+                    }
+                }else{
+                    let newSeason = {
+                        '_server': receivedMessage.guild.id,
+                        '_season_name': seasonName,
+                        '_season_start': currentDate,
+                        '_season_end': "Not Specified"
+                    }
+                    season(newSeason).save(function(err, otherRes){
+                        if (err){
+                            resolve("Error 2")
+                        }
+                        var seasonArr = new Array();
+                        seasonArr.push("saved", currentDate, "Not Specified", seasonName)
+                        resolve(seasonArr)
+                    })
+                }
+            })
+        })
     },
 
     /**

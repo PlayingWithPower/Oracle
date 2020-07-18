@@ -15,15 +15,23 @@ module.exports = {
         return new Promise((resolve, reject)=>{
             season.find(query,function(err, res){
                 res.forEach((entry) =>{
+                    console.log(entry._season_end)
                     if ((entry._season_end == "Not Specified") || (new Date(entry._season_end) >= new Date(currentDate))){
-                        currentSeasonObj = res
+                        currentSeasonObj = entry
                     }
                 })
-                if (currentSeasonObj._season_end !== undefined){
-                    console.log(currentSeasonObj)
+            }).then(function(){
+                if (currentSeasonObj !== undefined){
+                    resolve(currentSeasonObj)
                 }
+                else{
+                    console.log("no current")
+                    currentSeasonObj = "No Current"
+                    resolve(currentSeasonObj)
+                }
+                
             })
-            resolve(currentSeasonObj)
+            
         })
         
     }
