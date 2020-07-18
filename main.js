@@ -18,6 +18,7 @@ const userObj = require('./objects/User')
 const FunctionHelper = require('./Helpers/FunctionHelper')
 const DeckHelper = require('./Helpers/DeckHelper')
 const ManageReactHelper = require('./Helpers/ManageReactionHelper')
+const SeasonHelper = require('./Helpers/SeasonHelper')
 
 //Bot prefix
 const botListeningPrefix = "!";
@@ -184,12 +185,39 @@ function processCommand(receivedMessage){
         case "startseason":
             startSeason(receivedMessage, arguments)
             break;
+        case "endseason":
+            endSeason(receivedMessage, arguments)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
+}
+async function endSeason(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+    const confirmEndSeason = new Discord.MessageEmbed()
+    if (currentSeason == "No Current"){
+        confirmEndSeason
+        .setColor(messageColorRed)
+        .setAuthor("There is no ongoing season")
+        .setDescription("To start a new season, try !startseason")
+        generalChannel.send(confirmEndSeason)
+    }
+    else{
+        confirmEndSeason
+        .setColor(messageColorBlue)
+        .setAuthor("WARNING: You are attempting to end the current season named: " + currentSeason._season_name)
+        .setDescription("Are you sure you want to end the current season? React below according")
+        generalChannel.send(confirmEndSeason)
+        .then(function (message, callback){
+            message.react("👍")
+            message.react("👎")
+        })
+    }
+    
 }
 async function startSeason(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
@@ -233,20 +261,20 @@ async function startSeason(receivedMessage, args){
             )
         generalChannel.send(startSeason)
     }
-    else if (returnArr[0] == "First Season"){
-        const startSeason = new Discord.MessageEmbed()
-            .setColor(messageColorGreen)
-            .setAuthor("Congrats on starting your first season!")
-            .setTitle("Successfully started a new Season")
-            .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonName - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
-            .setFooter("End the season at any time with !endseason or set an end date in advanced with !setendseason")
-            .addFields(
-                {name: "Start Date", value: returnArr[1], inline: true},
-                {name: "End Date", value: "No end date set", inline: true},
-                {name: "Season Name", value: returnArr[3], inline: true}
-            )
-        generalChannel.send(startSeason)
-    }
+    // else if (returnArr[0] == "First Season"){
+    //     const startSeason = new Discord.MessageEmbed()
+    //         .setColor(messageColorGreen)
+    //         .setAuthor("Congrats on starting your first season!")
+    //         .setTitle("Successfully started a new Season")
+    //         .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonName - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
+    //         .setFooter("End the season at any time with !endseason or set an end date in advanced with !setendseason")
+    //         .addFields(
+    //             {name: "Start Date", value: returnArr[1], inline: true},
+    //             {name: "End Date", value: "No end date set", inline: true},
+    //             {name: "Season Name", value: returnArr[3], inline: true}
+    //         )
+    //     generalChannel.send(startSeason)
+    // }
 }
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)

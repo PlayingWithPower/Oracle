@@ -1,5 +1,4 @@
-const { resolve } = require('path')
-const { rejects } = require('assert')
+const { currentDeck } = require('./User');
 
 /**
  * Season Object
@@ -64,7 +63,7 @@ module.exports = {
                             resolve("Error 2")
                         }
                         var seasonArr = new Array();
-                        seasonArr.push("First Season", currentDate, "Not Specified", seasonName)
+                        seasonArr.push("Successfully Saved", currentDate, "Not Specified", seasonName)
                         resolve(seasonArr)
                     })
                 }
@@ -75,8 +74,23 @@ module.exports = {
     /**
      * Ends the current Season
      */
-    endSeason() {
+    async endSeason(receivedMessage, args) {
+        const season = require('../Schema/Seasons')
+        const SeasonHelper = require('../Helpers/SeasonHelper')
 
+        var currentDate = new Date()
+        currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
+
+        let currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        return new Promise((resolve, reject)=>{
+            season.updateOne(currentSeason, {$set: {_season_end: currentDate}}, function (err, deckUpdateRes){
+                if (deckUpdateRes){
+                    var resolveArr = new Array()
+                    resolveArr.push("Success", currentSeason, currentDate)
+                    resolve(resolveArr)
+                }
+            })
+        })
     },
 
     /**
