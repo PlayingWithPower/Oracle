@@ -1093,7 +1093,14 @@ async function profile(receivedMessage, args){
     var favDeck = ""
     var overallWins = 0
     var overallLosses = 0
-    if (returnArr[0] == "Profile Look Up"){
+    if (returnArr == "Can't find user"){
+        const errorUserEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setDescription("Cannot find specified user: " + "<@!"+ receivedMessage.author.id +">")
+        .setFooter("User is not registered for this league. Have them type !register")
+        generalChannel.send(errorUserEmbed)
+    }
+    else if (returnArr[0] == "Profile Look Up"){
         for (i=0; i<returnArr[1].length;i++){
             if (returnArr[1][i][1]+returnArr[1][i][2]>compareDeck) {
                 compareDeck = returnArr[1][i][1]+returnArr[1][i][2]
@@ -1132,20 +1139,7 @@ async function profile(receivedMessage, args){
         )
         generalChannel.send(profileEmbed)
         generalChannel.send(decksEmbed)
-    }
-    else{
-
-    }
-        
-        // const deckListEmbed = new Discord.MessageEmbed()
-        // returnArr.forEach((deck)=>{
-        //     var calculatedWinrate = (returnArr[1][1]/(returnArr[1][2])+(returnArr[1][1]))*100
-        //     if (isNaN(calculatedWinrate)){
-        //         calculatedWinrate = 0;
-        //     }
-        // })
-            
-       
+    }  
 }
 /**
  * logLosers()

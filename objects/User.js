@@ -9,7 +9,6 @@ const Deck = require('../Schema/Deck')
 const User = require('../Schema/Users')
 const Matches = require('../Schema/Games')
 const DeckHelper = require('../Helpers/DeckHelper')
-const { lookup } = require('dns')
 
 module.exports = {
 
@@ -98,9 +97,14 @@ module.exports = {
                 }
             }).then(function(){
                 let query = {_server: receivedMessage.guild.id, _season: currentSeason, _mentionValue: lookUpID}
-                User.find(query,function(err, res){
-                    passedArray.push(res[0]._elo, res[0]._currentDeck)
-                    resolve(passedArray)
+                User.findOne(query,function(err, res){
+                    if (res){
+                        passedArray.push(res._elo, res._currentDeck)
+                        resolve(passedArray)
+                    }
+                    else{
+                        resolve("Can't find user")
+                    }
                 })
             })
         })
