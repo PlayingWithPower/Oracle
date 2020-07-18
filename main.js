@@ -31,7 +31,6 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose');
-const { getInfo } = require('./objects/League');
 
 client.login(config.discordKey)
 
@@ -192,11 +191,45 @@ function processCommand(receivedMessage){
         case "seasoninfo":
             seasonInfo(receivedMessage, arguments)
             break;
+        case "setendseason":
+            setEndSeason(receivedMessage, arguments)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+    }
+}
+async function setEndSeason(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage, args)
+    if (args[0].length > 8){
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("You have entered a non-valid date")
+        .setDescription("Please type in the format: \nMM/DD/YY")
+        generalChannel.send(errorEmbed)
+        return
+    }
+
+    var date = new Date(args)
+    if (date instanceof Date && !isNaN(date.valueOf())) {
+       let returnArr = await seasonObj.setEndDate(receivedMessage, date)
+       if (returnArr[0] == "Success"){
+            date = date.toLocaleString("en-US", {timeZone: "America/New_York"});
+            const successEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("You have successfully set the end date for the current Season named: " + returnArr[1])
+            .setTitle("End time has been set to: " + date)
+            generalChannel.send(successEmbed)
+       }
+    }
+    else{
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("You have entered a non-valid date")
+        .setDescription("Please type in the format: \nMM/DD/YY")
+        generalChannel.send(errorEmbed)
     }
 }
 async function seasonInfo(receivedMessage, args){
@@ -1093,7 +1126,14 @@ async function profile(receivedMessage, args){
     var favDeck = ""
     var overallWins = 0
     var overallLosses = 0
-    if (returnArr[0] == "Profile Look Up"){
+    if (returnArr == "Can't find user"){
+        const errorUserEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setDescription("Cannot find specified user: " + args)
+        .setFooter("User is not registered for this league. Have them type !register")
+        generalChannel.send(errorUserEmbed)
+    }
+    else if (returnArr[0] == "Profile Look Up"){
         for (i=0; i<returnArr[1].length;i++){
             if (returnArr[1][i][1]+returnArr[1][i][2]>compareDeck) {
                 compareDeck = returnArr[1][i][1]+returnArr[1][i][2]
@@ -1132,20 +1172,7 @@ async function profile(receivedMessage, args){
         )
         generalChannel.send(profileEmbed)
         generalChannel.send(decksEmbed)
-    }
-    else{
-
-    }
-        
-        // const deckListEmbed = new Discord.MessageEmbed()
-        // returnArr.forEach((deck)=>{
-        //     var calculatedWinrate = (returnArr[1][1]/(returnArr[1][2])+(returnArr[1][1]))*100
-        //     if (isNaN(calculatedWinrate)){
-        //         calculatedWinrate = 0;
-        //     }
-        // })
-            
-       
+    }  
 }
 /**
  * logLosers()
@@ -1605,28 +1632,28 @@ function users(receivedMessage, args){
  * @param {*} args 
  * @param {*} channel 
  */
-function register(receivedMessage, args, channel){
-    leagueObj.register(receivedMessage, function(callback,err){
-        const messageEmbed = new Discord.MessageEmbed()
-        if (callback == "1"){ 
-            messageEmbed
-            .setColor(messageColorGreen)
-            .setDescription(receivedMessage.author.username + " is now registered.")
-            channel.send(messageEmbed)
-        }
-        else if (callback == "2"){
-            messageEmbed
-            .setColor(messageColorRed)
-            .setDescription(receivedMessage.author.username + " is already registered.")
-            channel.send(messageEmbed)
-        }
-        else if (callback == "3"){
-            messageEmbed
-            .setColor(messageColorRed)
-            .setDescription("Critical Error. Try again. If problem persists, please reach out to developers.")
-            channel.send(messageEmbed)
-        }
-    })
+async function register(receivedMessage){
+    let returnArr = await leagueObj.register(receivedMessage)
+    let generalChannel = getChannelID(receivedMessage)
+    const messageEmbed = new Discord.MessageEmbed()
+    if (returnArr == "Success"){
+        messageEmbed
+        .setColor(messageColorGreen)
+        .setDescription(receivedMessage.author.username + " is now registered.")
+        generalChannel.send(messageEmbed)
+    }
+    if (returnArr == "Already Registered"){
+        messageEmbed
+        .setColor(messageColorRed)
+        .setDescription(receivedMessage.author.username + " is already registered.")
+        generalChannel.send(messageEmbed)
+    }
+    else if (returnArr == "Error"){
+        messageEmbed
+        .setColor(messageColorRed)
+        .setDescription("Critical Error. Try again. If problem persists, please reach out to developers.")
+        generalChannel.send(messageEmbed)
+    }
 }
 /**
  * helpCommand()
