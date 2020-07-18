@@ -204,7 +204,7 @@ async function startSeason(receivedMessage, args){
             )
         if (returnArr[2] == "Not Specified"){
             ongoingEmbed.addFields(
-                {name: "End Date", value: "Not end date set", inline: true}
+                {name: "End Date", value: "No end date set", inline: true}
             )
             .setFooter("Looks like you don't have a set end date. \nEnd the season at any time with !endseason or set an end date in advanced with !setendseason")
         }
@@ -219,6 +219,33 @@ async function startSeason(receivedMessage, args){
                 {name: "Current Date", value: returnArr[4], inline: true}
             )
         generalChannel.send(ongoingEmbed)
+    }
+    else if (returnArr[0] == "Successfully Saved"){
+        const startSeason = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setTitle("Successfully started a new Season")
+            .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonName - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
+            .setFooter("End the season at any time with !endseason or set an end date in advanced with !setendseason")
+            .addFields(
+                {name: "Start Date", value: returnArr[1], inline: true},
+                {name: "End Date", value: "No end date set", inline: true},
+                {name: "Season Name", value: returnArr[3], inline: true}
+            )
+        generalChannel.send(startSeason)
+    }
+    else if (returnArr[0] == "First Season"){
+        const startSeason = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("Congrats on starting your first season!")
+            .setTitle("Successfully started a new Season")
+            .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonName - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
+            .setFooter("End the season at any time with !endseason or set an end date in advanced with !setendseason")
+            .addFields(
+                {name: "Start Date", value: returnArr[1], inline: true},
+                {name: "End Date", value: "No end date set", inline: true},
+                {name: "Season Name", value: returnArr[3], inline: true}
+            )
+        generalChannel.send(startSeason)
     }
 }
 async function top(receivedMessage){

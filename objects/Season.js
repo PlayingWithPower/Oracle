@@ -14,25 +14,24 @@ module.exports = {
     async startSeason(receivedMessage, args) {
         const season = require('../Schema/Seasons')
         const SeasonHelper = require('../Helpers/SeasonHelper')
-        var seasonName = "1"
         var currentDate = new Date();
         currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
 
         let getSeasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
-        
+        let newSeasonNameReturn = await SeasonHelper.newSeasonName(receivedMessage.guild.id)
+        var seasonName = newSeasonNameReturn.toString()
+
         let checkCurrent = {
             '_server': getSeasonReturn._server,
             '_season_name': getSeasonReturn._season_name
         }
         return new Promise ((resolve, reject)=>{
             season.findOne(checkCurrent, function(err, result){
-                console.log(getSeasonReturn._season_name)
-
                 if (err){
                     resolve("Error 1")
                 }
                 if (result){
-                    if ((result._season_end == "Not Specified") || (new Date(result._season_end) >= new Date(currentDate))){
+                    if ((result._season_end == "Not Specified") || (new Date(result._season_end) >= currentDate)){
                         var ongoingSeasonArr = new Array();
                         ongoingSeasonArr.push("Season Ongoing", result._season_start, result._season_end, result._season_name, currentDate)
                         resolve(ongoingSeasonArr)
@@ -48,9 +47,9 @@ module.exports = {
                             if (err){
                                 resolve("Error 2")
                             }
-                            var seasonArr = new Array();
-                            seasonArr.push("saved", currentDate, "Not Specified", seasonName)
-                            resolve(seasonArr)
+                            var successSave = new Array();
+                            successSave.push("Successfully Saved", currentDate, "Not Specified", seasonName)
+                            resolve(successSave)
                         })
                     }
                 }else{
@@ -65,7 +64,7 @@ module.exports = {
                             resolve("Error 2")
                         }
                         var seasonArr = new Array();
-                        seasonArr.push("saved", currentDate, "Not Specified", seasonName)
+                        seasonArr.push("First Season", currentDate, "Not Specified", seasonName)
                         resolve(seasonArr)
                     })
                 }
