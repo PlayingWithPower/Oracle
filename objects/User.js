@@ -6,21 +6,103 @@
 
 const Alias = require('../Schema/Alias')
 const Deck = require('../Schema/Deck')
-const { User } = require('discord.js')
+const User = require('../Schema/Users')
+const Matches = require('../Schema/Games')
+const DeckHelper = require('../Helpers/DeckHelper')
+const { lookup } = require('dns')
 
 module.exports = {
 
     /**
      * Get user league profile
      */
-    profile(receivedMessage, args, callback) {
-        const user = require('../Schema/Users')
-        let query = {
-            _mentionValue: "<@!"+receivedMessage.author.id+">",
-            _server: receivedMessage.guild.id
-        }
-        user.findOne(query, function(err, res){
-            callback(res)
+    profile(receivedMessage, args) {
+        
+        var currentSeason = "1" //UPDATE ME
+        var lookUpID
+        return new Promise((resolve, reject)=>{
+            if (typeof args[0] === 'undefined'){
+                args[0] = "Not Defined"
+                lookUpID = "<@!" + receivedMessage.author.id + ">"
+                console.log("no argument provided")
+            }
+            else{
+                lookUpID = args[0]
+            }
+            var conditionalQuery
+            var passingResult
+            var passedArray = new Array()
+            
+            //Query
+            if (args[0] == "Not Defined"){
+                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
+                    [
+                    {_player1: "<@!"+receivedMessage.author.id+">"}, 
+                    {_player2: "<@!"+receivedMessage.author.id+">"},
+                    {_player3: "<@!"+receivedMessage.author.id+">"},
+                    {_player4: "<@!"+receivedMessage.author.id+">"},
+                    ]
+                }
+            }
+            else{
+                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
+                    [
+                    {_player1: args[0]}, 
+                    {_player2: args[0]},
+                    {_player3: args[0]},
+                    {_player4: args[0]},
+                    ]
+                }
+            }
+            Matches.find(conditionalQuery, function(err, res){
+                if (res){
+                    passingResult = res
+                }
+                else{
+                    resolve("Error 1")
+                }
+            }).then(function(passingResult){
+                if (passingResult != ""){
+                    var matchResults = []
+                    for (var i=0; i <passingResult.length; i++){
+                        var exists = matchResults.find(el => el[0] === passingResult[i]._player1Deck)
+                        if (exists) {
+                            exists[1] += 1;
+                          } else {
+                            matchResults.push([passingResult[i]._player1Deck, 1, 0]);
+                          }
+                        var exists2 = matchResults.find(el => el[0] === passingResult[i]._player2Deck)
+                        if (exists2) {
+                            exists2[2] += 1;
+                            } else {
+                            matchResults.push([passingResult[i]._player2Deck, 0, 1]);
+                            } 
+                        var exists3 = matchResults.find(el => el[0] === passingResult[i]._player3Deck)
+                        if (exists3) {
+                            exists3[2] += 1;
+                            } else {
+                            matchResults.push([passingResult[i]._player3Deck, 0, 1]);
+                            }
+                        var exists4 = matchResults.find(el => el[0] === passingResult[i]._player4Deck)
+                        if (exists4) {
+                            exists4[2] += 1;
+                            } else {
+                            matchResults.push([passingResult[i]._player4Deck, 0, 1]);
+                            }
+                    }
+                    passedArray.push("Profile Look Up",matchResults, currentSeason, lookUpID)
+                   
+                }
+                else{
+                    resolve("Can't find user")
+                }
+            }).then(function(){
+                let query = {_server: receivedMessage.guild.id, _season: currentSeason, _mentionValue: lookUpID}
+                User.find(query,function(err, res){
+                    passedArray.push(res[0]._elo, res[0]._currentDeck)
+                    resolve(passedArray)
+                })
+            })
         })
     },
     sortFunction(a, b) {
