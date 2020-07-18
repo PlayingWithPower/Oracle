@@ -1,6 +1,6 @@
-const { User } = require('discord.js')
-const { find } = require('../Schema/Users')
-
+const user = require('../Schema/Users')
+const SeasonHelper = require('../Helpers/SeasonHelper')
+const Season = require('./Season')
 /**
  * League Object
  *
@@ -25,9 +25,8 @@ module.exports = {
     /**
      * Register a new user to the league.
      */
-    register(receivedMessage, callback) {
-        const user = require('../Schema/Users')
-
+    register(receivedMessage) {
+        let currentSeason = SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         let findQuery = {
             _mentionValue: "<@!" + receivedMessage.author.id+ ">",
             _server: receivedMessage.guild.id,
@@ -35,7 +34,6 @@ module.exports = {
         let toSave = {
             _mentionValue: "<@!" + receivedMessage.author.id+ ">",
             _server: receivedMessage.guild.id,
-            _season: "1", 
             _name : receivedMessage.author.username, 
             _currentDeck: "None", 
             _elo : 1000, _wins : 0, _losses : 0,
@@ -46,23 +44,23 @@ module.exports = {
                 Losses:1
             }
         }
-        //console.log(receivedMessage.guild.id)
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                callback("2")
-            }
-            else{
-               user(toSave).save(function(error, result){
-                    if(result){
-                        callback("1")
-                    }
-                    else {
-                        callback("3")
-                    }
-                })
-            }
+        return new Promise((resolve, reject)=>{
+            user.findOne(findQuery, function(err, res){
+                if (res){
+                    resolve("Already Registered")
+                }
+                else{
+                   user(toSave).save(function(error, result){
+                        if(result){
+                            resolve("Success")
+                        }
+                        else {
+                            resolve("Error")
+                        }
+                    })
+                }
+            })
         })
-       
     },
 
     /**

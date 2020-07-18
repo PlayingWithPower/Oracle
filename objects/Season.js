@@ -3,14 +3,15 @@
  *
  * Season commands and data
  */
+const season = require('../Schema/Seasons')
+const user = require('../Schema/Users')
+const SeasonHelper = require('../Helpers/SeasonHelper')
 module.exports = {
 
     /**
      * Starts a new season
      */
     async startSeason(receivedMessage, args) {
-        const season = require('../Schema/Seasons')
-        const SeasonHelper = require('../Helpers/SeasonHelper')
         var currentDate = new Date();
         currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
 
@@ -73,15 +74,12 @@ module.exports = {
      * Ends the current Season
      */
     async endSeason(receivedMessage, args) {
-        const season = require('../Schema/Seasons')
-        const SeasonHelper = require('../Helpers/SeasonHelper')
-
         var currentDate = new Date()
         currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
 
         let currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         return new Promise((resolve, reject)=>{
-            season.updateOne(currentSeason, {$set: {_season_end: currentDate}}, function (err, deckUpdateRes){
+            season.updateOne(currentSeason, {$set: {_season_end: currentDate}}, function (err, seasonUpdateRes){
                 if (deckUpdateRes){
                     var resolveArr = new Array()
                     resolveArr.push("Success", currentSeason, currentDate)
@@ -103,17 +101,24 @@ module.exports = {
      * Sets a pre-determined end date for the season.  This creates an "automatic end" of the league, without having
      * to manually end it.
      */
-    setEndDate() {
-
+    async setEndDate(receivedMessage, date) {
+        let currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        date = date.toLocaleString("en-US", {timeZone: "America/New_York"});
+        return new Promise((resolve, reject)=>{
+            season.updateOne(currentSeason, {$set: {_season_end: date}}, function (err, seasonUpdateRes){
+                if (seasonUpdateRes){
+                    let resolveArr = new Array()
+                    resolveArr.push("Success", currentSeason._season_name)
+                    resolve(resolveArr)
+                }
+            })
+        })
     },
 
     /**
      * Summary info for the season
      */
     async getInfo(receivedMessage, args) {
-        const season = require('../Schema/Seasons')
-        const SeasonHelper = require('../Helpers/SeasonHelper')
-        
         if (args == "Current"){
             let seasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
             return new Promise((resolve, reject)=>{
@@ -154,7 +159,6 @@ module.exports = {
      * Top games, score, winrate
      */
     leaderBoard(receivedMessage) {
-        const user = require('../Schema/Users')
         let userQuery = {_server: receivedMessage.guild.id}
 
         return new Promise((resolve,reject)=>{
@@ -174,7 +178,6 @@ module.exports = {
      * Helper function. May not be needed
      */
     setSeasonName(){
-
     },
     /**
      * Updates the name of a season
