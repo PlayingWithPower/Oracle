@@ -926,6 +926,8 @@ async function profile(receivedMessage, args){
     let returnArr = await userObj.profile(receivedMessage, args)
     var compareDeck = 0
     var favDeck = ""
+    var overallWins = 0
+    var overallLosses = 0
     if (returnArr[0] == "Profile Look Up"){
         for (i=0; i<returnArr[1].length;i++){
             if (returnArr[1][i][1]+returnArr[1][i][2]>compareDeck) {
@@ -935,7 +937,7 @@ async function profile(receivedMessage, args){
         }
         const profileEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-        .setFooter("Showing information about the current season. Season name: " + returnArr[2])
+        .setFooter("Showing information about the current season. Season name: " + returnArr[2] +". \nNote: 'Overall winrate' includes the games that are under your set threshold")
         .addFields(
             { name: 'User', value: returnArr[3], inline: true },
             { name: 'Current Deck', value: returnArr[5], inline: true },
@@ -946,6 +948,8 @@ async function profile(receivedMessage, args){
         .setColor(messageColorBlue)
         .setFooter("Note: The threshold to appear on this list is X games, this is configurable.")
         returnArr[1].forEach((deck) =>{
+            overallWins = overallWins + deck[1]
+            overallLosses = overallLosses + deck[2]
             if (deck[1] + deck[2] < 5){ }
             else{
                 decksEmbed
@@ -957,6 +961,10 @@ async function profile(receivedMessage, args){
                 )
             }
         })
+        profileEmbed
+        .addFields(
+            {name: "Overall Winrate", value: Math.round((overallWins/(overallLosses+overallWins)*100)) + "%", inline: true}
+        )
         generalChannel.send(profileEmbed)
         generalChannel.send(decksEmbed)
     }
