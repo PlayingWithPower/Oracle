@@ -236,8 +236,11 @@ async function deckinfo(receivedMessage, args){
     }
     else{
         let fixedColors = returnArr._colors.replace(/,/g, ' ');
-        if (returnArr._link == "No Link Provided"){
+        if ((returnArr._link == "No Link Provided")||(returnArr._link == "")){
             returnArr._link = " "
+        }
+        if ((returnArr._discordLink == "")){
+            returnArr._discordLink = "No Link Provided"
         }
         const resultEmbed = new Discord.MessageEmbed()
             .setColor(messageColorGreen)
