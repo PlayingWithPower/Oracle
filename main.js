@@ -31,7 +31,6 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose');
-const { getInfo } = require('./objects/League');
 
 client.login(config.discordKey)
 
@@ -192,11 +191,45 @@ function processCommand(receivedMessage){
         case "seasoninfo":
             seasonInfo(receivedMessage, arguments)
             break;
+        case "setendseason":
+            setEndSeason(receivedMessage, arguments)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+    }
+}
+async function setEndSeason(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage, args)
+    if (args[0].length > 8){
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("You have entered a non-valid date")
+        .setDescription("Please type in the format: \nMM/DD/YY")
+        generalChannel.send(errorEmbed)
+        return
+    }
+
+    var date = new Date(args)
+    if (date instanceof Date && !isNaN(date.valueOf())) {
+       let returnArr = await seasonObj.setEndDate(receivedMessage, date)
+       if (returnArr[0] == "Success"){
+            date = date.toLocaleString("en-US", {timeZone: "America/New_York"});
+            const successEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("You have successfully set the end date for the current Season named: " + returnArr[1])
+            .setTitle("End time has been set to: " + date)
+            generalChannel.send(successEmbed)
+       }
+    }
+    else{
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("You have entered a non-valid date")
+        .setDescription("Please type in the format: \nMM/DD/YY")
+        generalChannel.send(errorEmbed)
     }
 }
 async function seasonInfo(receivedMessage, args){
