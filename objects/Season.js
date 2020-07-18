@@ -178,7 +178,6 @@ module.exports = {
      * Helper function. May not be needed
      */
     setSeasonName(){
-
     },
     /**
      * Updates the name of a season
