@@ -1,10 +1,4 @@
 const Discord = require('discord.js')
-const { resolve } = require('path')
-const { rejects } = require('assert')
-const { currentDeck } = require('../objects/User')
-
-
-
 module.exports = {
     async getCurrentSeason(guild){
         const season = require('../Schema/Seasons')
