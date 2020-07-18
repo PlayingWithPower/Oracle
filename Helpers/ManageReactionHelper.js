@@ -10,6 +10,7 @@ const messageColorBlue = "#0099ff"
 const deckObj = require('../objects/Deck')
 const gameObj = require('../objects/Game')
 const DeckHelper = require('./DeckHelper')
+const seasonObj = require('../objects/Season')
 
 module.exports = {
 /**
@@ -675,6 +676,29 @@ module.exports = {
             const editedWarningEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
                 .setTitle("Add Deck Cancelled")
+            reaction.message.edit(editedWarningEmbed);
+        }
+        //End of Add Deck Block
+        //Start of End Season Block
+        else if ((embeds.length > 4 && embeds[0] == "WARNING:"&& reaction.emoji.name === '👍' && user.id != "717073766030508072")){
+            let returnArr = await seasonObj.endSeason(reaction.message)
+            const successEditedEmbed = new Discord.MessageEmbed()
+            if (returnArr[0] == "Success"){
+                successEditedEmbed
+                .setAuthor("Successfully Ended Current Season")
+                .setColor(messageColorGreen)
+                .addFields(
+                    {name: "Season Name", value: returnArr[1]._season_name,inline: true},
+                    {name: "Season Start Date", value: returnArr[1]._season_start,inline: true},
+                    {name: "Season End Date", value: returnArr[2],inline: true}
+                )
+                reaction.message.edit(successEditedEmbed);
+            }
+        }
+        else if ((embeds.length > 4 && embeds[0] == "WARNING:"&& reaction.emoji.name === '👎' && user.id != "717073766030508072")){
+            const editedWarningEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorRed)
+                .setTitle("End Season Cancelled")
             reaction.message.edit(editedWarningEmbed);
         }
         else {
