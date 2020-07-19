@@ -191,6 +191,8 @@ function processCommand(receivedMessage){
         case "setendseason":
             setEndSeason(receivedMessage, arguments)
             break;
+        case "setconfigs":
+            configSet(receivedMessage, arguments)
         case "setseasonname":
             setSeasonName(receivedMessage, arguments)
             break;
@@ -201,6 +203,43 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+async function configSet(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await leagueObj.configSet(receivedMessage, args)
+    if (returnArr == "Invalid Input"){
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Error: Incorrect Input")
+        .setDescription("Please retry entering your config. I understand the format: \n\
+        !setconfig Player Threshold (A Number) | Deck Threshold (A Number) | Timeout (A Number in minutes less than 60) | Admin (A List of roles separated by commas)\n\
+        Confused on what these mean? Try !help setconfigs\n\
+        Example input: !setconfig 10 | 10 | 20 | Admin, Moderator, Owner")
+        .setFooter("These values are set by default when you begin your first season. This command is to fine tune that information.")
+        generalChannel.send(errorEmbed)
+    }
+    else if (returnArr == "Error"){
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Error")
+        .setDescription("An Error has occurred, please try again")
+        generalChannel.send(errorEmbed)
+    }
+    else if (returnArr[0] == "Updated"){
+        const updatedEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorGreen)
+        .setAuthor("Succesfully updated your configs")
+        .addFields(
+            {name: "Player Threshold", value: returnArr[1]},
+            {name: "Deck Threshold", value: returnArr[2]},
+            {name: "Timeout", value: returnArr[3]},
+            {name: "Admin Privileges", value: returnArr[4]}
+        )
+        generalChannel.send(updatedEmbed)
+        
+    }
+    else {
+        console.log(parseInt(args[2]))
+    }
 async function setSeasonName(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     if (args[0] === undefined){
@@ -235,7 +274,6 @@ async function setSeasonName(receivedMessage, args){
             generalChannel.send(successEmbed)
         }
     }
-
 }
 async function setEndSeason(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
@@ -404,20 +442,6 @@ async function startSeason(receivedMessage, args){
             )
         generalChannel.send(startSeason)
     }
-    // else if (returnArr[0] == "First Season"){
-    //     const startSeason = new Discord.MessageEmbed()
-    //         .setColor(messageColorGreen)
-    //         .setAuthor("Congrats on starting your first season!")
-    //         .setTitle("Successfully started a new Season")
-    //         .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonName - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
-    //         .setFooter("End the season at any time with !endseason or set an end date in advanced with !setendseason")
-    //         .addFields(
-    //             {name: "Start Date", value: returnArr[1], inline: true},
-    //             {name: "End Date", value: "No end date set", inline: true},
-    //             {name: "Season Name", value: returnArr[3], inline: true}
-    //         )
-    //     generalChannel.send(startSeason)
-    // }
 }
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
