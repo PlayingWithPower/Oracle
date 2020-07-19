@@ -346,9 +346,12 @@ module.exports = {
             })
         })
     },
-    createMatch(player1, player2, player3, player4, id, receivedMessage, callback) {
+    async createMatch(player1, player2, player3, player4, id, receivedMessage, callback) {
         const game = require('../Schema/Games')
         const user = require('../Schema/Users')
+        const SeasonHelper = require('../Helpers/SeasonHelper')
+        var currentSeasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        var currentSeasonName = currentSeasonObj._season_name
 
         let deck1
         let deck2
@@ -371,7 +374,7 @@ module.exports = {
             game({
                     _match_id: id, 
                     _server: receivedMessage.guild.id, 
-                    _season: "1", 
+                    _season: currentSeasonName, 
                     _player1: player1, 
                     _player2: player2, 
                     _player3: player3, 

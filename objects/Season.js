@@ -6,6 +6,9 @@
 const season = require('../Schema/Seasons')
 const user = require('../Schema/Users')
 const config = require('../Schema/Config')
+const match = require('../Schema/Games')
+const deck = require('../Schema/Deck')
+const deckObj = require('../objects/Deck')
 const SeasonHelper = require('../Helpers/SeasonHelper')
 module.exports = {
 
@@ -19,6 +22,7 @@ module.exports = {
         let getSeasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         let newSeasonNameReturn = await SeasonHelper.newSeasonName(receivedMessage.guild.id)
         var seasonName = newSeasonNameReturn.toString()
+        let populateDecks = await deckObj.setUpPopulate(receivedMessage, seasonName)
 
         let checkCurrent = {
             '_server': getSeasonReturn._server,
@@ -81,7 +85,7 @@ module.exports = {
         let currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         return new Promise((resolve, reject)=>{
             season.updateOne(currentSeason, {$set: {_season_end: currentDate}}, function (err, seasonUpdateRes){
-                if (deckUpdateRes){
+                if (seasonUpdateRes){
                     var resolveArr = new Array()
                     resolveArr.push("Success", currentSeason, currentDate)
                     resolve(resolveArr)
@@ -126,12 +130,12 @@ module.exports = {
                 resolve(seasonReturn)
             })
         }
-        else if (args[0].toLowerCase() == "all"){
+        
+        else if (args.toLowerCase() == "all"){
             return new Promise((resolve, reject)=>{
                 let query = {_server: receivedMessage.guild.id}
                 season.find(query, function(err,res){
                     if (res){
-                        console.log(res)
                         resolve(res)
                     }
                     else{
@@ -178,7 +182,39 @@ module.exports = {
      * Sets the season name
      * Helper function. May not be needed
      */
-    setSeasonName(){
+    async setSeasonName(receivedMessage, args){
+        let currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        return new Promise((resolve, reject)=>{
+            if (currentSeason != "No Current"){
+                season.findOne({_server: receivedMessage.guild.id,_season_name: args.join(' ')}, function(err, res){
+                    if (res){
+                        resolve("Name in use")
+                    }else{
+                        season.updateOne(currentSeason, {$set: {_season_name: args.join(' ')}}, function (err, seasonUpdateRes){
+                            if (seasonUpdateRes){
+                                let updateMatches = {
+                                    _server: receivedMessage.guild.id,
+                                    _season: currentSeason._season_name
+                                }
+                                match.updateMany(updateMatches, {$set: {_season: args.join(' ')}}, function (err, matchUpdateRes){
+                                    if (matchUpdateRes){
+                                        deck.updateMany(updateMatches, {$set: {_season: args.join(' ')}}, function (err, deckUpdateRes){
+                                            if (deckUpdateRes){
+                                                let resolveArr = new Array()
+                                                resolveArr.push("Success", currentSeason._season_name, args.join(' '))
+                                                resolve(resolveArr)
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }else{
+                resolve("No Current")
+            }
+        })
     },
     /**
      * Updates the name of a season
