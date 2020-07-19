@@ -16,10 +16,13 @@ module.exports = {
     /**
      * Returns a list of all Deck Aliases registered to the server
      */
-    listDecks(receivedMessage, callback) {
+    async listDecks(receivedMessage) {
         const deck = require('../Schema/Deck')
+        const SeasonHelper = require('../Helpers/SeasonHelper')
+        var currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        var seasonName = currentSeason._season_name
         return new Promise((resolve, reject) =>{
-            deck.find({_server: receivedMessage.guild.id},function(err, res){
+            deck.find({_server: receivedMessage.guild.id, _season: seasonName},function(err, res){
                 resolve(res)
             }) 
         })
@@ -705,7 +708,7 @@ module.exports = {
             })
         }
     },
-    setUpPopulate(receivedMessage){
+    setUpPopulate(receivedMessage, seasonName){
         // Columns are:
         // Has Primer
         // Deck Type: (Proactive, Adaptive, Disruptive)
@@ -736,7 +739,7 @@ module.exports = {
                 _colors: decks[6],
                 _author: decks[8],
                 _server: receivedMessage.guild.id,
-                _season: "1",
+                _season: seasonName,
                 _description: decks[5],
                 _discordLink: decks[7],
                 _dateAdded: decks[9],
