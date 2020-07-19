@@ -1,4 +1,5 @@
 const user = require('../Schema/Users')
+const config = require('../Schema/Config')
 const SeasonHelper = require('../Helpers/SeasonHelper')
 const Season = require('./Season')
 /**
@@ -66,15 +67,75 @@ module.exports = {
     /**
      * Sets a configuration
      */
-    configSet() {
+    configSet(receivedMessage, args) {
+        let argsWithCommas = args.toString()
+        let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+        let splitArgs = argsWithSpaces.split(" | ")
+        let playerThreshold = parseInt(splitArgs[0])
+        let deckThreshold = parseInt(splitArgs[1])
+        let timeout = parseInt(splitArgs[2])
+        let adminList = splitArgs[3]
+        var parseIntCheck = false
+        return new Promise((resolve, reject)=>{
+            if (!isNaN(playerThreshold)){
+                if (!isNaN(deckThreshold)){
+                    if (!isNaN(timeout) && timeout <= 60){
+                        parseIntCheck = true
+                    }else{ resolve("Invalid Input")}
+                }else{ resolve("Invalid Input")}
+            }else{ resolve("Invalid Input")}
+        
+            adminList = adminList.replace(/  /g, ', ')
+            
 
+            if (splitArgs.length == 4){
+                    let checkForConfig = {_server: receivedMessage.guild.id}
+                    config.findOne(checkForConfig, function(err,foundRes){
+                        if (foundRes){
+                            let configSet = {
+                                $set: {
+                                    _player_threshold: playerThreshold,
+                                    _deck_threshold: deckThreshold,
+                                    _timeout: timeout,
+                                    _admin: adminList
+                                }
+                            }
+                            config.updateOne(foundRes, configSet, function(err, res){
+                                if (res){
+                                    let returnArr = new Array();
+                                    returnArr.push("Updated", playerThreshold, deckThreshold, timeout, adminList)
+                                    resolve(returnArr)
+                                }
+                                else{
+                                    resolve("Error")
+                                }
+                            })
+                        }
+                        else{
+                            resolve("Error")
+                        }
+                    })  
+            }
+            else{
+                resolve("Invalid Input")
+            }
+        })
     },
 
     /**
      * gets a configuration
      */
-    configGet() {
-
-    },
-
+    configGet(receivedMessage) {
+        return new Promise((resolve, reject)=>{
+            let checkForConfig = {_server: receivedMessage.guild.id}
+            config.findOne(checkForConfig, function(err,foundRes){
+                if (foundRes){
+                    resolve(foundRes)
+                }
+                else{
+                    resolve("No configs")
+                }
+            })
+        })
+    }
 }

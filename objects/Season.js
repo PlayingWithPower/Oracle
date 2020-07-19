@@ -5,6 +5,7 @@
  */
 const season = require('../Schema/Seasons')
 const user = require('../Schema/Users')
+const config = require('../Schema/Config')
 const SeasonHelper = require('../Helpers/SeasonHelper')
 module.exports = {
 
