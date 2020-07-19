@@ -9,15 +9,17 @@ const Deck = require('../Schema/Deck')
 const User = require('../Schema/Users')
 const Matches = require('../Schema/Games')
 const DeckHelper = require('../Helpers/DeckHelper')
+const SeasonHelper = require('../Helpers/SeasonHelper')
 
 module.exports = {
 
     /**
      * Get user league profile
      */
-    profile(receivedMessage, args) {
+    async profile(receivedMessage, args) {
         
-        var currentSeason = "1" //UPDATE ME
+        var currentSeasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        var currentSeason = currentSeasonObj._season_name
         var lookUpID
         return new Promise((resolve, reject)=>{
             if (typeof args[0] === 'undefined'){
