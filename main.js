@@ -93,9 +93,6 @@ function processCommand(receivedMessage){
     let channelResponseFormatted = client.channels.cache.get(channel)
 
     switch(primaryCommand){
-        case "setup":
-            deckObj.setUpPopulate(receivedMessage)
-            break;
         case "help":
             helpCommand(receivedMessage, arguments)
             break;
@@ -194,6 +191,11 @@ function processCommand(receivedMessage){
         case "setendseason":
             setEndSeason(receivedMessage, arguments)
             break;
+        case "setconfigs":
+            configSet(receivedMessage, arguments)
+        case "setseasonname":
+            setSeasonName(receivedMessage, arguments)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -201,8 +203,80 @@ function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+async function configSet(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await leagueObj.configSet(receivedMessage, args)
+    if (returnArr == "Invalid Input"){
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Error: Incorrect Input")
+        .setDescription("Please retry entering your config. I understand the format: \n\
+        !setconfig Player Threshold (A Number) | Deck Threshold (A Number) | Timeout (A Number in minutes less than 60) | Admin (A List of roles separated by commas)\n\
+        Confused on what these mean? Try !help setconfigs\n\
+        Example input: !setconfig 10 | 10 | 20 | Admin, Moderator, Owner")
+        .setFooter("These values are set by default when you begin your first season. This command is to fine tune that information.")
+        generalChannel.send(errorEmbed)
+    }
+    else if (returnArr == "Error"){
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Error")
+        .setDescription("An Error has occurred, please try again")
+        generalChannel.send(errorEmbed)
+    }
+    else if (returnArr[0] == "Updated"){
+        const updatedEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorGreen)
+        .setAuthor("Succesfully updated your configs")
+        .addFields(
+            {name: "Player Threshold", value: returnArr[1]},
+            {name: "Deck Threshold", value: returnArr[2]},
+            {name: "Timeout", value: returnArr[3]},
+            {name: "Admin Privileges", value: returnArr[4]}
+        )
+        generalChannel.send(updatedEmbed)
+        
+    }
+    else {
+        console.log(parseInt(args[2]))
+    }
+async function setSeasonName(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    if (args[0] === undefined){
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Please enter a new name")
+        .setDescription("Example: !setnewseason <My New Season Name>")
+        .setFooter("I will listen for case sensitivity")
+        generalChannel.send(errorEmbed)
+    }
+    else{
+        let returnArr = await seasonObj.setSeasonName(receivedMessage, args)
+        if (returnArr == "Name in use"){
+            const errorUserEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setDescription(args.join(' ')+" has already been used for a season or is currently being used for this season")
+            .setFooter("To see all season names try !seasoninfo all")
+            generalChannel.send(errorUserEmbed)
+        }
+        else if (returnArr == "No Current"){
+            const errorEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("There is no on-going Season")
+            .setDescription("Please start a new season using !startseason")
+            generalChannel.send(errorEmbed)
+        }
+        else{
+            const successEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("Successfully updated season name!")
+            .setDescription("Updated current season from: **" + returnArr[1] +"** to: **"+returnArr[2]+"**")
+            generalChannel.send(successEmbed)
+        }
+    }
+}
 async function setEndSeason(receivedMessage, args){
-    let generalChannel = getChannelID(receivedMessage, args)
+    let generalChannel = getChannelID(receivedMessage)
     if (args[0].length > 8){
         const errorEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
@@ -239,7 +313,7 @@ async function seasonInfo(receivedMessage, args){
         if (returnArr == "No Current"){
             const noSeasonEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed)
-            .setAuthor("There is no ongoing season")
+            .setAuthor("There is no on-going season")
             .setDescription("To start a new season, try !startseason\nTo see information about another season, try !seasoninfo <Season Name>")
             generalChannel.send(noSeasonEmbed)
         }
@@ -256,7 +330,6 @@ async function seasonInfo(receivedMessage, args){
     }
     else if (args[0] == "all"){
         let returnArr = await seasonObj.getInfo(receivedMessage, "all")
-
         if (returnArr != ""){
             returnArr.forEach((season)=>{
                 const seasonInfo = new Discord.MessageEmbed()
@@ -278,7 +351,7 @@ async function seasonInfo(receivedMessage, args){
         }
     }
     else{
-        let returnArr = await seasonObj.getInfo(receivedMessage, args)
+        let returnArr = await seasonObj.getInfo(receivedMessage, args.join(' '))
         if (returnArr == "Can't Find Season"){
             const cantFindEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed)
@@ -305,7 +378,7 @@ async function endSeason(receivedMessage, args){
     if (currentSeason == "No Current"){
         confirmEndSeason
         .setColor(messageColorRed)
-        .setAuthor("There is no ongoing season")
+        .setAuthor("There is no on-going season")
         .setDescription("To start a new season, try !startseason")
         generalChannel.send(confirmEndSeason)
     }
@@ -324,12 +397,17 @@ async function endSeason(receivedMessage, args){
 }
 async function startSeason(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
+    const pleaseWaitEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setAuthor("Please wait")
+        .setDescription("This may take a few seconds. Please give the bot a second")
+        generalChannel.send(pleaseWaitEmbed)
     let returnArr = await seasonObj.startSeason(receivedMessage)
 
     if (returnArr[0] == "Season Ongoing"){
         const ongoingEmbed = new Discord.MessageEmbed()
             .setColor(messageColorBlue)
-            .setTitle("There is already an ongoing Season")
+            .setTitle("There is already an on-going Season")
             .addFields(
                 {name: "Start Date", value: returnArr[1], inline: true}
             )
@@ -355,7 +433,7 @@ async function startSeason(receivedMessage, args){
         const startSeason = new Discord.MessageEmbed()
             .setColor(messageColorGreen)
             .setTitle("Successfully started a new Season")
-            .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonName - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
+            .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonname - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
             .setFooter("End the season at any time with !endseason or set an end date in advanced with !setendseason")
             .addFields(
                 {name: "Start Date", value: returnArr[1], inline: true},
@@ -364,20 +442,6 @@ async function startSeason(receivedMessage, args){
             )
         generalChannel.send(startSeason)
     }
-    // else if (returnArr[0] == "First Season"){
-    //     const startSeason = new Discord.MessageEmbed()
-    //         .setColor(messageColorGreen)
-    //         .setAuthor("Congrats on starting your first season!")
-    //         .setTitle("Successfully started a new Season")
-    //         .setDescription("By default, seasons are given a name and no end date.\nTo change this, use commands:\n!setseasonName - sets the current season name\n!setenddate - sets a pre-determined end date for the season\n!endseason - ends the current season")
-    //         .setFooter("End the season at any time with !endseason or set an end date in advanced with !setendseason")
-    //         .addFields(
-    //             {name: "Start Date", value: returnArr[1], inline: true},
-    //             {name: "End Date", value: "No end date set", inline: true},
-    //             {name: "Season Name", value: returnArr[3], inline: true}
-    //         )
-    //     generalChannel.send(startSeason)
-    // }
 }
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
@@ -984,17 +1048,17 @@ async function listDecks(receivedMessage, args){
             fiveColorArr.push(entry._name)
         }
     })
-    const helperEmbed = new Discord.MessageEmbed()
-    .setColor(messageColorGreen)
-    .setTitle("Don't see what you're looking for here?")
-    .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
-    Try '!use <deckname> | Rogue' to be able to use **any deck**.")
-
     generalChannel.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
     generalChannel.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
     generalChannel.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
     generalChannel.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
     generalChannel.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
+    const helperEmbed = new Discord.MessageEmbed()
+    .setColor(messageColorGreen)
+    .setTitle("Don't see what you're looking for here?")
+    .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
+    Try '!use <deckname> | Rogue' to be able to use **any deck**.")
+    .setFooter("Remember to type !startseason or no decks will appear in this list.")
     generalChannel.send(helperEmbed)
 }
 /**
@@ -1179,48 +1243,44 @@ async function profile(receivedMessage, args){
  * @param {*} receivedMessage 
  * @param {*} args 
  */
-async function logLosers(receivedMessage, args){
-    var callBackArray = new Array();
-    //var lostEloArray = new Array();
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
+// async function logLosers(receivedMessage, args){
+//     var callBackArray = new Array();
+//     //var lostEloArray = new Array();
+//     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
 
-    Module.logLosers(args, function(callback,err){
-        callback.forEach(item => {
-            callBackArray.push(item)
-        });
-        generalChannel.send(">>> " + callback[0] + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
-        .then(function (message, callback){
-            const filter = (reaction, user) => {
-                return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
-            };   
+//     Module.logLosers(args, function(callback,err){
+//         callback.forEach(item => {
+//             callBackArray.push(item)
+//         });
+//         generalChannel.send(">>> " + callback[0] + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
+//         .then(function (message, callback){
+//             const filter = (reaction, user) => {
+//                 return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
+//             };   
 
-            message.react("👍")
-            message.react("👎")
-            // @TODO: 
-            // Look into time of awaitReactions (configurable?)
-            // Log points only after upvotes are seen. Right now we are logging THEN checking upvotes
-            message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
-                .then(collected => {
-                    const reaction = collected.first();
+//             message.react("👍")
+//             message.react("👎")
+//             // @TODO: 
+//             // Look into time of awaitReactions (configurable?)
+//             // Log points only after upvotes are seen. Right now we are logging THEN checking upvotes
+//             message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
+//                 .then(collected => {
+//                     const reaction = collected.first();
 
-                    if (reaction.emoji.name === '👍') {
-                        receivedMessage.reply("received confirmation for logging");
-                        //console.log(reaction.users)
-                    }
-                    else {
-                        receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
-                        return
-                    }
-                })
-        })
-        callback.shift()
-        // Module.logWinners(receivedMessage, callback, function(callback, err){
-        //     //console.log(callback)
-        // })
+//                     if (reaction.emoji.name === '👍') {
+//                         receivedMessage.reply("received confirmation for logging");
+//                     }
+//                     else {
+//                         receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
+//                         return
+//                     }
+//                 })
+//         })
+//         callback.shift()
         
-    })
+//     })
    
-}
+// }
 
 /**
  * startMatch()
@@ -1228,10 +1288,12 @@ async function logLosers(receivedMessage, args){
  * @param {*} args 
  * TODO:
  */
-function startMatch(receivedMessage, args){
+async function startMatch(receivedMessage, args){
     const user = require('./Schema/Users')
-    let generalChannel = client.channels.cache.get(receivedMessage.channel.id)
+    const SeasonHelper = require('./Helpers/SeasonHelper')
 
+    let currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+    let generalChannel = client.channels.cache.get(receivedMessage.channel.id)
     let sanitizedString = "<@!"+receivedMessage.author.id+">"
     const UserIDs = new Array()
 
@@ -1240,12 +1302,23 @@ function startMatch(receivedMessage, args){
         return Math.floor((1 + Math.random()) * 0x1000).toString(16).substring(1);
     }
     let id = s4() + s4() + s4() + s4()
-
+    // Check to make sure there is a season on-going
+    if (currentSeason == "No Current"){
+        const errorMsg = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("Error: No On-Going Season")
+            .setDescription("There is no on-going season. Please start a season before logging matches")
+            .setFooter("Try !startseason")
+        generalChannel.send(errorMsg)
+        return
+    }
     // Check to make sure the right amount of users tagged
     if (args.length < 3 || args.length > 3) {
         const errorMsg = new Discord.MessageEmbed()
-                .setColor('#af0000')
-                .setDescription("**Error**: Submit only the 3 players who lost in the pod")
+            .setColor(messageColorRed)
+            .setAuthor("Error: Incorrect input")
+            .setDescription("Please submit only the **3 players** who lost in the pod")
+            .setFooter("Example: !log @user @user @user")
         generalChannel.send(errorMsg)
         return
     }
