@@ -6,6 +6,7 @@ const Discord = require('discord.js')
 
 var helpDictionary = Object();
 var exampleDictionary = Object();
+const ConfigHelper = require('../Helpers/ConfigHelper')
 
 //Colors
 const messageColorRed = "#af0000"

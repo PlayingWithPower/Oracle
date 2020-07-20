@@ -587,10 +587,6 @@ function nonAdminAccess(receivedMessage, command){
         .setDescription("It looks like you're trying to access the **" + command + "** command.\n\
         This is an **Admin Only** command.\n\
         If you would like to access this command, you need to add a **role** using !setconfigs.")
-        
-        .addFields(
-            {name}
-        )
     generalChannel.send(adminAccessNotGrantedEmbed)
 }
 
