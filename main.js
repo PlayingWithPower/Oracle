@@ -240,6 +240,7 @@ async function configSet(receivedMessage, args){
     else {
         console.log(parseInt(args[2]))
     }
+}
 async function setSeasonName(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     if (args[0] === undefined){
@@ -1762,3 +1763,5 @@ function credits(argument, receivedMessage){
 function getChannelID(receivedMessage) {
     return client.channels.cache.get(receivedMessage.channel.id)
 }
+
+
