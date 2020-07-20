@@ -19,6 +19,7 @@ const FunctionHelper = require('./Helpers/FunctionHelper')
 const DeckHelper = require('./Helpers/DeckHelper')
 const ManageReactHelper = require('./Helpers/ManageReactionHelper')
 const SeasonHelper = require('./Helpers/SeasonHelper')
+const ConfigHelper = require('./Helpers/ConfigHelper')
 
 //Bot prefix
 const botListeningPrefix = "!";
@@ -62,7 +63,6 @@ client.on('message', (receivedMessage) =>{
     }
     if (receivedMessage.mentions.users == client.user){
         let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-        generalChannel.channel.send("text")
     }
     if (receivedMessage.content.startsWith(botListeningPrefix)){
         processCommand(receivedMessage)
@@ -70,7 +70,6 @@ client.on('message', (receivedMessage) =>{
     else{
         let currentChannel =  client.channels.cache.get()
     }
-    //deckObj.populateDecks(receivedMessage)
 })
 /**
  * TODO: 
@@ -78,12 +77,11 @@ client.on('message', (receivedMessage) =>{
 client.on('messageReactionAdd', (reaction, user) => {
     ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
 })
-
 /**
  * processCommand()
  * @param {*} receivedMessage 
  */
-function processCommand(receivedMessage){
+async function processCommand(receivedMessage){
     let fullCommand = receivedMessage.content.substr(1).toLowerCase()
     let splitCommand = fullCommand.split(" ")
     let primaryCommand = splitCommand[0]
@@ -91,6 +89,7 @@ function processCommand(receivedMessage){
 
     let channel = receivedMessage.channel.id
     let channelResponseFormatted = client.channels.cache.get(channel)
+    let adminGet = await ConfigHelper.checkAdminPrivs(receivedMessage)
 
     switch(primaryCommand){
         case "help":
@@ -109,7 +108,7 @@ function processCommand(receivedMessage){
             remindMatch(receivedMessage, arguments)
             break;
         case "delete":
-            if (FunctionHelper.isUserAdmin(receivedMessage)){
+            if (adminGet){
                 deleteMatch(receivedMessage, arguments)
             }
             else{
@@ -153,7 +152,7 @@ function processCommand(receivedMessage){
             listUserDecks(receivedMessage, arguments);
             break;
         case "add":
-            if (FunctionHelper.isUserAdmin(receivedMessage)){
+            if (adminGet){
                 addDeck(receivedMessage, arguments)
             }
             else{
@@ -161,7 +160,7 @@ function processCommand(receivedMessage){
             }
             break;
         case "removedeck":
-            if (FunctionHelper.isUserAdmin(receivedMessage)){
+            if (adminGet){
                 removeDeck(receivedMessage, arguments)
             }
             else{
@@ -169,7 +168,7 @@ function processCommand(receivedMessage){
             }
             break;
         case "updatedeck":
-            if (FunctionHelper.isUserAdmin(receivedMessage)){
+            if (adminGet){
                 updateDeck(receivedMessage, arguments)
             }
             else{
@@ -180,27 +179,81 @@ function processCommand(receivedMessage){
             top(receivedMessage)
             break;
         case "startseason":
-            startSeason(receivedMessage, arguments)
+            if (adminGet){
+                startSeason(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
             break;
         case "endseason":
-            endSeason(receivedMessage, arguments)
+            if (adminGet){
+                endSeason(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
             break;
         case "seasoninfo":
             seasonInfo(receivedMessage, arguments)
             break;
         case "setendseason":
-            setEndSeason(receivedMessage, arguments)
+            if (adminGet){
+                setEndSeason(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
             break;
         case "setconfigs":
-            configSet(receivedMessage, arguments)
+            if (adminGet){
+                configSet(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
+            break;
+        case "getconfigs":
+            configGet(receivedMessage)
+            break;
         case "setseasonname":
-            setSeasonName(receivedMessage, arguments)
+            if (adminGet){
+                setSeasonName(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
             break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+    }
+}
+async function configGet(receivedMessage){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await leagueObj.configGet(receivedMessage)
+    if (returnArr != "No configs"){
+        const updatedEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setAuthor("Displaying information about your configurations")
+        .addFields(
+            {name: "Player Threshold", value: returnArr._player_threshold},
+            {name: "Deck Threshold", value: returnArr._deck_threshold},
+            {name: "Timeout", value: returnArr._timeout + " (In minutes)"},
+            {name: "Admin Privileges", value: returnArr._admin}
+        )
+        .setFooter("Want to edit these values? Try !configset")
+        generalChannel.send(updatedEmbed)
+    }
+    else{
+        const noConfigEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("No current information about your configurations")
+        .setDescription("Configurations are automatically generated when you begin your first season\n\
+        Try !startseason and then use this command again to see the default values assigned")
+        generalChannel.send(noConfigEmbed)
     }
 }
 async function configSet(receivedMessage, args){
@@ -240,6 +293,7 @@ async function configSet(receivedMessage, args){
     else {
         console.log(parseInt(args[2]))
     }
+}
 async function setSeasonName(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     if (args[0] === undefined){
@@ -446,6 +500,8 @@ async function startSeason(receivedMessage, args){
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await seasonObj.leaderBoard(receivedMessage)
+    let getConfig = await leagueObj.configGet(receivedMessage.guild.id)
+    const playerThreshold = getConfig._player_threshold
     const returnEmbed = new Discord.MessageEmbed()
         
     if (returnArr == "Error 1"){
@@ -465,13 +521,15 @@ async function top(receivedMessage){
             if (isNaN(calculatedWinrate)){
                 calculatedWinrate = 0
             }
+            if ((user._wins + user._losses) < playerThreshold){ 
+                console.log("threshold")
+                return }
             else{
                 calculatedWinrate = Math.round(calculatedWinrate)
             }
             returnEmbed.addFields(
                 { name: "Username", value: user._name, inline: true},
                 { name: "Elo", value: user._elo, inline: true},
-                //{ name: "Games Played", value: user._wins+user._losses, inline: true},
                 { name: "Winrate", value: calculatedWinrate + "%", inline: true},
             )
         })
@@ -526,7 +584,13 @@ function nonAdminAccess(receivedMessage, command){
     let generalChannel = getChannelID(receivedMessage)
     const adminAccessNotGrantedEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
-        .setDescription("It looks like you're trying to access the **" + command + "** command. This is an **Admin Only** command. If you would like to access this command, you need a **role** with the 'Administrator' tag on Discord.")
+        .setDescription("It looks like you're trying to access the **" + command + "** command.\n\
+        This is an **Admin Only** command.\n\
+        If you would like to access this command, you need to add a **role** using !setconfigs.")
+        
+        .addFields(
+            {name}
+        )
     generalChannel.send(adminAccessNotGrantedEmbed)
 }
 

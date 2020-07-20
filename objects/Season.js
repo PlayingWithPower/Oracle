@@ -5,6 +5,7 @@
  */
 const season = require('../Schema/Seasons')
 const user = require('../Schema/Users')
+//TODO: When are configs initally loaded?
 const config = require('../Schema/Config')
 const match = require('../Schema/Games')
 const deck = require('../Schema/Deck')

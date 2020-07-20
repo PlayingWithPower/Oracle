@@ -125,9 +125,9 @@ module.exports = {
     /**
      * gets a configuration
      */
-    configGet(receivedMessage) {
+    configGet(guild) {
         return new Promise((resolve, reject)=>{
-            let checkForConfig = {_server: receivedMessage.guild.id}
+            let checkForConfig = {_server: guild}
             config.findOne(checkForConfig, function(err,foundRes){
                 if (foundRes){
                     resolve(foundRes)

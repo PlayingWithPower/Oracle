@@ -99,20 +99,6 @@ module.exports = {
         })
         .join(' ');
     },
-
-    /**
-    * isUserAdmin()
-    * @param {*} receivedMessage 
-    * 
-    * Simple check for issuer admin rights.
-    */
-    isUserAdmin(receivedMessage)
-    {
-        // Admin check from issuer.
-        let isAdmin = receivedMessage.member.hasPermission('ADMINISTRATOR', { checkAdmin: true, checkOwner: false });
-        return isAdmin;
-    },
-
     /**
      * showEmbedHelpForCommand()
      * @param {*} receivedMessage 
