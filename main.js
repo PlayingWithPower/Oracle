@@ -941,7 +941,36 @@ function addToCollection(receivedMessage, args){
 async function use(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await userObj.useDeck(receivedMessage, args)
-    console.log(returnArr)
+    if (returnArr == "Success"){
+        const successEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorGreen)
+        .setAuthor("Success")
+        .setDescription("Successfully set <@!" + receivedMessage.author.id + ">'s deck to: " + DeckHelper.toUpper(args.join(' ')))
+        .setFooter("You’ve now set your deck for this server\nStart logging games with the !log command\nType !help log for more information")
+        generalChannel.send(successEmbed)
+    }
+    else if (returnArr == "Not a registered deck"){
+        const notRegisteredEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Not a registered deck")
+        .setDescription("Type !decks to see a list of available decks")
+        generalChannel.send(notRegisteredEmbed)
+    }
+    else if (returnArr == "Can't find user"){
+        const noUserEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("You are not registered")
+        .setDescription("Make sure to type !register before trying to use a deck")
+        generalChannel.send(noUserEmbed)
+    }
+    else if (returnArr == "Too many args"){
+        const badInputEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Improper input")
+        .setDescription("Type !use <Deck Name> or !use <Deck Name> | Rogue")
+        .setFooter("Type !help or !decks to learn more about 'Rogue'")
+        generalChannel.send(badInputEmbed)
+    }
 }
 /**
  * current()

@@ -18,7 +18,7 @@ module.exports = {
         var currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         var seasonName = currentSeason._season_name
         return new Promise((resolve, reject) =>{
-            deck.find({_server: receivedMessage.guild.id, _season: seasonName},function(err, res){
+            deck.find({_server: receivedMessage.guild.id},function(err, res){
                 resolve(res)
             }) 
         })

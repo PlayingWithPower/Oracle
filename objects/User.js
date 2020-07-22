@@ -269,7 +269,71 @@ module.exports = {
      * Sets the users current Deck
      */
     useDeck(receivedMessage, args){
-        
+        var typeOfQuery = ""
+        const seasonObj = SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        var seasonName = seasonObj.seasonName
+        return new Promise((resolve, reject)=>{
+            if (args.length > 2){
+                let argsWithCommas = args.toString()
+                let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+                let splitArgs = argsWithSpaces.split(" | ")
+                if (args[args.length - 1].toString().toLowerCase() == "rogue"){
+                    typeOfQuery = "rogue"
+                }
+                else{
+                    resolve("Too many args")
+                }
+            }
+            else{
+                typeOfQuery = "non-rogue"
+            }
+
+            if (typeOfQuery == "rogue"){
+                let cleanedArg = DeckHelper.toUpper(args.join(' '))
+                let userQuery = {
+                    _server: receivedMessage.guild.id,
+                    _mentionValue: "<@!"+receivedMessage.author.id+">"
+                }
+                let updateSave = { $set: {_currentDeck: cleanedArg}}
+                User.updateOne(userQuery, updateSave, function(err, res){
+                    if (res){
+                        resolve("Success")
+                     }
+                     else{
+                         resolve("Can't find user")
+                     }
+                })
+            }
+            else{
+                let cleanedArg = DeckHelper.toUpper(args.join(' '))
+                let deckQuery = {
+                    _season: seasonName,
+                    _server: receivedMessage.guild.id,
+                    _alias: args.join(' ').toLowerCase()
+                }
+                let userQuery = {
+                    _server: receivedMessage.guild.id,
+                    _mentionValue: "<@!"+receivedMessage.author.id+">"
+                }
+                let updateSave = { $set: {_currentDeck: cleanedArg}}
+                Deck.find(deckQuery, function(err,deckRes){
+                    if (deckRes.length != 0){
+                        User.updateOne(userQuery, updateSave, function(err, res){
+                            if (res.n > 0){
+                                resolve("Success")
+                             }
+                             else{
+                                 resolve("Can't find user")
+                             }
+                        })
+                    }
+                    else{
+                        resolve("Not a registered deck")
+                    }
+                })
+            }
+
+        })
     }   
 }
 
