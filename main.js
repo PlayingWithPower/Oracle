@@ -57,6 +57,9 @@ client.on('ready', (on) =>{
     // })
     // client.user.setUsername("PWP Bot"); 
 })
+client.on("guildCreate", (guild) => {
+    deckObj.setUpPopulate(guild.id)
+});
 client.on('message', (receivedMessage) =>{
     if (receivedMessage.author == client.user){
         return 
@@ -75,7 +78,9 @@ client.on('message', (receivedMessage) =>{
  * TODO: 
  */
 client.on('messageReactionAdd', (reaction, user) => {
-    ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
+    if (reaction.message.author.id == "717073766030508072"){
+        ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
+    }
 })
 /**
  * processCommand()
@@ -107,9 +112,17 @@ async function processCommand(receivedMessage){
         case "remind":
             remindMatch(receivedMessage, arguments)
             break;
-        case "delete":
+        case "deletematch":
             if (adminGet){
                 deleteMatch(receivedMessage, arguments)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
+            break;
+        case "acceptmatch":
+            if (adminGet){
+                forceAccept(receivedMessage, arguments)
             }
             else{
                 nonAdminAccess(receivedMessage, primaryCommand)
@@ -123,6 +136,9 @@ async function processCommand(receivedMessage){
             break;
         case "recent":
             recent(receivedMessage, arguments)
+            break;
+        case "pending":
+            getPending(receivedMessage)
             break;
         case "match":
             matchInfo(receivedMessage, arguments)
@@ -231,6 +247,96 @@ async function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
+async function forceAccept(receivedMessage, args){
+    let generalChannel = getChannelID(receivedMessage)
+    
+    if (args.length == 1){
+        let returnArr= await gameObj.forceAccept(args, receivedMessage.guild.id)
+        if (returnArr == "Success"){
+            const successEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("Match accepted")
+            .setDescription("The match you have entered is now accepted\n\
+            Use !pending to find other pending matches")
+            generalChannel.send(successEmbed)
+        }
+        else if (returnArr == "Error"){
+            const invalidInputEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("Unable to update match")
+            .setDescription("Please try again")
+            generalChannel.send(invalidInputEmbed)
+        }
+        else if (returnArr == "Match is already accepted"){
+            const invalidInputEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("Match already accepted")
+            .setDescription("The match you have entered is already accepted\n\
+            Use !delete <Match ID> to delete a match")
+            generalChannel.send(invalidInputEmbed)
+        }
+        else if (returnArr == "Can't find match"){
+            const invalidInputEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("Can't find match")
+            .setDescription("You have entered an invalid match ID\n\
+            Use !pending to find a list of pending matches")
+            generalChannel.send(invalidInputEmbed)
+        }
+    }
+    else{
+        const invalidInputEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Incorrect Input")
+        .setDescription("Please type !acceptmatch <Match ID>\n\
+        Use !pending to find a list of pending matches")
+        generalChannel.send(invalidInputEmbed)
+    }
+    
+}
+async function getPending(receivedMessage){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await gameObj.getPending(receivedMessage.guild.id)
+    if (returnArr == "No Pending"){
+        const noPendingEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setAuthor("There are no pending matches")
+        generalChannel.send(noPendingEmbed)
+    }
+    else if(returnArr == "No Matches"){
+        const noMatchesEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("No matches have been logged this season")
+        .setDescription("Log matches with !log @loser1 @loser2 @loser3")
+        generalChannel.send(noMatchesEmbed)
+    }
+    else{
+        const overallEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorGreen)
+        .setAuthor("Displaying Pending Matches")
+        .setFooter("'Player 1' is the logged winner of each pending match")
+        generalChannel.send(overallEmbed)
+        returnArr.forEach((pendingMatch)=>{
+            const matchEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorBlue)
+            .setAuthor("Match ID: " + pendingMatch._match_id)
+            .addFields(
+                {name: "Player 1", value: pendingMatch._player1, inline: true},
+                {name: "Piloting", value: pendingMatch._player1Deck, inline: true},
+                {name: "\u200b", value: " \u200b"},
+                {name: "Player 2", value: pendingMatch._player2, inline: true},
+                {name: "Piloting", value: pendingMatch._player2Deck, inline: true},
+                {name: "\u200b", value: " \u200b"},
+                {name: "Player 3", value: pendingMatch._player3, inline: true},
+                {name: "Piloting", value: pendingMatch._player3Deck, inline: true},
+                {name: "\u200b", value: " \u200b"},
+                {name: "Player 4", value: pendingMatch._player4, inline: true},
+                {name: "Piloting", value: pendingMatch._player4Deck, inline: true},
+            )
+            generalChannel.send(matchEmbed)
+        })
+    }
+}
 async function configGet(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await leagueObj.configGet(receivedMessage)
@@ -291,7 +397,7 @@ async function configSet(receivedMessage, args){
         
     }
     else {
-        console.log(parseInt(args[2]))
+        //console.log(parseInt(args[2]))
     }
 }
 async function setSeasonName(receivedMessage, args){
@@ -437,10 +543,22 @@ async function endSeason(receivedMessage, args){
         generalChannel.send(confirmEndSeason)
     }
     else{
+        let returnArr = await gameObj.getPending(receivedMessage.guild.id)
+        var leftPending
         confirmEndSeason
         .setColor(messageColorBlue)
         .setAuthor("WARNING: You are attempting to end the current season named: " + currentSeason._season_name)
-        .setDescription("Are you sure you want to end the current season? React below according")
+        .setDescription("Are you sure you want to end the current season?\n\
+        When a season ends: leaderboards are reset, player's personal ratings are reset and rewards are distributed")
+        .setFooter("React thumbs up to end the current season, react thumbs down to cancel")
+        if (returnArr.length > 0){
+            leftPending = returnArr.length
+            confirmEndSeason
+            .addFields(
+                {name: "Pending Matches Remaining", value: leftPending}
+            )
+            .setTitle("Use !pending to see pending matches")
+        }
         generalChannel.send(confirmEndSeason)
         .then(function (message, callback){
             message.react("👍")
@@ -820,49 +938,10 @@ function addToCollection(receivedMessage, args){
  * @param {*} receivedMessage 
  * @param {*} args 
  */
-function use(receivedMessage, args){
+async function use(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-    const useEmbed = new Discord.MessageEmbed()
-    .setColor(messageColorGreen)
-        .setURL('')
-    userObj.useDeck(receivedMessage, args, function(callback, err){
-            if (callback == "1"){
-                useEmbed
-                .setColor(messageColorRed) //red
-                .setDescription(receivedMessage.author.username + " is not registered. Register with !register")
-                generalChannel.send(useEmbed)
-            }
-            else if (callback[0] == "2"){
-                useEmbed
-                .setColor(messageColorRed)
-                .setDescription("**"+callback[1]+"**" + " is not a registered alias. \n Try !decks and choose an alias or !use <deckname> | Rogue ")
-                generalChannel.send(useEmbed)
-            }
-            else if (callback == "3"){
-                useEmbed
-                .setColor(messageColorRed)
-                .setDescription("Error setting deck. Please try again.")
-                generalChannel.send(useEmbed)
-            }
-            else if (callback[0] == "4"){
-                useEmbed
-                .setColor(messageColorGreen) //green
-                .setDescription("Successfully set " + "**"+callback[1]+"**"+ " as the Current Deck for " + "<@!" + receivedMessage.author.id + ">")
-                generalChannel.send(useEmbed)
-            }
-            else if (callback == "5"){
-                useEmbed
-                .setColor(messageColorRed) 
-                .setDescription("Please provide a deck name to differentiate between your 'Rogue' decks. Try !use <deckname> | Rogue")
-                generalChannel.send(useEmbed)
-            }
-            else if (callback[0] == "5"){
-                useEmbed
-                .setColor(messageColorRed) 
-                .setDescription("You are attempting to use a registered alias: " + "**" + callback[1] + "**" + ". Please try !use <deckname> | Rogue if your list deviates greatly from the primer. Otherwise, try !use " + "**" + callback[1]+"**")
-                generalChannel.send(useEmbed)
-            }
-    });
+    let returnArr = await userObj.useDeck(receivedMessage, args)
+    console.log(returnArr)
 }
 /**
  * current()
@@ -994,7 +1073,7 @@ async function recent(receivedMessage, args) {
     if (matches_arr.length == 0) {
         const errorEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
-                .setDescription("**Error:** User has no matches in the system")
+                .setDescription("**Error:** User has no matches this season")
         generalChannel.send(errorEmbed)
         return
     }
@@ -1018,23 +1097,23 @@ async function recent(receivedMessage, args) {
     matches_arr.forEach(async(match) => {
         var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
 
-        //const bot = await getUserFromMention('<@!717073766030508072>')
+        const bot = await getUserFromMention('<@!717073766030508072>')
         const winner = await getUserFromMention(match[4])
-        //const loser1 = await getUserFromMention(match[5])
-        //const loser2 = await getUserFromMention(match[6])
-        //const loser3 = await getUserFromMention(match[7])
+        const loser1 = await getUserFromMention(match[5])
+        const loser2 = await getUserFromMention(match[6])
+        const loser3 = await getUserFromMention(match[7])
         tempEmbed = new Discord.MessageEmbed()
             .setColor(messageColorBlue) //blue
             .setTitle('Game ID: ' + match[1])
-            //.setThumbnail(getUserAvatarUrl(winner))
+            .setThumbnail(getUserAvatarUrl(winner))
             .addFields(
                 { name: 'Season: ', value: match[3], inline: true},
                 { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
                 { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**', inline: true},
-                //{ name: 'Opponents:', value: 
-                //'**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
-                //+ '**'+loser2.username+'**'+ ' piloting ' + '**'+match[10]+'**' + '\n' 
-                //+ '**'+loser3.username+'**'+ ' piloting ' + '**'+match[11]+'**' }
+                { name: 'Opponents:', value: 
+                '**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
+                + '**'+loser2.username+'**'+ ' piloting ' + '**'+match[10]+'**' + '\n' 
+                + '**'+loser3.username+'**'+ ' piloting ' + '**'+match[11]+'**' }
             )
         generalChannel.send(tempEmbed)
     })
@@ -1257,7 +1336,22 @@ async function profile(receivedMessage, args){
         .setFooter("User is not registered for this league. Have them type !register")
         generalChannel.send(errorUserEmbed)
     }
+    else if (returnArr[0] == "No On-Going Season"){
+        const profileEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .addFields(
+            { name: 'User', value: returnArr[2], inline: true },
+            { name: 'Current Deck', value: returnArr[4], inline: true },
+            { name: 'Current Rating', value: returnArr[3], inline: true },
+        )
+        generalChannel.send(profileEmbed)
+        const matchesEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setDescription("This user has no logged matches")
+        generalChannel.send(matchesEmbed)
+    }
     else if (returnArr[0] == "Profile Look Up"){
+        let getDeckThreshold = await ConfigHelper.getDeckThreshold(receivedMessage.guild.id)
         for (i=0; i<returnArr[1].length;i++){
             if (returnArr[1][i][1]+returnArr[1][i][2]>compareDeck) {
                 compareDeck = returnArr[1][i][1]+returnArr[1][i][2]
@@ -1273,13 +1367,15 @@ async function profile(receivedMessage, args){
             { name: 'Current Rating', value: returnArr[4], inline: true },
             { name: 'Favorite Deck', value: favDeck, inline: true },
         )
+        var threshold = 5
+        if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._deck_threshold }
         const decksEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-        .setFooter("Note: The threshold to appear on this list is X games, this is configurable.")
+        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " games\nConfigure this using !setconfigs")
         returnArr[1].forEach((deck) =>{
             overallWins = overallWins + deck[1]
             overallLosses = overallLosses + deck[2]
-            if (deck[1] + deck[2] < 5){ }
+            if (deck[1] + deck[2] < threshold){ }
             else{
                 decksEmbed
                 .addFields(
@@ -1772,19 +1868,21 @@ async function register(receivedMessage){
     if (returnArr == "Success"){
         messageEmbed
         .setColor(messageColorGreen)
-        .setDescription(receivedMessage.author.username + " is now registered.")
+        .setDescription("<@!" + receivedMessage.author.id + ">" + " is now registered.")
+        .setFooter("You are now registered for this server\nBe sure to tell us what deck you’re using with the !use <Deck Name> command\nCheck out a list of all decks on this server with the !decks command")
         generalChannel.send(messageEmbed)
     }
     if (returnArr == "Already Registered"){
         messageEmbed
         .setColor(messageColorRed)
-        .setDescription(receivedMessage.author.username + " is already registered.")
+        .setDescription("<@!" + receivedMessage.author.id + ">" + " is already registered.")
+        .setFooter("Check your profile with the !profile command")
         generalChannel.send(messageEmbed)
     }
     else if (returnArr == "Error"){
         messageEmbed
         .setColor(messageColorRed)
-        .setDescription("Critical Error. Try again. If problem persists, please reach out to developers.")
+        .setAuthor("Critical Error. Try again. If problem persists, please reach out to developers.")
         generalChannel.send(messageEmbed)
     }
 }

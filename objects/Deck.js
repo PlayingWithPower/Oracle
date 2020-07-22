@@ -1,10 +1,6 @@
-const { db } = require('../Schema/Deck')
-const { resolve } = require('dns')
 const Deck = require('../Schema/Deck')
-const { type } = require('os')
 const DeckHelper = require('../Helpers/DeckHelper')
-const { match } = require('assert')
-const { exit } = require('process')
+const { find } = require('../Schema/Deck')
 
 /**
  * Deck Object
@@ -708,7 +704,7 @@ module.exports = {
             })
         }
     },
-    setUpPopulate(receivedMessage, seasonName){
+    setUpPopulate(guild){
         // Columns are:
         // Has Primer
         // Deck Type: (Proactive, Adaptive, Disruptive)
@@ -723,7 +719,7 @@ module.exports = {
         const data = require('../data/decklists.json');
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
-
+        console.log("I ran")
         data.forEach(decks =>{
             if (decks[0] == "Y"){
                 hasPrimer = true
@@ -738,8 +734,7 @@ module.exports = {
                 _commander: decks[4],
                 _colors: decks[6],
                 _author: decks[8],
-                _server: receivedMessage.guild.id,
-                _season: seasonName,
+                _server: guild,
                 _description: decks[5],
                 _discordLink: decks[7],
                 _dateAdded: decks[9],
@@ -748,24 +743,29 @@ module.exports = {
             }
             let aliasSave = {
                 _name: decks[2],
-                _server: receivedMessage.guild.id
+                _server: guild.id
             }
-                deck(deckSave).save(function(err, res){
-                    if (res){
-                        //console.log("Success!")
-                    }
-                    else{
-                        console.log("Error: Unable to save to Database, please try again")
-                    }
-                })
-                alias(aliasSave).save(function(err, res){
-                    if (res){
-                        //console.log("Success!")
-                    }
-                    else{
-                        console.log("Error: Unable to save to Database, please try again")
-                    }
-                })
+            deck.find(deckSave, function(err, findRes){
+                if (findRes.length != 0){return }
+                else{
+                    deck(deckSave).save(function(err, res){
+                        if (res){
+                            //console.log("Success!")
+                        }
+                        else{
+                            console.log("Error: Unable to save to Database, please try again")
+                        }
+                    })
+                    alias(aliasSave).save(function(err, res){
+                        if (res){
+                            //console.log("Success!")
+                        }
+                        else{
+                            console.log("Error: Unable to save to Database, please try again")
+                        }
+                    })
+                  }
+            })
         })
     }
 }

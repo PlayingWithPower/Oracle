@@ -23,7 +23,6 @@ module.exports = {
         let getSeasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         let newSeasonNameReturn = await SeasonHelper.newSeasonName(receivedMessage.guild.id)
         var seasonName = newSeasonNameReturn.toString()
-        let populateDecks = await deckObj.setUpPopulate(receivedMessage, seasonName)
 
         let checkCurrent = {
             '_server': getSeasonReturn._server,

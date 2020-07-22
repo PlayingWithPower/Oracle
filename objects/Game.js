@@ -9,8 +9,6 @@
  * 3. Commit Match (this puts the match into an accepted status and performs match calculations)
  */
 
-const { DataResolver } = require('discord.js')
-
 const percentageToLose = 0.010
 const percentageToGain = 0.030
 
@@ -592,5 +590,64 @@ module.exports = {
             valuesSoFar[value] = true;
         }
         return false;
+    },
+    async getPending(guild){
+        const matches = require('../Schema/Games')
+        const SeasonHelper = require('../Helpers/SeasonHelper')
+
+        var seasonObj = await SeasonHelper.getCurrentSeason(guild)
+        let seasonName = seasonObj._season_name
+
+        let arrayOfPending = new Array();
+
+        let matchQuery = {_server: guild, _season: seasonName}
+        return new Promise((resolve, reject)=>{
+            matches.find(matchQuery, function(err, foundMatches){
+                if (foundMatches){
+                    foundMatches.forEach((match)=>{
+                        if (match._Status == "STARTED"){
+                            arrayOfPending.push(match)
+                        }
+                    })
+                    if (arrayOfPending.length > 0){
+                        resolve(arrayOfPending)
+                    }else{
+                        resolve("No Pending")
+                    }
+                }
+                else{
+                    resolve("No Matches")
+                }
+            })
+        })
+    },
+    async forceAccept(matchID ,guild){
+        const matches = require('../Schema/Games')
+        const SeasonHelper = require('../Helpers/SeasonHelper')
+
+        var seasonObj = await SeasonHelper.getCurrentSeason(guild)
+        let seasonName = seasonObj._season_name
+
+        let findQuery = { _server: guild, _season: seasonName, _match_id: matchID}
+
+        return new Promise((resolve, reject)=>{
+            matches.findOne(findQuery, function(err, res){
+                if (res){
+                    if (res._Status == "STARTED"){
+                        let toUpdate = {$set:{_Status: "FINISHED"}}
+                        matches.updateOne(findQuery, toUpdate, function(err,res){
+                            if (res){ resolve("Success")}
+                            else{ resolve ("Error")}
+                        })
+                    }else{
+                        resolve("Match is already accepted")
+                    }
+                }
+                else{
+                    resolve("Can't find match")
+                }
+            })
+        })
+        
     }
 }

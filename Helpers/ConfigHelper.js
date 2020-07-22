@@ -20,7 +20,17 @@ module.exports = {
    {
        // Admin check from issuer.
        let isAdmin = receivedMessage.member.roles.cache.some(role => role.name === roleName);
-
+        if (!isAdmin){
+            if (receivedMessage.member.hasPermission("ADMINISTRATOR")){
+                isAdmin = true
+            }
+        }
        return isAdmin;
    },
+   async getDeckThreshold(guild){
+       return new Promise (async (resolve, reject)=>{
+            let configGet = await leagueObj.configGet(guild)
+            resolve(configGet)
+       })
+   }
 }

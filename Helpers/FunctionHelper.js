@@ -138,9 +138,9 @@ module.exports = {
      * Loops through command help dictionary and prints
      * out all commands supported in an embed message.
      */
-    showEmbedHelpForAllCommands(receivedMessage)
+    async showEmbedHelpForAllCommands(receivedMessage)
     {
-        let isAdmin = this.isUserAdmin(receivedMessage)
+        let isAdmin = await ConfigHelper.checkAdminPrivs(receivedMessage)
         const exampleEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
         .setTitle('PWP Bot')

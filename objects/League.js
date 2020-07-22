@@ -137,5 +137,29 @@ module.exports = {
                 }
             })
         })
+    },
+    startupConfig(guild){
+        let checkForConfig = {_server: guild}
+        config.findOne(checkForConfig, function(err, foundRes){
+            if (foundRes){
+                //console.log("Been here before")
+            }else{
+                let configSave = {
+                        _server: guild,
+                        _player_threshold: "10",
+                        _deck_threshold: "10",
+                        _timeout: "60",
+                        _admin: ""
+                }
+                config(configSave).save(function(err, res){
+                    if (res){
+                        //console.log("Success")
+                    }
+                    else{
+                        //console.log("Error")
+                    }
+                })
+            }
+        })
     }
 }

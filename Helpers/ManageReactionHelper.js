@@ -187,7 +187,10 @@ module.exports = {
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
 
-            const collector = new Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 })
+            const filter = (reaction, user) => {
+                return user.id === message.author.id;
+            };
+            const collector = new Discord.MessageCollector(channel, filter, {time: 10000, max: 1 })
             const selectedEditEmbed = new Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(messageColorBlue)
                 .setDescription("**Selected Commander**. Please **type** the new Commander.")

@@ -8,7 +8,6 @@ var deck = new mongoose.Schema({
     _colors: String,
     _author: String,
     _server: String,
-    _season: String,
     _description: String,
     _discordLink: String,
     _dateAdded: String,
