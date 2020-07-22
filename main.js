@@ -221,7 +221,7 @@ async function processCommand(receivedMessage){
                 nonAdminAccess(receivedMessage, primaryCommand)
             }
             break;
-        case "setconfigs":
+        case "setconfig":
             if (adminGet){
                 configSet(receivedMessage, arguments)
             }
@@ -229,7 +229,7 @@ async function processCommand(receivedMessage){
                 nonAdminAccess(receivedMessage, primaryCommand)
             }
             break;
-        case "getconfigs":
+        case "getconfig":
             configGet(receivedMessage)
             break;
         case "setseasonname":
@@ -339,8 +339,12 @@ async function getPending(receivedMessage){
 }
 async function configGet(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
-    let returnArr = await leagueObj.configGet(receivedMessage)
+    let returnArr = await leagueObj.configGet(receivedMessage.guild.id)
     if (returnArr != "No configs"){
+        var adminPrivs = returnArr._admin
+        if (returnArr._admin == ""){
+            adminPrivs = "\u200b"
+        }
         const updatedEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
         .setAuthor("Displaying information about your configurations")
@@ -348,9 +352,9 @@ async function configGet(receivedMessage){
             {name: "Player Threshold", value: returnArr._player_threshold},
             {name: "Deck Threshold", value: returnArr._deck_threshold},
             {name: "Timeout", value: returnArr._timeout + " (In minutes)"},
-            {name: "Admin Privileges", value: returnArr._admin}
+            {name: "Admin Privileges", value: adminPrivs}
         )
-        .setFooter("Want to edit these values? Try !configset")
+        .setFooter("Want to edit these values? Use !setconfig")
         generalChannel.send(updatedEmbed)
     }
     else{
@@ -365,40 +369,35 @@ async function configGet(receivedMessage){
 async function configSet(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await leagueObj.configSet(receivedMessage, args)
+    console.log(returnArr)
     if (returnArr == "Invalid Input"){
         const errorEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
-        .setAuthor("Error: Incorrect Input")
+        .setAuthor("Incorrect Input")
         .setDescription("Please retry entering your config. I understand the format: \n\
-        !setconfig Player Threshold (A Number) | Deck Threshold (A Number) | Timeout (A Number in minutes less than 60) | Admin (A List of roles separated by commas)\n\
-        Confused on what these mean? Try !help setconfigs\n\
-        Example input: !setconfig 10 | 10 | 20 | Admin, Moderator, Owner")
-        .setFooter("These values are set by default when you begin your first season. This command is to fine tune that information.")
+        !setconfig <Type> <Value>\n\
+        The types of configurations are: 'Player Threshold (A number)', 'Deck Threshold (A number)', 'Timeout (Minutes, less than 60)' and 'Admin' (A list of Discord Roles seperated by commas)\n\
+        Confused on what these mean? Try !help setconfig")
+        .setFooter("A default set of configuration values are set for every server. Updating these configs is to fine tune your experience")
         generalChannel.send(errorEmbed)
     }
-    else if (returnArr == "Error"){
-        const errorEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorRed)
-        .setAuthor("Error")
-        .setDescription("An Error has occurred, please try again")
-        generalChannel.send(errorEmbed)
-    }
-    else if (returnArr[0] == "Updated"){
+    // else if (returnArr == "Error"){
+    //     const errorEmbed = new Discord.MessageEmbed()
+    //     .setColor(messageColorRed)
+    //     .setAuthor("Error")
+    //     .setDescription("An Error has occurred, please try again")
+    //     generalChannel.send(errorEmbed)
+    // }
+    else if (returnArr == "Updated"){
         const updatedEmbed = new Discord.MessageEmbed()
         .setColor(messageColorGreen)
         .setAuthor("Succesfully updated your configs")
-        .addFields(
-            {name: "Player Threshold", value: returnArr[1]},
-            {name: "Deck Threshold", value: returnArr[2]},
-            {name: "Timeout", value: returnArr[3]},
-            {name: "Admin Privileges", value: returnArr[4]}
-        )
         generalChannel.send(updatedEmbed)
         
     }
-    else {
-        //console.log(parseInt(args[2]))
-    }
+    // else {
+    //     //console.log(parseInt(args[2]))
+    // }
 }
 async function setSeasonName(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
@@ -1389,7 +1388,7 @@ async function profile(receivedMessage, args){
         }
         const profileEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-        .setFooter("Showing information about the current season. Season name: " + returnArr[2] +". \nNote: 'Overall winrate' includes the games that are under your set threshold")
+        .setFooter("Showing information about the current season. Season name: " + returnArr[2] +". \nNote: 'Overall winrate' includes the games that are under the server's set threshold")
         .addFields(
             { name: 'User', value: returnArr[3], inline: true },
             { name: 'Current Deck', value: returnArr[5], inline: true },

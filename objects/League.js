@@ -71,53 +71,72 @@ module.exports = {
         let argsWithCommas = args.toString()
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let splitArgs = argsWithSpaces.split(" | ")
-        let playerThreshold = parseInt(splitArgs[0])
-        let deckThreshold = parseInt(splitArgs[1])
-        let timeout = parseInt(splitArgs[2])
-        let adminList = splitArgs[3]
-        var parseIntCheck = false
-        return new Promise((resolve, reject)=>{
-            if (!isNaN(playerThreshold)){
-                if (!isNaN(deckThreshold)){
-                    if (!isNaN(timeout) && timeout <= 60){
-                        parseIntCheck = true
-                    }else{ resolve("Invalid Input")}
-                }else{ resolve("Invalid Input")}
-            }else{ resolve("Invalid Input")}
         
-            adminList = adminList.replace(/  /g, ', ')
-            
-
-            if (splitArgs.length == 4){
-                    let checkForConfig = {_server: receivedMessage.guild.id}
-                    config.findOne(checkForConfig, function(err,foundRes){
-                        if (foundRes){
-                            let configSet = {
-                                $set: {
-                                    _player_threshold: playerThreshold,
-                                    _deck_threshold: deckThreshold,
-                                    _timeout: timeout,
-                                    _admin: adminList
-                                }
-                            }
-                            config.updateOne(foundRes, configSet, function(err, res){
-                                if (res){
-                                    let returnArr = new Array();
-                                    returnArr.push("Updated", playerThreshold, deckThreshold, timeout, adminList)
-                                    resolve(returnArr)
-                                }
-                                else{
-                                    resolve("Error")
-                                }
-                            })
-                        }
-                        else{
-                            resolve("Error")
-                        }
-                    })  
+        return new Promise((resolve, reject)=>{
+            var conditionalQuery
+            if ((splitArgs[0]!= "player threshold") && (splitArgs[0]!= "deck threshold")
+            &&(splitArgs[0]!= "timeout")&&(splitArgs[0]!= "admin")){
+             resolve("Invalid Input")
             }
             else{
-                resolve("Invalid Input")
+                if ((splitArgs[0]== "player threshold")){
+                    if (parseInt(splitArgs[1])){
+                        if (!isNaN(splitArgs[1])){
+                            conditionalQuery = {
+                                _server: receivedMessage.guild.id,
+                                $set:{
+                                    _player_threshold: splitArgs[1]
+                                }
+                            }
+                        }
+                    }
+                }else if ((splitArgs[0]== "deck threshold")){ 
+                    if (parseInt(splitArgs[1])){
+                        if (!isNaN(splitArgs[1])){
+                            conditionalQuery = {
+                                _server: receivedMessage.guild.id,
+                                $set:{
+                                    _deck_threshold: splitArgs[1]
+                                }
+                            }
+                        }
+                    }
+                }else if ((splitArgs[0]== "timeout")){ 
+                    if (parseInt(splitArgs[1])){
+                        if (!isNaN(splitArgs[1])){
+                            if (splitArgs[1] > 60){
+                                resolve("Timeout too large")
+                            }else{
+                                conditionalQuery = {
+                                    _server: receivedMessage.guild.id,
+                                    $set:{
+                                        _timeout: splitArgs[1]
+                                    }
+                                }
+                            }   
+                        }
+                    }
+                }else if ((splitArgs[0]== "admin")){ 
+                    var adminList = splitArgs[1]
+                    adminList = adminList.replace(/  /g, ', ')
+                    conditionalQuery = {
+                        _server: receivedMessage.guild.id,
+                        $set:{
+                            _admin: adminList
+                        }
+                    }
+                }
+                else{
+                    resolve("Invalid Input")
+                }
+                config.updateOne({_server:receivedMessage.guild.id}, conditionalQuery, function(err,res){
+                    if (res.n > 0){
+                        resolve("Updated")
+                    }
+                    else{
+
+                    }
+                })
             }
         })
     },
