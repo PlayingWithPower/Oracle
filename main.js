@@ -1525,25 +1525,27 @@ async function startMatch(receivedMessage, args){
     //     return
     // }
     // Check if User who sent the message is registered
-    var mentionValues = new Array()
-    var findNotRegistered = 0
-    mentionValues.push(sanitizedString, args[0], args[1], args[2])
-    mentionValues.forEach(async (value)=>{
-        let returnVal = await GameHelper.checkRegister(value, receivedMessage)
-        findNotRegistered = findNotRegistered + returnVal
-    }).then(()=>{
-        console.log(findNotRegistered)
-    })
-    
     var someNotRegistered = false
-    if (returnVal > 0){
-        const errorMsg = new Discord.MessageEmbed()
-        .setColor('#af0000')
-        .setDescription("**Error**: " + mentionValues[1] + " isn't registered, type !register")
-        generalChannel.send(errorMsg)
-        someNotRegistered = true
-    }
-    if (someNotRegistered == true){ return }
+    var mentionValues = new Array()
+    mentionValues.push([sanitizedString, receivedMessage],
+        [args[0], receivedMessage],
+        [args[1], receivedMessage],
+        [args[2], receivedMessage])
+     let promiseArray = mentionValues.map(GameHelper.checkRegister);
+     
+     Promise.all(promiseArray).then(results => {
+        for (var i = 0; i < results.length; i++){
+            if (results[i] == 1){
+                const errorMsg = new Discord.MessageEmbed()
+                .setColor('#af0000')
+                .setDescription("**Error**: " + mentionValues[i][0] + " isn't registered, type !register")
+                generalChannel.send(errorMsg)
+                someNotRegistered = true
+            }
+        }
+     })
+    if (someNotRegistered == true){ console.log("stop")
+    return }
     else{
         // for (var i = 0; i < mentionValues.length; i++){
         //     let findQuery = {_mentionValue: mentionValues[i], _server: receivedMessage.guild.id}
