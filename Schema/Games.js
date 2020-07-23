@@ -17,6 +17,10 @@ var match = new mongoose.Schema({
     _player2Confirmed: String,
     _player3Confirmed: String,
     _player4Confirmed: String,
+    _player1Rogue: String,
+    _player2Rogue: String,
+    _player3Rogue: String,
+    _player4Rogue: String,
 });
 
 module.exports = mongoose.model('Matches', match);

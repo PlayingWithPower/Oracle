@@ -59,13 +59,11 @@ module.exports = {
             // 2 = ID: 
             // 3 = match ID
             //
-            //const result = await gameObj.confirmMatch(msg[3], sanitizedString).catch((message) => {
-            //})
             gameObj.confirmMatch(grabMatchID, sanitizedString).then(function() {
                     gameObj.checkMatch(grabMatchID).then(function(next) {
                         if (next == "SUCCESS") {
-                            gameObj.logMatch(grabMatchID).then(function(final) {
-                                gameObj.finishMatch(grabMatchID).then(function(){
+                            gameObj.logMatch(grabMatchID, reaction.message).then(function(final) {
+                                gameObj.finishMatch(grabMatchID, reaction.message).then(function(){
                                     const logMessage = new Discord.MessageEmbed()
                                             .setColor(messageColorGreen)
                                             .setDescription("Match logged!")
@@ -76,23 +74,23 @@ module.exports = {
                                             .setDescription(message)
                                             channel.send(confirmMessage)
                                     })
-                                    console.log("Game #" + grabMatchID + " success")
+                                    //console.log("Game #" + grabMatchID + " success")
                                     return
                                 }).catch((message) => {
-                                    console.log("Finishing Game #" + grabMatchID + " failed. ERROR:", message)
+                                    //console.log("Finishing Game #" + grabMatchID + " failed. ERROR:", message)
                                     })
 
                             }).catch((message) => {
-                                console.log("ERROR: " + message)
+                                //console.log("ERROR: " + message)
                                 return
                                 })
                         }
                     }).catch((message) => {
-                        console.log("ERROR: " + message)
+                        //console.log("ERROR: " + message)
                         return
                         })
             }).catch((message) => {
-                console.log("ERROR: " + message)
+                //console.log("ERROR: " + message)
                 return
                 })
         }

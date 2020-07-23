@@ -1494,6 +1494,7 @@ async function startMatch(receivedMessage, args){
         return Math.floor((1 + Math.random()) * 0x1000).toString(16).substring(1);
     }
     let id = s4() + s4() + s4() + s4()
+
     // Check to make sure there is a season on-going
     if (currentSeason == "No Current"){
         const errorMsg = new Discord.MessageEmbed()
@@ -1531,62 +1532,43 @@ async function startMatch(receivedMessage, args){
         [args[0], receivedMessage],
         [args[1], receivedMessage],
         [args[2], receivedMessage])
-     let promiseArray = mentionValues.map(GameHelper.checkRegister);
+     let registerPromiseArray = mentionValues.map(GameHelper.checkRegister);
      
-     Promise.all(promiseArray).then(results => {
+     Promise.all(registerPromiseArray).then(results => {
         for (var i = 0; i < results.length; i++){
             if (results[i] == 1){
                 const errorMsg = new Discord.MessageEmbed()
-                .setColor('#af0000')
-                .setDescription("**Error**: " + mentionValues[i][0] + " isn't registered, type !register")
+                .setColor(messageColorRed)
+                .setAuthor("Unregistered User")
+                .setDescription(mentionValues[i][0] + " isn't registered, type !register")
                 generalChannel.send(errorMsg)
                 someNotRegistered = true
             }
         }
-     })
-    if (someNotRegistered == true){ console.log("stop")
-    return }
-    else{
-        // for (var i = 0; i < mentionValues.length; i++){
-        //     let findQuery = {_mentionValue: mentionValues[i], _server: receivedMessage.guild.id}
-        //     user.findOne(findQuery, function(err, res){
-        //         if (res._currentDeck != "None") { }
-        //         else{
-        //             const errorMsg = new Discord.MessageEmbed()
-        //                 .setColor('#af0000')
-        //                 .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <Deck Name>")
-        //                 generalChannel.send(errorMsg)
-        //             someNotRegistered = true
-        //         }
-        //     })
-        // }
-        let findQuery = {_mentionValue: "mentionValues[i]", _server: receivedMessage.guild.id}
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                // Check if user who sent the message has a deck used
-                if (res._currentDeck == "None") {
-                    const errorMsg = new Discord.MessageEmbed()
-                        .setColor('#af0000')
-                        .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
-                    generalChannel.send(errorMsg)
-                    return
+     }).then(()=>{
+        if (someNotRegistered){return }
+        var someDeckNotSet = false
+        let currDeckPromiseArray = mentionValues.map(GameHelper.checkDeck)
+        Promise.all(currDeckPromiseArray).then(results => {
+            for (var i = 0; i < results.length; i++){
+                if (results[i] == 1){
+                    const someMsg = new Discord.MessageEmbed()
+                    .setColor(messageColorRed)
+                    .setAuthor("Deck not set")
+                    .setDescription(mentionValues[i][0] + " Looks like we don’t know what deck you’re using\n\
+                    Please tell us what deck you’re using by typing: !use <Deck Name>\n\
+                    To get a list of decks, type: !decks")
+                    generalChannel.send(someMsg)
+                    someDeckNotSet = true
                 }
+            }
+        }).then(()=>{
+            if (someDeckNotSet){ return }
+            else{
                 UserIDs.push(sanitizedString)
-
                 // Check if Users tagged are registered
                 let ConfirmedUsers = 0
                 args.forEach(loser =>{
-                    let findQuery = {_mentionValue: loser.toString(), _server: receivedMessage.guild.id}
-                    user.findOne(findQuery, function(err, res){
-                        if (res){
-                            // Check if users tagged have a deck used
-                            if (res._currentDeck == "None") {
-                                const errorMsg = new Discord.MessageEmbed()
-                                    .setColor('#af0000')
-                                    .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
-                                generalChannel.send(errorMsg)
-                                return
-                            }
                             UserIDs.push(loser)
                             ConfirmedUsers++
                             if (ConfirmedUsers == 3){
@@ -1609,7 +1591,7 @@ async function startMatch(receivedMessage, args){
                                         }
                                         else {
                                             UserIDs.forEach(player => {
-                                                findQuery = {_mentionValue: player}
+                                                findQuery = {_mentionValue: player, _server: receivedMessage.guild.id}
                                                 user.findOne(findQuery, function(err, res){
                                                     const userUpvoteEmbed = new Discord.MessageEmbed()
                                                         .setAuthor("Game ID: " + id)
@@ -1629,12 +1611,10 @@ async function startMatch(receivedMessage, args){
                                     })
                                 }
                             }
-                        }
-                    })
+                        })
+                    }
                 })
-            }
-        })
-    }
+            })
 }
 /**
  * remindMatch()

@@ -14,19 +14,19 @@ const percentageToGain = 0.030
 
 module.exports = {
 
-    logWinner(id) {
+    logWinner(id, receivedMessage) {
         return new Promise((resolve, reject) => {
             const users = require('../Schema/Users')
-            findQuery = {_mentionValue: id}
+            let findQuery = {_mentionValue: id, _server: receivedMessage.guild.id}
             users.findOne(findQuery, function(err, res) {
                 if (res) {
-                    // Deck W/L Handling
-                    tempArr = res._deck
-                    tempArr.forEach(deck => {
-                        if (deck.Deck == res._currentDeck){
-                            deck.Wins += 1
-                        }
-                    })
+                    // // Deck W/L Handling
+                    // tempArr = res._deck
+                    // tempArr.forEach(deck => {
+                    //     if (deck.Deck == res._currentDeck){
+                    //         deck.Wins += 1
+                    //     }
+                    // })
 
                     // Elo Handling
                     var newVal
@@ -38,7 +38,7 @@ module.exports = {
                     change = Math.round(Number(res._elo)*(percentageToGain))
                     
 
-                    newInfo = { $set: {'_elo': newVal, '_wins': newWins, '_deck': tempArr}}
+                    newInfo = { $set: {'_elo': newVal}}
                     users.updateOne(findQuery, newInfo, function(err, res) {
                         if (res) {
                             resolve("**" + id + "**'s Score " + newVal + " (+" + change + ")")
@@ -55,19 +55,19 @@ module.exports = {
         })
     },
 
-    logLoser(id) {
+    logLoser(id, receivedMessage) {
         return new Promise((resolve, reject) => {
             const users = require('../Schema/Users')
-            let findQuery = {_mentionValue: id}
+            let findQuery = {_mentionValue: id, _server: receivedMessage.guild.id}
             users.findOne(findQuery, function(err, res) {
                 if (res) {
-                    // Deck W/L Handling
-                    tempArr = res._deck
-                    tempArr.forEach(deck => {
-                        if (deck.Deck == res._currentDeck){
-                            deck.Losses += 1
-                        }
-                    })
+                    // // Deck W/L Handling
+                    // tempArr = res._deck
+                    // tempArr.forEach(deck => {
+                    //     if (deck.Deck == res._currentDeck){
+                    //         deck.Losses += 1
+                    //     }
+                    // })
 
                     // Elo Handling
                     var newVal
@@ -79,7 +79,7 @@ module.exports = {
                     change = Math.round(Number(res._elo)*(percentageToLose))
                     
 
-                    let newInfo = { $set: {'_elo': newVal, '_losses': newLosses, '_deck': tempArr}}
+                    let newInfo = { $set: {'_elo': newVal}}
                     users.updateOne(findQuery, newInfo, function(err, res) {
                         if (res) {
                             resolve("**" + id + "**'s Score " + newVal + " (-" + change + ")")
@@ -96,7 +96,7 @@ module.exports = {
         })
     },
 
-    logMatch(id) {
+    logMatch(id, receivedMessage) {
         const games = require('../Schema/Games')
         var promises = [];
         var out = [];
@@ -105,10 +105,10 @@ module.exports = {
             let findQuery = {_match_id: id, _Status: "STARTED"}
             games.findOne(findQuery, function(err, res){
                 if (res) {
-                    promises.push(module.exports.logWinner(res._player1))
-                    promises.push(module.exports.logLoser(res._player2))
-                    promises.push(module.exports.logLoser(res._player3))
-                    promises.push(module.exports.logLoser(res._player4))
+                    promises.push(module.exports.logWinner(res._player1, receivedMessage))
+                    promises.push(module.exports.logLoser(res._player2, receivedMessage))
+                    promises.push(module.exports.logLoser(res._player3, receivedMessage))
+                    promises.push(module.exports.logLoser(res._player4, receivedMessage))
                     Promise.all(promises).then(function() {
                         arguments[0].forEach(arg => {
                             out.push(arg)
@@ -321,7 +321,7 @@ module.exports = {
                     }
                 }
                 else {
-                    console.log ("Match #:" + id + " not found")
+                    //console.log ("Match #:" + id + " not found")
                 }
             })
         })
@@ -330,10 +330,10 @@ module.exports = {
      * Creates match
      * TODO: Add server functionality
      */
-    findUserDeck(id){
+    findUserDeck(id, receivedMessage){
         const user = require('../Schema/Users')
         return new Promise((resolve, reject) => {
-            findQuery = {_mentionValue: id}
+            findQuery = {_mentionValue: id, _server:receivedMessage.guild.id}
             user.findOne(findQuery, function(err, res) {
                 if (res) {
                     resolve(res._currentDeck)
@@ -346,7 +346,6 @@ module.exports = {
     },
     async createMatch(player1, player2, player3, player4, id, receivedMessage, callback) {
         const game = require('../Schema/Games')
-        const user = require('../Schema/Users')
         const SeasonHelper = require('../Helpers/SeasonHelper')
         var currentSeasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         var currentSeasonName = currentSeasonObj._season_name
@@ -359,16 +358,46 @@ module.exports = {
         //Get Decks
         promiseArr = []
 
-        promiseArr.push(module.exports.findUserDeck(player1))
-        promiseArr.push(module.exports.findUserDeck(player2))
-        promiseArr.push(module.exports.findUserDeck(player3))
-        promiseArr.push(module.exports.findUserDeck(player4))
+        promiseArr.push(module.exports.findUserDeck(player1, receivedMessage))
+        promiseArr.push(module.exports.findUserDeck(player2, receivedMessage))
+        promiseArr.push(module.exports.findUserDeck(player3, receivedMessage))
+        promiseArr.push(module.exports.findUserDeck(player4, receivedMessage))
 
         Promise.all(promiseArr).then(function() {
+            var player1R = "None"
+            var player2R = "None"
+            var player3R = "None"
+            var player4R = "None"
+    
             deck1 = arguments[0][0]
             deck2 = arguments[0][1]
             deck3 = arguments[0][2]
             deck4 = arguments[0][3]
+            var player1Deck = deck1
+            var player2Deck = deck2
+            var player3Deck = deck3
+            var player4Deck = deck4
+
+            deckTest = deck1.split(' | ')
+            if (deckTest[1] == "Rogue"){
+                player1RF = deckTest[0]
+                player1Deck = deckTest[1]
+            }
+            deckTest = deck2.split(' | ')
+            if (deckTest[1] == "Rogue"){
+                player2RF = deckTest[0]
+                player2Deck = deckTest[1]
+            }
+            deckTest = deck3.split(' | ')
+            if (deckTest[1] == "Rogue"){
+                player3RF = deckTest[0]
+                player3Deck = deckTest[1]
+            }
+            deckTest = deck4.split(' | ')
+            if (deckTest[1] == "Rogue"){
+                player4RF = deckTest[0]
+                player4Deck = deckTest[1]
+            }
             game({
                     _match_id: id, 
                     _server: receivedMessage.guild.id, 
@@ -377,15 +406,19 @@ module.exports = {
                     _player2: player2, 
                     _player3: player3, 
                     _player4: player4, 
-                    _player1Deck: deck1, 
-                    _player2Deck: deck2, 
-                    _player3Deck: deck3, 
-                    _player4Deck: deck4, 
+                    _player1Deck: player1Deck, 
+                    _player2Deck: player2Deck, 
+                    _player3Deck: player3Deck, 
+                    _player4Deck: player4Deck, 
                     _Status: "STARTED", 
                     _player1Confirmed: "N", 
                     _player2Confirmed: "N", 
                     _player3Confirmed: "N", 
-                    _player4Confirmed: "N"
+                    _player4Confirmed: "N",
+                    _player1Rogue: player1R,
+                    _player2Rogue: player2R,
+                    _player3Rogue: player3R,
+                    _player4Rogue: player4R,
                 }).save(function(err, result){
                 if (result){
                     console.log("Successfully created Game #" + id)
@@ -518,17 +551,10 @@ module.exports = {
             })
         })
     },
-
-    /**
-     * Update a player's deck for a given match
-     */
-    updateDeck() {
-
-    },
-    finishMatch(id) {
+    finishMatch(id, message) {
         return new Promise((resolve, reject) => {
             const games = require('../Schema/Games')
-            findQuery = {_match_id: id}
+            findQuery = {_match_id: id, _server: message.guild.id}
             games.findOne(findQuery, function(err, res) {
                 if (res) {
                     if (res._Status == "STARTED") {
