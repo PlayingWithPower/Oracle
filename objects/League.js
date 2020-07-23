@@ -131,10 +131,16 @@ module.exports = {
                 }
                 config.updateOne({_server:receivedMessage.guild.id}, conditionalQuery, function(err,res){
                     if (res.n > 0){
-                        resolve("Updated")
+                        let savedValue = splitArgs[1]
+                        if (splitArgs[0] == "admin"){
+                            savedValue = adminList
+                        }
+                        var resArr = new Array();
+                        resArr.push("Updated", splitArgs[0], savedValue)
+                        resolve(resArr)
                     }
                     else{
-
+                        resolve("Error")
                     }
                 })
             }

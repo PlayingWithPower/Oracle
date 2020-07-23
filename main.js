@@ -19,6 +19,7 @@ const FunctionHelper = require('./Helpers/FunctionHelper')
 const DeckHelper = require('./Helpers/DeckHelper')
 const ManageReactHelper = require('./Helpers/ManageReactionHelper')
 const SeasonHelper = require('./Helpers/SeasonHelper')
+const GameHelper = require('./Helpers/GameHelper')
 const ConfigHelper = require('./Helpers/ConfigHelper')
 
 //Bot prefix
@@ -351,7 +352,7 @@ async function configGet(receivedMessage){
         .addFields(
             {name: "Player Threshold", value: returnArr._player_threshold},
             {name: "Deck Threshold", value: returnArr._deck_threshold},
-            {name: "Timeout", value: returnArr._timeout + " (In minutes)"},
+            {name: "Timeout (in minutes)", value: returnArr._timeout},
             {name: "Admin Privileges", value: adminPrivs}
         )
         .setFooter("Want to edit these values? Use !setconfig")
@@ -369,7 +370,6 @@ async function configGet(receivedMessage){
 async function configSet(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await leagueObj.configSet(receivedMessage, args)
-    console.log(returnArr)
     if (returnArr == "Invalid Input"){
         const errorEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
@@ -381,23 +381,23 @@ async function configSet(receivedMessage, args){
         .setFooter("A default set of configuration values are set for every server. Updating these configs is to fine tune your experience")
         generalChannel.send(errorEmbed)
     }
-    // else if (returnArr == "Error"){
-    //     const errorEmbed = new Discord.MessageEmbed()
-    //     .setColor(messageColorRed)
-    //     .setAuthor("Error")
-    //     .setDescription("An Error has occurred, please try again")
-    //     generalChannel.send(errorEmbed)
-    // }
-    else if (returnArr == "Updated"){
+    else if (returnArr == "Error"){
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Error")
+        .setDescription("An Error has occurred, please try again")
+        generalChannel.send(errorEmbed)
+    }
+    else if (returnArr[0] == "Updated"){
+        var commandType = returnArr[1]
+        commandType = DeckHelper.toUpper(commandType)
         const updatedEmbed = new Discord.MessageEmbed()
         .setColor(messageColorGreen)
         .setAuthor("Succesfully updated your configs")
+        .setDescription("You have updated the configuration:\n\
+         **" + commandType + "** to **" + returnArr[2] + "**")
         generalChannel.send(updatedEmbed)
-        
     }
-    // else {
-    //     //console.log(parseInt(args[2]))
-    // }
 }
 async function setSeasonName(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
@@ -796,6 +796,11 @@ async function deckStats(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     const deckStatsEmbed = new Discord.MessageEmbed()
     const usersList = new Discord.MessageEmbed()
+
+    let getDeckThreshold = await ConfigHelper.getDeckThreshold(receivedMessage.guild.id)
+    var threshold = 5
+    if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._deck_threshold }
+
     let returnArr = await deckObj.deckStats(receivedMessage, args)
     if (returnArr[0] == "Deck Lookup"){
         let deckName = returnArr[1].split(" | ")
@@ -812,6 +817,8 @@ async function deckStats(receivedMessage, args){
             { name: 'Number of Matches', value: returnArr[3] + returnArr[4], inline: true}, 
             { name: 'Winrate', value: Math.round((returnArr[3]/(returnArr[3]+returnArr[4]))*100) + "%"}, 
         )
+        .setFooter("For Season Name: " + returnArr[4])
+        
         usersList
             .setColor(messageColorBlue)
             .setTitle("People who've played this deck in the time frame provided.")
@@ -824,6 +831,7 @@ async function deckStats(receivedMessage, args){
         generalChannel.send(usersList) 
     }
     else if (returnArr[0] == "User Lookup"){
+        
         deckStatsEmbed
         .setColor(messageColorBlue)
         .setTitle("Deck Stats")
@@ -842,26 +850,26 @@ async function deckStats(receivedMessage, args){
         const allDecksEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
         .setTitle("Deck Stats")
-        .setFooter("Data for the current season. Season Name: " + returnArr[2] + "\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see exactly what decks this user plays.")
          
         var nameVar = ""
-        var winVar = ""
-        var lossVar = ""
+        
+        
         returnArr[1].forEach((deck)=>{
-            // nameVar += deck[0] + "\n"
-            // if (deck[1] + deck[2] > 1){//THRESHOLD CONFIG HERE
-            //     winVar += deck[1] + "\n"
-            //     lossVar += deck[2] + "\n"
-            // }
-            allDecksEmbed
-            .addFields(
-                { name: "Deck Names", value: deck[0]},
-                { name: "Wins", value: deck[1],inline: true},
-                { name: "Losses", value: deck[2],inline: true},
-                { name: 'Number of Matches', value: deck[1] + deck[2], inline: true}, 
-                { name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true}, 
-            )
+            nameVar += deck[0] + "\n"
+            if (deck[1] + deck[2] < threshold){ }
+            else{
+                allDecksEmbed
+                .addFields(
+                    { name: "Deck Names", value: deck[0]},
+                    //{ name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true}, 
+                    { name: "Wins", value: deck[1],inline: true},
+                    { name: "Losses", value: deck[2],inline: true},
+                    { name: 'Number of Matches', value: deck[1] + deck[2], inline: true},    
+                )
+            }
         })
+        allDecksEmbed
+        .setFooter("Data for the current season. Season Name: " + returnArr[2] + "\n Note: The threshold to appear on this list is " + threshold.toString() + " games\nAdmins can configure this using !setconfigs\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see exactly what decks this user plays.")
         generalChannel.send(allDecksEmbed)
 
     }
@@ -1399,7 +1407,7 @@ async function profile(receivedMessage, args){
         if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._deck_threshold }
         const decksEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " games\nConfigure this using !setconfigs")
+        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " games\nAdmins can configure this using !setconfigs")
         returnArr[1].forEach((deck) =>{
             overallWins = overallWins + deck[1]
             overallLosses = overallLosses + deck[2]
@@ -1492,7 +1500,7 @@ async function startMatch(receivedMessage, args){
             .setColor(messageColorRed)
             .setAuthor("Error: No On-Going Season")
             .setDescription("There is no on-going season. Please start a season before logging matches")
-            .setFooter("Try !startseason")
+            .setFooter("Admins can use !startseason")
         generalChannel.send(errorMsg)
         return
     }
@@ -1517,94 +1525,114 @@ async function startMatch(receivedMessage, args){
     //     return
     // }
     // Check if User who sent the message is registered
-    let findQuery = {_mentionValue: sanitizedString}
-    user.findOne(findQuery, function(err, res){
-        if (res){
-            // Check if user who sent the message has a deck used
-            if (res._currentDeck == "None") {
-                const errorMsg = new Discord.MessageEmbed()
-                    .setColor('#af0000')
-                    .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
-                generalChannel.send(errorMsg)
-                return
-            }
-            UserIDs.push(sanitizedString)
+    var mentionValues = new Array()
+    var findNotRegistered = 0
+    mentionValues.push(sanitizedString, args[0], args[1], args[2])
+    mentionValues.forEach(async (value)=>{
+        let returnVal = await GameHelper.checkRegister(value, receivedMessage)
+        findNotRegistered = findNotRegistered + returnVal
+    }).then(()=>{
+        console.log(findNotRegistered)
+    })
+    
+    var someNotRegistered = false
+    if (returnVal > 0){
+        const errorMsg = new Discord.MessageEmbed()
+        .setColor('#af0000')
+        .setDescription("**Error**: " + mentionValues[1] + " isn't registered, type !register")
+        generalChannel.send(errorMsg)
+        someNotRegistered = true
+    }
+    if (someNotRegistered == true){ return }
+    else{
+        // for (var i = 0; i < mentionValues.length; i++){
+        //     let findQuery = {_mentionValue: mentionValues[i], _server: receivedMessage.guild.id}
+        //     user.findOne(findQuery, function(err, res){
+        //         if (res._currentDeck != "None") { }
+        //         else{
+        //             const errorMsg = new Discord.MessageEmbed()
+        //                 .setColor('#af0000')
+        //                 .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <Deck Name>")
+        //                 generalChannel.send(errorMsg)
+        //             someNotRegistered = true
+        //         }
+        //     })
+        // }
+        let findQuery = {_mentionValue: "mentionValues[i]", _server: receivedMessage.guild.id}
+        user.findOne(findQuery, function(err, res){
+            if (res){
+                // Check if user who sent the message has a deck used
+                if (res._currentDeck == "None") {
+                    const errorMsg = new Discord.MessageEmbed()
+                        .setColor('#af0000')
+                        .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
+                    generalChannel.send(errorMsg)
+                    return
+                }
+                UserIDs.push(sanitizedString)
 
-            // Check if Users tagged are registered
-            let ConfirmedUsers = 0
-            args.forEach(loser =>{
-                let findQuery = {_mentionValue: loser.toString()}
-                user.findOne(findQuery, function(err, res){
-                    if (res){
-                        // Check if users tagged have a deck used
-                        if (res._currentDeck == "None") {
-                            const errorMsg = new Discord.MessageEmbed()
-                                .setColor('#af0000')
-                                .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
-                            generalChannel.send(errorMsg)
-                            return
-                        }
-                        UserIDs.push(loser)
-                        ConfirmedUsers++
-                        if (ConfirmedUsers == 3){
-                            // Double check UserID Array then create match and send messages
-                            if (UserIDs.length != 4){
+                // Check if Users tagged are registered
+                let ConfirmedUsers = 0
+                args.forEach(loser =>{
+                    let findQuery = {_mentionValue: loser.toString(), _server: receivedMessage.guild.id}
+                    user.findOne(findQuery, function(err, res){
+                        if (res){
+                            // Check if users tagged have a deck used
+                            if (res._currentDeck == "None") {
                                 const errorMsg = new Discord.MessageEmbed()
                                     .setColor('#af0000')
-                                    .setDescription("**Error:** Code 300")
+                                    .setDescription("**Error**: " + res._mentionValue + " doesn't have a deck in use, type !use <deckname>")
                                 generalChannel.send(errorMsg)
                                 return
                             }
-                            else{
-                                gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, receivedMessage, function(cb, err){
-                                    if (cb == "FAILURE"){
-                                        const errorMsg = new Discord.MessageEmbed()
-                                            .setColor('#af0000')
-                                            .setDescription("**Error:** Code 301")
-                                        generalChannel.send(errorMsg)
-                                        return
-                                    }
-                                    else {
-                                        UserIDs.forEach(player => {
-                                            findQuery = {_mentionValue: player}
-                                            user.findOne(findQuery, function(err, res){
-                                                const userUpvoteEmbed = new Discord.MessageEmbed()
-                                                    .setAuthor("Game ID: " + id)
-                                                    .setColor(messageColorBlue)
-                                                    .setDescription(res._mentionValue + " used **" + res._currentDeck + "** \n **Upvote** to confirm \n **Downvote** to contest")
-                                                generalChannel.send(res._mentionValue, userUpvoteEmbed)
-                                                    .then(function (message, callback){
-                                                    const filter = (reaction, user) => {
-                                                        return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
-                                                    };   
-                                                    message.react("👍")
-                                                    message.react("👎")
+                            UserIDs.push(loser)
+                            ConfirmedUsers++
+                            if (ConfirmedUsers == 3){
+                                // Double check UserID Array then create match and send messages
+                                if (UserIDs.length != 4){
+                                    const errorMsg = new Discord.MessageEmbed()
+                                        .setColor('#af0000')
+                                        .setDescription("**Error:** Code 300")
+                                    generalChannel.send(errorMsg)
+                                    return
+                                }
+                                else{
+                                    gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, receivedMessage, function(cb, err){
+                                        if (cb == "FAILURE"){
+                                            const errorMsg = new Discord.MessageEmbed()
+                                                .setColor('#af0000')
+                                                .setDescription("**Error:** Code 301")
+                                            generalChannel.send(errorMsg)
+                                            return
+                                        }
+                                        else {
+                                            UserIDs.forEach(player => {
+                                                findQuery = {_mentionValue: player}
+                                                user.findOne(findQuery, function(err, res){
+                                                    const userUpvoteEmbed = new Discord.MessageEmbed()
+                                                        .setAuthor("Game ID: " + id)
+                                                        .setColor(messageColorBlue)
+                                                        .setDescription(res._mentionValue + " used **" + res._currentDeck + "** \n **Upvote** to confirm \n **Downvote** to contest")
+                                                    generalChannel.send(res._mentionValue, userUpvoteEmbed)
+                                                        .then(function (message, callback){
+                                                        const filter = (reaction, user) => {
+                                                            return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
+                                                        };   
+                                                        message.react("👍")
+                                                        message.react("👎")
+                                                    })
                                                 })
                                             })
-                                        })
-                                    }
-                                })
+                                        }
+                                    })
+                                }
                             }
                         }
-                    }
-                    else{
-                        const errorMsg = new Discord.MessageEmbed()
-                            .setColor('#af0000')
-                            .setDescription("**Error**: " + loser + " isn't registered, type !register")
-                        generalChannel.send(errorMsg)
-                        return
-                    }
+                    })
                 })
-            })
-        }
-        else{
-            const errorMsg = new Discord.MessageEmbed()
-                .setColor('#af0000')
-                .setDescription("**Error**: " + sanitizedString + " isn't registered, type !register")
-            generalChannel.send(errorMsg)
-            return
-        }
-    })
+            }
+        })
+    }
 }
 /**
  * remindMatch()

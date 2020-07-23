@@ -1,6 +1,6 @@
 const Deck = require('../Schema/Deck')
 const DeckHelper = require('../Helpers/DeckHelper')
-const { find } = require('../Schema/Deck')
+const SeasonHelper = require('../Helpers/SeasonHelper')
 
 /**
  * Deck Object
@@ -79,12 +79,10 @@ module.exports = {
      * TODO: !deckstats <deckname> should return the current season by default. ATM 
      *  it returns the same as !deckstats <deckname> | all
      */
-    deckStats(receivedMessage, args){
-        const DeckHelper = require('../Helpers/DeckHelper')
-        
-        const user = require('../Schema/Users')
+    async deckStats(receivedMessage, args){
         const matches = require('../Schema/Games')
-        var currentSeason = "1" //UPDATE ME
+        const seasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        var currentSeason = seasonObj._season_name
 
         //Notes:
             //     !deckstats
@@ -719,7 +717,6 @@ module.exports = {
         const data = require('../data/decklists.json');
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
-        console.log("I ran")
         data.forEach(decks =>{
             if (decks[0] == "Y"){
                 hasPrimer = true
