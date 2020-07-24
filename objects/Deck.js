@@ -114,7 +114,7 @@ module.exports = {
         //implement !deckstats here
         if (args.length == 0){
             return new Promise((resolve, reject)=>{
-                let query = {'_server': receivedMessage.guild.id, '_season': currentSeason}
+                let query = {'_server': receivedMessage.guild.id, '_season': currentSeason, _Status: "FINISHED"}
                 var passingResult
                 var passedArray = new Array()
                 matches.find(query, function(err, res){
@@ -129,24 +129,27 @@ module.exports = {
                         var matchResults = []
                         for (var i=0; i <passingResult.length; i++){
                             var exists = matchResults.find(el => el[0] === passingResult[i]._player1Deck)
-                            var exists2 = matchResults.find(el => el[0] === passingResult[i]._player2Deck)
-                            var exists3 = matchResults.find(el => el[0] === passingResult[i]._player3Deck)
-                            var exists4 = matchResults.find(el => el[0] === passingResult[i]._player4Deck)
                             if (exists) {
                                 exists[1] += 1;
                               } else {
                                 matchResults.push([passingResult[i]._player1Deck, 1, 0]);
                               }
+
+                            var exists2 = matchResults.find(el => el[0] === passingResult[i]._player2Deck)
                             if (exists2) {
                                 exists2[2] += 1;
                                 } else {
                                 matchResults.push([passingResult[i]._player2Deck, 0, 1]);
                                 } 
+
+                            var exists3 = matchResults.find(el => el[0] === passingResult[i]._player3Deck)
                             if (exists3) {
                                 exists3[2] += 1;
                                 } else {
                                 matchResults.push([passingResult[i]._player3Deck, 0, 1]);
                                 }
+
+                            var exists4 = matchResults.find(el => el[0] === passingResult[i]._player4Deck)
                             if (exists4) {
                                 exists4[2] += 1;
                                 } else {
@@ -292,7 +295,7 @@ module.exports = {
                         deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
                             return inputArray.indexOf(item) == index;
                         });
-                        passedArray.push("Deck Lookup",args, currentSeason, wins, losses, deckPlayers)
+                        passedArray.push("Deck Lookup",args, currentSeason, wins, losses, deckPlayers,passingResult)
                         resolve(passedArray)
                     }
                     else{
@@ -586,7 +589,6 @@ module.exports = {
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')
         const DeckHelper = require('../Helpers/DeckHelper')
-
         let deckNick = newDeckArr[0]
         let deckAlias = newDeckArr[0].toLowerCase()
         let commanderName = newDeckArr[1]
@@ -597,7 +599,7 @@ module.exports = {
         let deckType = newDeckArr[6]
         let hasPrimer = newDeckArr[7]
         let discordLink = newDeckArr[8]
-        
+
         deckNick = DeckHelper.toUpper(deckNick)
         colorIdentity = colorIdentity.toUpperCase()
         colorIdentity = colorIdentity.split('').join(', ')

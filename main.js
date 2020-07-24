@@ -362,8 +362,7 @@ async function configGet(receivedMessage){
         const noConfigEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
         .setAuthor("No current information about your configurations")
-        .setDescription("Configurations are automatically generated when you begin your first season\n\
-        Try !startseason and then use this command again to see the default values assigned")
+        .setDescription("Configurations are automatically generated when I join your server.")
         generalChannel.send(noConfigEmbed)
     }
 }
@@ -375,7 +374,7 @@ async function configSet(receivedMessage, args){
         .setColor(messageColorRed)
         .setAuthor("Incorrect Input")
         .setDescription("Please retry entering your config. I understand the format: \n\
-        !setconfig <Type> <Value>\n\
+        !setconfig <Type> | <Value>\n\
         The types of configurations are: 'Player Threshold (A number)', 'Deck Threshold (A number)', 'Timeout (Minutes, less than 60)' and 'Admin' (A list of Discord Roles seperated by commas)\n\
         Confused on what these mean? Try !help setconfig")
         .setFooter("A default set of configuration values are set for every server. Updating these configs is to fine tune your experience")
@@ -742,7 +741,7 @@ async function updateDeck(receivedMessage, args){
         \nReact with the **thumbs down** at any time to cancel.")
         .setFooter("You cannot update the Deck Name due to analytics.")
         generalChannel.send(updateDeckEmbed)
-        .then(function (message, callback){
+        .then(function (message){
             message.react("1️⃣")//commander
             message.react("2️⃣")//colors
             message.react("3️⃣")//decklink
@@ -814,10 +813,10 @@ async function deckStats(receivedMessage, args){
         .addFields(
             { name: 'Wins', value: returnArr[3], inline: true},
             { name: 'Losses', value: returnArr[4], inline: true},
-            { name: 'Number of Matches', value: returnArr[3] + returnArr[4], inline: true}, 
+            { name: 'Number of Matches', value: returnArr[5].length, inline: true}, 
             { name: 'Winrate', value: Math.round((returnArr[3]/(returnArr[3]+returnArr[4]))*100) + "%"}, 
         )
-        .setFooter("For Season Name: " + returnArr[4])
+        .setFooter("For Season Name: " + seasonName)
         
         usersList
             .setColor(messageColorBlue)
@@ -860,16 +859,16 @@ async function deckStats(receivedMessage, args){
             else{
                 allDecksEmbed
                 .addFields(
-                    { name: "Deck Names", value: deck[0]},
+                    { name: "Deck Names", value: deck[0], inline: true},
                     //{ name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true}, 
                     { name: "Wins", value: deck[1],inline: true},
                     { name: "Losses", value: deck[2],inline: true},
-                    { name: 'Number of Matches', value: deck[1] + deck[2], inline: true},    
+                    //{ name: 'Number of Matches', value: deck[1] + deck[2], inline: true},    
                 )
             }
         })
         allDecksEmbed
-        .setFooter("Data for the current season. Season Name: " + returnArr[2] + "\n Note: The threshold to appear on this list is " + threshold.toString() + " games\nAdmins can configure this using !setconfigs\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see exactly what decks this user plays.")
+        .setFooter("Data for the current season. Season Name: " + returnArr[2] + "\nNote: The threshold to appear on this list is " + threshold.toString() + " games\nAdmins can configure this using !setconfigs\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks")
         generalChannel.send(allDecksEmbed)
 
     }
@@ -1494,6 +1493,12 @@ async function startMatch(receivedMessage, args){
         return Math.floor((1 + Math.random()) * 0x1000).toString(16).substring(1);
     }
     let id = s4() + s4() + s4() + s4()
+
+    
+
+    // let checkMatchRet = await GameHelper.checkMatchID(receivedMessage.guild.id,"016a765d1455")
+    
+    // console.log(checkMatchRet)
 
     // Check to make sure there is a season on-going
     if (currentSeason == "No Current"){

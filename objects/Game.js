@@ -9,6 +9,8 @@
  * 3. Commit Match (this puts the match into an accepted status and performs match calculations)
  */
 
+const { match } = require('assert')
+
 const percentageToLose = 0.010
 const percentageToGain = 0.030
 
@@ -380,25 +382,25 @@ module.exports = {
 
             deckTest = deck1.split(' | ')
             if (deckTest[1] == "Rogue"){
-                player1RF = deckTest[0]
+                player1R = deckTest[0]
                 player1Deck = deckTest[1]
             }
             deckTest = deck2.split(' | ')
             if (deckTest[1] == "Rogue"){
-                player2RF = deckTest[0]
+                player2R = deckTest[0]
                 player2Deck = deckTest[1]
             }
             deckTest = deck3.split(' | ')
             if (deckTest[1] == "Rogue"){
-                player3RF = deckTest[0]
+                player3R = deckTest[0]
                 player3Deck = deckTest[1]
             }
             deckTest = deck4.split(' | ')
             if (deckTest[1] == "Rogue"){
-                player4RF = deckTest[0]
+                player4R = deckTest[0]
                 player4Deck = deckTest[1]
             }
-            game({
+            var matchSave = {
                     _match_id: id, 
                     _server: receivedMessage.guild.id, 
                     _season: currentSeasonName, 
@@ -418,8 +420,9 @@ module.exports = {
                     _player1Rogue: player1R,
                     _player2Rogue: player2R,
                     _player3Rogue: player3R,
-                    _player4Rogue: player4R,
-                }).save(function(err, result){
+                    _player4Rogue: player4R
+                }
+            game(matchSave).save(function(err, result){
                 if (result){
                     console.log("Successfully created Game #" + id)
                     callback("SUCCESS")
