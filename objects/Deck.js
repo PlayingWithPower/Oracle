@@ -128,32 +128,48 @@ module.exports = {
                     if (passingResult != ""){
                         var matchResults = []
                         for (var i=0; i <passingResult.length; i++){
-                            var exists = matchResults.find(el => el[0] === passingResult[i]._player1Deck)
+                            var pasRes = passingResult[i]._player1Deck
+                            if (passingResult[i]._player1Deck == "Rogue"){
+                                pasRes = passingResult[i]._player1Rogue + " | Rogue"
+                            }
+                            var exists = matchResults.find(el => el[0] === pasRes)
                             if (exists) {
                                 exists[1] += 1;
                               } else {
-                                matchResults.push([passingResult[i]._player1Deck, 1, 0]);
+                                matchResults.push([pasRes, 1, 0]);
                               }
 
-                            var exists2 = matchResults.find(el => el[0] === passingResult[i]._player2Deck)
+                            var pasRes = passingResult[i]._player2Deck
+                            if (passingResult[i]._player2Deck == "Rogue"){
+                                pasRes = passingResult[i]._player2Rogue + " | Rogue"
+                            }
+                            var exists2 = matchResults.find(el => el[0] === pasRes)
                             if (exists2) {
                                 exists2[2] += 1;
                                 } else {
-                                matchResults.push([passingResult[i]._player2Deck, 0, 1]);
+                                matchResults.push([pasRes, 0, 1]);
                                 } 
 
-                            var exists3 = matchResults.find(el => el[0] === passingResult[i]._player3Deck)
+                            var pasRes = passingResult[i]._player3Deck
+                            if (passingResult[i]._player3Deck == "Rogue"){
+                                pasRes = passingResult[i]._player3Rogue + " | Rogue"
+                            }
+                            var exists3 = matchResults.find(el => el[0] === pasRes)
                             if (exists3) {
                                 exists3[2] += 1;
                                 } else {
-                                matchResults.push([passingResult[i]._player3Deck, 0, 1]);
+                                matchResults.push([pasRes, 0, 1]);
                                 }
 
-                            var exists4 = matchResults.find(el => el[0] === passingResult[i]._player4Deck)
+                            var pasRes = passingResult[i]._player4Deck
+                            if (passingResult[i]._player4Deck == "Rogue"){
+                                pasRes = passingResult[i]._player4Rogue + " | Rogue"
+                            }
+                            var exists4 = matchResults.find(el => el[0] === pasRes)
                             if (exists4) {
                                 exists4[2] += 1;
                                 } else {
-                                matchResults.push([passingResult[i]._player4Deck, 0, 1]);
+                                matchResults.push([[pasRes], 0, 1]);
                                 }
                         }
                         passedArray.push("Raw Deck Lookup",matchResults, currentSeason)

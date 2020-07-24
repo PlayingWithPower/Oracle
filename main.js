@@ -859,10 +859,10 @@ async function deckStats(receivedMessage, args){
             else{
                 allDecksEmbed
                 .addFields(
-                    { name: "Deck Names", value: deck[0], inline: true},
-                    //{ name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true}, 
+                    { name: "Deck Names", value: deck[0]},
                     { name: "Wins", value: deck[1],inline: true},
                     { name: "Losses", value: deck[2],inline: true},
+                    { name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true}, 
                     //{ name: 'Number of Matches', value: deck[1] + deck[2], inline: true},    
                 )
             }
