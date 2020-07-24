@@ -12,43 +12,62 @@ const ConfigHelper = require('../Helpers/ConfigHelper')
 const messageColorRed = "#af0000"
 const messageColorGreen = "#5fff00"
 const messageColorBlue = "#0099ff"
+const messageColorSecondBlue = "#020ff0"
 
 // Define dictionary with (string) key : (string) value.
 // ex. helpDictionary["help"] = "Where you are now. A list of all available commands."
-
-helpDictionary =
+deckDictionary = {
+    decks: "Lists all available decks",
+    deckstats: "Lists stats information about decks",
+    deckinfo: "Provides detailed information about a deck",
+}
+gameDictionary = {
+    log: "Logs a game to this server's league",
+    remind: "Reminds users to confirm logged matches",
+    pending: "Lists all unfinished matches",
+    matchinfo: "Provides information on a match",
+}
+leagueDictionary = {
+    register: "Registers a user to participate in this server's league",
+    top: "Lists the top users this season"
+}
+seasonDictionary = {
+    seasoninfo: "Provides summary information about a season"
+}
+userDictionary = {
+    profile: "Displays summary information about a user",
+    recent: "Displays recent matches a user has played in",
+    use: "Sets a user's current deck. Required to log games",
+}
+adminDictionary = 
 {
-    help : "Where you are now. A list of all available commands.",
-    register : "Allows you to register yourself as a user to keep track of your stats/season.",
-    users : "Shows all the users registered to the elo bot.",
-    log : "The command used to log a game.",
-    remind : "Command to remind a user to confirm a game.",
-    // delete is a keyword...we gotta choose something else.
-    de_lete : "Command to delete a record from the elo bot records. **",
-    info : "Command to get info about a match.",
-    profile : "Command to check a profile of a user.",
-    recent : "Command to see recent matches.",
-    use : "Command to set the deck you are using.",
-    current : "Command to show the deck you are currently using.",
-    add : "Command to add a deck to the collection. **",
-    decks : "Command to show the decks currently registered.",
-    decksdetailed : "Command to show detailed info on the decks registered.",
-    removedeck : "Command to remove a deck from the list. **",
-    updatedeck : "Command to update a deck's information. **",
-    mydecks : "List decks registered to you.",
-    credits : "Roll the credits!",
-    unknown : "We have no real clue what we can do to help you after that command. =)"
+    deletematch: "Removes a match from the records",
+    acceptmatch: "Force a match to be logged",
+    add: "Adds a new deck to your server's list of decks",
+    removedeck: "Removes a deck from your server's list of decks",
+    startseason: "Starts a new season",
+    endseason: "Ends the current season",
+    setendseason: "Sets an end date for the current season",
+    setseasonname: "Sets a name for a season",
+    setconfig: "Sets up configurations",
+    getconfig: "Displays configuration information"
 }
 
 exampleDictionary =
 {
-    help : "Provides the available commands. Use !help <command> to get more specific help.",
+    deletematch: "!deletematch <Match ID>. Use !pending to find a list of matches that haven't been accepted. Use !recent to find match IDs.",
+    acceptmatch: "!accept <Match ID>. Use !pending to find a list of matches that haven't been accepted. Use !recent to find match IDs.",
+    add: "!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link.\n\
+    Example: !add Sphinx Control | Unesh, Criosphinx Sovereign | https://www.google.com | Gnarwhal | This is a control deck that seeks to win through isochron scepter | Disruptive | No | https://discord.gg/12345 | ",
+    removedeck: "!removedeck <Deck Name>",
+
+    
+    help : "Lists all available commands. Use !help <command> to get more specific help.",
     register : "!register - registers you to the league.",
     users : "!users - Lists all users, by username, that are registered in the league.",
     log : "!log @<loser1> @<loser2> @<user3> - logs you as the winner of a game and logs the pod.\n\nex. !log @cruzer @noah @ben",
     remind : "!remind @<user> - to remind them to confirm a pending game.\n\nex. !remind @cruzer",
-    // delete is a keyword...we gotta choose something else.
-    de_lete : "!delete <match id> - deletes the specifc match. [admin-only]\n\nex. !delete 4jjf65",
+    delete : "!delete <match id> - deletes the specifc match. [admin-only]\n\nex. !delete 4jjf65",
     info : "!info <match id> - provides information about given match.\n\nex. !info 4jjf65",
     profile : "!profile - to see your profile\n\n!profile @<user> - to see their profile\n\nex. !profile , !profile @noah",
     recent : "!recent - to see your recent matches\n\n!recent @<user> - to see user's recent matches\n\nex. !recent, !recent @ben",
@@ -111,22 +130,9 @@ module.exports = {
     {
         const exampleEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-        .setTimestamp()
-        .setFooter('Here to help, anytime!', '');
-
-        // due to keyword collision, delete is 'de_lete' in dictionary
-        if (arguments == 'delete')
-        {
             exampleEmbed.addFields(
-                { name: "Command: !delete", value: exampleDictionary['de_lete'] },
+                { name: "!" + [arguments], value: exampleDictionary[arguments] },
             )
-        }
-        else
-        {
-            exampleEmbed.addFields(
-                { name: "Command: !" + [arguments], value: exampleDictionary[arguments] },
-            )
-        }
 
         receivedMessage.channel.send(exampleEmbed);
     },
@@ -140,50 +146,49 @@ module.exports = {
      */
     async showEmbedHelpForAllCommands(receivedMessage)
     {
-        let isAdmin = await ConfigHelper.checkAdminPrivs(receivedMessage)
-        const exampleEmbed = new Discord.MessageEmbed()
+        const deckEmbed = new Discord.MessageEmbed()
+        .setAuthor("Deck Commands")
+        .setColor(messageColorSecondBlue)
+        const gameEmbed = new Discord.MessageEmbed()
+        .setAuthor("Game Commands")
         .setColor(messageColorBlue)
-        .setTitle('PWP Bot')
-        .setURL('')
-        .setAuthor('Noah Saldaña', '', '')
-        .setDescription('An excellent bot for excellent people')
-        .setTimestamp()
-        .setFooter('Here to help, anytime!', '');
+        const leagueEmbed = new Discord.MessageEmbed()
+        .setAuthor("League Commands")
+        .setColor(messageColorSecondBlue)
+        const seasonEmbed = new Discord.MessageEmbed()
+        .setAuthor("Season Commands")
+        .setColor(messageColorBlue)
+        const userEmbed = new Discord.MessageEmbed()
+        .setAuthor("User Commands")
+        .setColor(messageColorSecondBlue)
+        const adminEmbed = new Discord.MessageEmbed()
+        .setAuthor("Admin Commands")
+        .setColor(messageColorBlue)
+        var embedArray = new Array()
+        embedArray.push(deckEmbed, gameEmbed, leagueEmbed, seasonEmbed, userEmbed, adminEmbed)
 
-        if (isAdmin)
-        {
-            // User tag at bottom for admin.
-            exampleEmbed.setFooter("** Denote admin-only commands. Records show " + receivedMessage.author.username + " is an admin.")
+        for(var keyVal in adminDictionary){
+            adminEmbed.addField('!' + keyVal, adminDictionary[keyVal]);   
+        }
+        for (var keyVal in deckDictionary){
+            deckEmbed.addField('!' + keyVal, deckDictionary[keyVal]);
+        }
+        for (var keyVal in gameDictionary){
+            gameEmbed.addField('!' + keyVal, gameDictionary[keyVal]);
+        }
+        for (var keyVal in leagueDictionary){
+            leagueEmbed.addField('!' + keyVal, leagueDictionary[keyVal]);
+        }
+        for (var keyVal in seasonDictionary){
+            seasonEmbed.addField('!' + keyVal, seasonDictionary[keyVal]);
+        }
+        for (var keyVal in userDictionary){
+            userEmbed.addField('!' + keyVal, userDictionary[keyVal]);
         }
 
-        for(var keyVal in helpDictionary)
-        {
-            // due to keyword collision, delete is 'de_lete' in dictionary
-            if (keyVal == 'de_lete')
-            {   
-                if (isAdmin)
-                {
-                    exampleEmbed.addField('!delete', helpDictionary[keyVal], true);
-                }  
-            }
-            else
-            {
-                // We will attempt to not show admin commands to everyone. If they see it b/c a mod
-                // issued the command, oh well.
-                if (keyVal == 'adddeck' || keyVal == 'removedeck' || keyVal == 'updatedeck')
-                {
-                    if (isAdmin)
-                    {
-                        exampleEmbed.addField('!' + keyVal, helpDictionary[keyVal], true);
-                    }
-                }
-                else
-                {
-                    exampleEmbed.addField('!' + keyVal, helpDictionary[keyVal], true);
-                }
-            }    
-        }
-
-        receivedMessage.channel.send(exampleEmbed);
+        embedArray.forEach((embed)=>{
+            receivedMessage.channel.send(embed)
+        })
+        
     }
 }

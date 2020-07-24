@@ -438,12 +438,15 @@ module.exports = {
     /**
      * Deletes an unconfirmed match
      */
-    deleteMatch(id, receivedMessage) {
+    async deleteMatch(id, receivedMessage) {
+        const SeasonHelper = require('../Helpers/SeasonHelper')
+        var currentSeasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        var currentSeasonName = currentSeasonObj._season_name
         return new Promise((resolve, reject) => {
             const games = require('../Schema/Games')
             server = receivedMessage.guild.id
 
-            let findQuery = {_match_id: id, _server: server}
+            let findQuery = {_match_id: id, _server: server, _season: currentSeasonName}
             games.findOne(findQuery, function(err, res) {
                 if (res) {
                     if (res._Status != "FINISHED") {
@@ -463,12 +466,15 @@ module.exports = {
     })
     },
 
-    confirmedDeleteMatch(id, receivedMessage) {
+    async confirmedDeleteMatch(id, receivedMessage) {
+        const SeasonHelper = require('../Helpers/SeasonHelper')
+        var currentSeasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        var currentSeasonName = currentSeasonObj._season_name
         return new Promise((resolve, reject) => {
             const games = require('../Schema/Games')
             server = receivedMessage.guild.id
 
-            let findQuery = {_match_id: id, _server: server}
+            let findQuery = {_match_id: id, _server: server, _season: currentSeasonName}
             games.findOne(findQuery, function(err, res) {
                 if (res) {
                     games.deleteOne(findQuery, function(err, res) {
@@ -486,14 +492,17 @@ module.exports = {
     /**
      * Display info about a match
      */
-    matchInfo(id, receivedMessage) {
+    async matchInfo(id, receivedMessage) {
+        const SeasonHelper = require('../Helpers/SeasonHelper')
+        var currentSeasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        var currentSeasonName = currentSeasonObj._season_name
         let match_id = id
         let server_id = receivedMessage.guild.id
         var returnArr = new Array
         const games = require('../Schema/Games')
 
         return new Promise((resolve, reject) => {
-            let findQuery = {_match_id: match_id, _server: server_id}
+            let findQuery = {_match_id: match_id, _server: server_id, _season: seasonName}
             games.findOne(findQuery, function(err, res) {
                 if (res) {
                     timestamp = res._id.toString().substring(0,8)
@@ -522,14 +531,19 @@ module.exports = {
     /**
      *  returns a 2D array of players and their respective confirmed value (Y or N)
      */
-    getRemindInfo(player, server_id) {
+    async getRemindInfo(player, server_id) {
+        const SeasonHelper = require('../Helpers/SeasonHelper')
+        var currentSeasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+        var currentSeasonName = currentSeasonObj._season_name
         const games = require('../Schema/Games')
         var returnArr = new Array;
 
         return new Promise((resolve, reject) => {
             let findQuery = {$and: 
                                     [
-                                        {_server: server_id, _Status: "STARTED"},
+                                        {_server: server_id,
+                                        _season: currentSeasonName,
+                                        _Status: "STARTED"},
                                         { $or: 
                                             [
                                                 {_player1: player},

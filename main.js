@@ -104,9 +104,6 @@ async function processCommand(receivedMessage){
         case "register":
             register(receivedMessage, arguments, channelResponseFormatted)
             break;
-        case "users":
-            users(receivedMessage, arguments)
-            break;
         case "log":
             startMatch(receivedMessage, arguments)
             break;
@@ -141,32 +138,17 @@ async function processCommand(receivedMessage){
         case "pending":
             getPending(receivedMessage)
             break;
-        case "match":
-            matchInfo(receivedMessage, arguments)
-            break;
         case "use":
             use(receivedMessage, arguments)
             break;
-        case "current":
-            current(receivedMessage, arguments)
-            break;
-        // case "add":
-        //     addToCollection(receivedMessage, arguments)
-        //     break;
         case "decks":
             listDecks(receivedMessage, arguments)
             break;
-        // case "decksdetailed":
-        //     listDecksDetailed(receivedMessage, responseFormatted);
-        //     break;
         case "deckstats":
             deckStats(receivedMessage, arguments);
             break;
         case "deckinfo":
             deckinfo(receivedMessage, arguments);
-            break;
-        case "mydecks":
-            listUserDecks(receivedMessage, arguments);
             break;
         case "add":
             if (adminGet){
@@ -231,7 +213,12 @@ async function processCommand(receivedMessage){
             }
             break;
         case "getconfig":
-            configGet(receivedMessage)
+            if (adminGet){
+                configGet(receivedMessage)
+            }
+            else{
+                nonAdminAccess(receivedMessage, primaryCommand)
+            }
             break;
         case "setseasonname":
             if (adminGet){
@@ -929,17 +916,6 @@ function listCollection(receivedMessage, args){
             
 }
 /**
- * addToCollection()
- * @param {*} receivedMessage 
- * @param {*} args 
- */
-function addToCollection(receivedMessage, args){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    userObj.addToCollection(receivedMessage, args, function(callback, err){
-        generalChannel.send(">>> " + callback)
-    })
-}
-/**
  * use()
  * @param {*} receivedMessage 
  * @param {*} args 
@@ -977,38 +953,6 @@ async function use(receivedMessage, args){
         .setFooter("Type !help or !decks to learn more about 'Rogue'")
         generalChannel.send(badInputEmbed)
     }
-}
-/**
- * current()
- * @param {*} receivedMessage 
- * @param {*} args 
- */
-function current(receivedMessage, args){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    var callBackArray = new Array();
-    const profileEmbed = new Discord.MessageEmbed()
-    .setColor(messageColorBlue)
-        .setURL('')
-
-    userObj.currentDeck(receivedMessage, args, function(callback, err){
-        if (callback == "Error: 1"){
-            generalChannel.send(">>> User not found.")
-        }
-        else if (callback == "Error: 2"){
-            generalChannel.send(">>> No deck found for that user")
-        }
-        else{
-            callback.forEach(item =>{
-                callBackArray.push(item)
-            })
-            profileEmbed.addFields(
-                { name: 'Deck Name', value: callBackArray[1]},
-                { name: 'URL', value: callBackArray[0], inline: true },
-
-            )
-            generalChannel.send(profileEmbed)
-        }
-    })
 }
 /**
  * getUserAvatarUrl()
@@ -1154,36 +1098,6 @@ async function recent(receivedMessage, args) {
     })
 }
 /**
- * listUserDecks()
- * @param {*} receivedMessage 
- * @param {*} args 
- */
-async function listUserDecks(receivedMessage, args){
-    let generalChannel = getChannelID(receivedMessage)
-    let returnArr = await deckObj.listUserDecks(receivedMessage)
-
-    let userDecksEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorBlue)
-        .setDescription(returnArr[0]._mentionValue + ' **Deckstats**')
-        for (i = 1; i < returnArr[0]._deck.length; i++){
-            let winrate = Math.round((returnArr[0]._deck[i].Wins/(returnArr[0]._deck[i].Wins+returnArr[0]._deck[i].Losses))*100)
-            if (isNaN(winrate)){
-                winrate = 0
-            }
-            //Check if there's no data
-            if ((returnArr[0]._deck[i].Wins + returnArr[0]._deck[i].Losses) == 0 ){ }
-            else{
-                userDecksEmbed.addFields(
-                    { name: " \u200b",value: returnArr[0]._deck[i].Deck},
-                    { name: "Wins",value: returnArr[0]._deck[i].Wins, inline: true},
-                    { name: "Losses",value: returnArr[0]._deck[i].Losses, inline: true},
-                    { name: "Winrate", value: winrate + "%", inline: true},
-                )
-            }
-        }
-        generalChannel.send(userDecksEmbed)
-}
-/**
  * listDecks()
  * @param {*} receivedMessage 
  * @param {*} args 
@@ -1234,26 +1148,6 @@ async function listDecks(receivedMessage, args){
     Try '!use <deckname> | Rogue' to be able to use **any deck**.")
     .setFooter("Remember to type !startseason or no decks will appear in this list.")
     generalChannel.send(helperEmbed)
-}
-/**
- * listDecksDetailed()
- * @param {*} channel 
- */
-function listDecksDetailed(receivedMessage, channel){
-    deckObj.listDecks(receivedMessage, function(callback,err){
-        const listedDecksEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorBlue)
-            .setURL('')
-       for(i = 0; i < callback.length; i++){
-            listedDecksEmbed.addFields(
-                { name: " \u200b",value: callback[i]._name},
-                { name: 'Created By', value: callback[i]._user, inline: true},
-                { name: 'Wins', value: "Update me", inline: true},
-                { name: 'Losses', value: "Update me", inline: true},
-            )
-        }
-        channel.send(listedDecksEmbed)
-    });
 }
 /**
  * addDeck()
