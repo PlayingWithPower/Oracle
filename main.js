@@ -93,6 +93,11 @@ async function processCommand(receivedMessage){
     let primaryCommand = splitCommand[0]
     let arguments = splitCommand.slice(1)
 
+    let rawFullCommand = receivedMessage.content.substr(1)
+    let rawSplitCommand = rawFullCommand.split(" ")
+    let rawArguments = rawSplitCommand.slice(1)
+
+
     let channel = receivedMessage.channel.id
     let channelResponseFormatted = client.channels.cache.get(channel)
     let adminGet = await ConfigHelper.checkAdminPrivs(receivedMessage)
@@ -222,7 +227,7 @@ async function processCommand(receivedMessage){
             break;
         case "setseasonname":
             if (adminGet){
-                setSeasonName(receivedMessage, arguments)
+                setSeasonName(receivedMessage, rawArguments)
             }
             else{
                 nonAdminAccess(receivedMessage, primaryCommand)
@@ -386,6 +391,7 @@ async function configSet(receivedMessage, args){
     }
 }
 async function setSeasonName(receivedMessage, args){
+    console.log(args)
     let generalChannel = getChannelID(receivedMessage)
     if (args[0] === undefined){
         const errorEmbed = new Discord.MessageEmbed()
@@ -533,16 +539,21 @@ async function endSeason(receivedMessage, args){
         confirmEndSeason
         .setColor(messageColorBlue)
         .setAuthor("WARNING: You are attempting to end the current season named: " + currentSeason._season_name)
-        .setDescription("Are you sure you want to end the current season?\n\
-        When a season ends: leaderboards are reset, player's personal ratings are reset and rewards are distributed")
+        .setTitle("Are you sure you want to end the current season?")
+        .setDescription("When a season ends: leaderboards are reset, player's personal ratings are reset and rewards are distributed\n\
+        Use !pending to see pending matches")
         .setFooter("React thumbs up to end the current season, react thumbs down to cancel")
         if (returnArr.length > 0){
-            leftPending = returnArr.length
+            if (returnArr == "No Pending"){
+                leftPending = "None"
+            }
+            else{
+                leftPending = returnArr.length
+            }
             confirmEndSeason
             .addFields(
                 {name: "Pending Matches Remaining", value: leftPending}
             )
-            .setTitle("Use !pending to see pending matches")
         }
         generalChannel.send(confirmEndSeason)
         .then(function (message, callback){
