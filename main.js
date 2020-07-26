@@ -613,6 +613,8 @@ async function startSeason(receivedMessage, args){
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await seasonObj.leaderBoard(receivedMessage)
+    let lookUpUsers = await SeasonHelper.lookUpUsers(returnArr, receivedMessage.guild.id)
+    console.log(lookUpUsers)
     let getConfig = await leagueObj.configGet(receivedMessage.guild.id)
     const playerThreshold = getConfig._player_threshold
     const returnEmbed = new Discord.MessageEmbed()

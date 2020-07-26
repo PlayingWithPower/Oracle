@@ -130,7 +130,6 @@ module.exports = {
         if (args == "Current"){
             let seasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id) 
             return new Promise((resolve, reject)=>{
-                match.find(query)
                 resolve(seasonReturn)
             })
         }
@@ -169,7 +168,7 @@ module.exports = {
      */
     leaderBoard(receivedMessage) {
         let userQuery = {_server: receivedMessage.guild.id}
-        return new Promise((resolve,reject)=>{
+        return new Promise(async (resolve,reject)=>{
             user.find(userQuery, function(err, res){
                 if (res){
                     resolve(res)

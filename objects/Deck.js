@@ -83,35 +83,6 @@ module.exports = {
         const matches = require('../Schema/Games')
         const seasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         var currentSeason = seasonObj._season_name
-
-        //Notes:
-            //     !deckstats
-            // Raw dump of decks against the current season for the server
-            //     Deck Name / Alias
-            //     Matches / Wins / Losses / Winrate
-            // Decks with no matches for the season will not show up in the list
-            // Default sorting is number of matches
-            //         !deckstats {deck alias}
-            // Dump of the deck passed against the current season for the server
-            //     Alias / Matches / Wins / Losses / Winrate
-            // Secondary piece of data pertaining to the users using that deck in the server
-            //     Username / Wins / Losses / Winrate (for that deck only)
-            // Don't give deck meta data (color identity, url, etc.), instead give a footer reminder note of the command to get that data.
-
-        //Include in all of these:
-            //deck name, wins, losses, number of matches, win rate
-        // !deckstats
-            // All Decks for current season
-        // !deckstats {deck nickname}
-            // Stats for a given deck, *CURRENT SEASON* change me
-        // !deckstats @user
-            // Stats for a given user
-            // Make this a helper for !profile @user
-        // !deckstats {Deck Nickname} | {Season Name}
-        // or !deckstats {Deck Nickname} | all)
-        //   "For season name: all" vs "For season name: across all seasons"
-
-        //implement !deckstats here
         if (args.length == 0){
             return new Promise((resolve, reject)=>{
                 let query = {'_server': receivedMessage.guild.id, '_season': currentSeason, _Status: "FINISHED"}
