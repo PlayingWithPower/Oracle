@@ -40,23 +40,23 @@ module.exports = {
             
         })
     },
-    async lookUpUsers(users, guild){
-        const seasonObj = await this.getCurrentSeason(guild)
-        var seasonName = seasonObj._season_name
+    async lookUpUsers(users){
+        // const seasonObj = await module.exports.getCurrentSeason(users[1])
+        // var seasonName = seasonObj._season_name
         return new Promise((resolve, reject) => {
-            let wins = 0
-            let losses = 0
             var passingResult
-            var passedArray = new Array();
-            users.forEach(user =>{
-                let getWinnersQuery = {_server: guild, _season: seasonName, $or: 
+            var matchResults = []
+            var server = users[1]
+            var personLookedUp = users[0]
+                let getWinnersQuery = {_server: server, $or: 
                     [
-                    {_player1: user._mentionValue}, 
-                    {_player2: user._mentionValue},
-                    {_player3: user._mentionValue},
-                    {_player4: user._mentionValue},
+                    {_player1: personLookedUp}, 
+                    {_player2: personLookedUp},
+                    {_player3: personLookedUp},
+                    {_player4: personLookedUp},
                     ]
                 }
+                //console.log(getWinnersQuery)
                 matches.find(getWinnersQuery, function(err,res){
                     if (err){
                         throw err;
@@ -64,30 +64,53 @@ module.exports = {
                     passingResult = res;
                 }).then(function(passingResult){
                     if (passingResult != ""){
-                        passingResult.forEach((entry)=>{   
-                            if (entry._player1 == user._mentionValue){
-                                wins = wins + 1
+                            for (var i=0; i <passingResult.length; i++){
+                                var pasRes = passingResult[i]._player1
+                                if (passingResult[i]._player1 == personLookedUp){
+                                    var exists = matchResults.find(el => el[0] === pasRes)
+                                    if (exists) {
+                                        exists[1] += 1;
+                                    } else {
+                                        matchResults.push([pasRes, 1, 0]);
+                                    }
+                                }
+
+                                var pasRes = passingResult[i]._player2
+                                if (passingResult[i]._player2 == personLookedUp){
+                                var exists2 = matchResults.find(el => el[0] === pasRes)
+                                if (exists2) {
+                                    exists2[2] += 1;
+                                    } else {
+                                    matchResults.push([pasRes, 0, 1]);
+                                    } 
+                                }
+
+                                var pasRes = passingResult[i]._player3
+                                if (passingResult[i]._player3 == personLookedUp){
+                                var exists3 = matchResults.find(el => el[0] === pasRes)
+                                if (exists3) {
+                                    exists3[2] += 1;
+                                    } else {
+                                    matchResults.push([pasRes, 0, 1]);
+                                    }
+                                }
+
+                                var pasRes = passingResult[i]._player4
+                                if (passingResult[i]._player4 == personLookedUp){
+                                var exists4 = matchResults.find(el => el[0] === pasRes)
+                                if (exists4) {
+                                    exists4[2] += 1;
+                                    } else {
+                                    matchResults.push([pasRes, 0, 1]);
+                                    }
                             }
-                            else if (entry._player2 == user._mentionValue){
-                                losses = losses + 1
-                            }
-                            else if (entry._player3 == user._mentionValue){
-                                losses = losses + 1
-                            }
-                            else if (entry._player4 == user._mentionValue){
-                                losses = losses + 1
-                            }
-                        })
-                        passedArray.push(user,wins,losses, seasonName)
+                        }
                     }else{
                         resolve("Can't find deck")
-                    }
-                    
+                    }  
+                }).then(function(){
+                    resolve(matchResults)
                 })
-                
-            }).then(function(){
-                resolve(passedArray)
-            })
         })
     }
 }

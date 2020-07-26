@@ -33,6 +33,8 @@ const messageColorBlue = "#0099ff"
 const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose');
+const Season = require('./objects/Season');
+const { lookup } = require('dns');
 
 client.login(config.discordKey)
 
@@ -613,48 +615,71 @@ async function startSeason(receivedMessage, args){
 async function top(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await seasonObj.leaderBoard(receivedMessage)
-    let lookUpUsers = await SeasonHelper.lookUpUsers(returnArr, receivedMessage.guild.id)
-    console.log(lookUpUsers)
+    var mentionValues = new Array()
+    let lookUpUsers
+    returnArr.forEach(user =>{
+        mentionValues.push([user._mentionValue, receivedMessage.guild.id])
+    })
+        
+        // returnArr.sort(function(a, b) {
+        //     return parseFloat(b._elo) - parseFloat(a._elo);
+        // });
+        // returnEmbed
+        //     .setColor(messageColorGreen)
+        //     .setFooter("Note: The threshold to appear on this list is " + playerThreshold.toString() + " game(s)\nAdmins can configure this using !setconfigs")
+
+        // returnArr.forEach(user =>{
+        //     let calculatedWinrate = ((user._wins)/(user._wins+user._losses))*100
+        //     if (isNaN(calculatedWinrate)){
+        //         calculatedWinrate = 0
+        //     }
+        //     if ((user._wins + user._losses) < playerThreshold){ 
+        //         return 
+        //     }
+        //     else{
+        //         calculatedWinrate = Math.round(calculatedWinrate)
+        //     }
+        //     returnEmbed.addFields(
+        //         { name: "Username", value: user._name, inline: true},
+        //         { name: "Elo", value: user._elo, inline: true},
+        //         { name: "Winrate", value: calculatedWinrate + "%", inline: true},
+        //     )
+            
+        // })
+        // if (returnEmbed.fields.length == 0){
+        //     returnEmbed
+        //     .setAuthor("No Top Ten Players Yet")
+        // }
+        // generalChannel.send(returnEmbed)
+    lookUpUsers =  mentionValues.map(SeasonHelper.lookUpUsers)
     let getConfig = await leagueObj.configGet(receivedMessage.guild.id)
     const playerThreshold = getConfig._player_threshold
     const returnEmbed = new Discord.MessageEmbed()
+    
+     
+     Promise.all(lookUpUsers).then(results => {
+        const errorMsg = new Discord.MessageEmbed()
         
-    if (returnArr == "Error 1"){
-        returnEmbed
-            .setColor(messageColorRed)
-        generalChannel.send(returnEmbed)
-    }
-    else{
-        returnArr.sort(function(a, b) {
-            return parseFloat(b._elo) - parseFloat(a._elo);
-        });
-        returnEmbed
-            .setColor(messageColorGreen)
-            .setFooter("Note: The threshold to appear on this list is " + playerThreshold.toString() + " game(s)\nAdmins can configure this using !setconfigs")
-
-        returnArr.forEach(user =>{
-            let calculatedWinrate = ((user._wins)/(user._wins+user._losses))*100
-            if (isNaN(calculatedWinrate)){
-                calculatedWinrate = 0
-            }
-            if ((user._wins + user._losses) < playerThreshold){ 
-                return }
-            else{
-                calculatedWinrate = Math.round(calculatedWinrate)
-            }
-            returnEmbed.addFields(
-                { name: "Username", value: user._name, inline: true},
-                { name: "Elo", value: user._elo, inline: true},
-                { name: "Winrate", value: calculatedWinrate + "%", inline: true},
-            )
+        for (var i = 0; i < results.length; i++){
             
-        })
-        if (returnEmbed.fields.length == 0){
-            returnEmbed
-            .setAuthor("No Top Ten Players Yet")
+            if (results[i] != "Can't find deck"){
+                let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][2])*100)
+                let elo = (20*(results[i][0][1])) - (10*(results[i][0][2])) + 1000
+                errorMsg
+                .setColor(messageColorGreen)
+                .setAuthor("Unregistered User")
+                .addFields(
+                    { name: "Username", value: results[i][0][0],inline: true},
+                    { name: "Winrate", value: calculatedWinrate + "%", inline: true},
+                    { name: "Elo", value: elo , inline: true},
+                )
+                
+                someNotRegistered = true
+            }
         }
-        generalChannel.send(returnEmbed)
-    }
+        generalChannel.send(errorMsg)
+     })
+        
 }
 
 async function deckinfo(receivedMessage, args){
