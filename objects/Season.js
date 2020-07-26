@@ -9,8 +9,11 @@ const user = require('../Schema/Users')
 const config = require('../Schema/Config')
 const match = require('../Schema/Games')
 const deck = require('../Schema/Deck')
+
 const deckObj = require('../objects/Deck')
+
 const SeasonHelper = require('../Helpers/SeasonHelper')
+
 module.exports = {
 
     /**
@@ -125,8 +128,9 @@ module.exports = {
      */
     async getInfo(receivedMessage, args) {
         if (args == "Current"){
-            let seasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
+            let seasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id) 
             return new Promise((resolve, reject)=>{
+                match.find(query)
                 resolve(seasonReturn)
             })
         }
@@ -165,7 +169,6 @@ module.exports = {
      */
     leaderBoard(receivedMessage) {
         let userQuery = {_server: receivedMessage.guild.id}
-
         return new Promise((resolve,reject)=>{
             user.find(userQuery, function(err, res){
                 if (res){

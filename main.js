@@ -391,7 +391,6 @@ async function configSet(receivedMessage, args){
     }
 }
 async function setSeasonName(receivedMessage, args){
-    console.log(args)
     let generalChannel = getChannelID(receivedMessage)
     if (args[0] === undefined){
         const errorEmbed = new Discord.MessageEmbed()
@@ -629,6 +628,7 @@ async function top(receivedMessage){
         });
         returnEmbed
             .setColor(messageColorGreen)
+            .setFooter("Note: The threshold to appear on this list is " + playerThreshold.toString() + " game(s)\nAdmins can configure this using !setconfigs")
 
         returnArr.forEach(user =>{
             let calculatedWinrate = ((user._wins)/(user._wins+user._losses))*100
@@ -636,7 +636,6 @@ async function top(receivedMessage){
                 calculatedWinrate = 0
             }
             if ((user._wins + user._losses) < playerThreshold){ 
-                console.log("threshold")
                 return }
             else{
                 calculatedWinrate = Math.round(calculatedWinrate)
@@ -646,7 +645,12 @@ async function top(receivedMessage){
                 { name: "Elo", value: user._elo, inline: true},
                 { name: "Winrate", value: calculatedWinrate + "%", inline: true},
             )
+            
         })
+        if (returnEmbed.fields.length == 0){
+            returnEmbed
+            .setAuthor("No Top Ten Players Yet")
+        }
         generalChannel.send(returnEmbed)
     }
 }
@@ -1311,7 +1315,7 @@ async function profile(receivedMessage, args){
         if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._deck_threshold }
         const decksEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " games\nAdmins can configure this using !setconfigs")
+        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfigs")
         returnArr[1].forEach((deck) =>{
             overallWins = overallWins + deck[1]
             overallLosses = overallLosses + deck[2]
