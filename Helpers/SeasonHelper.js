@@ -112,5 +112,5 @@ module.exports = {
                     resolve(matchResults)
                 })
         })
-    }
+    },  
 }

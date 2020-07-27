@@ -656,30 +656,43 @@ async function top(receivedMessage){
     const playerThreshold = getConfig._player_threshold
     const returnEmbed = new Discord.MessageEmbed()
     
-     
-     Promise.all(lookUpUsers).then(results => {
-        const errorMsg = new Discord.MessageEmbed()
-        
+    var unsortedResults = new Array()
+    Promise.all(lookUpUsers).then(results => {
         for (var i = 0; i < results.length; i++){
-            
             if (results[i] != "Can't find deck"){
                 let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][2])*100)
                 let elo = (20*(results[i][0][1])) - (10*(results[i][0][2])) + 1000
-                errorMsg
-                .setColor(messageColorGreen)
-                .setAuthor("Unregistered User")
-                .addFields(
-                    { name: "Username", value: results[i][0][0],inline: true},
-                    { name: "Winrate", value: calculatedWinrate + "%", inline: true},
-                    { name: "Elo", value: elo , inline: true},
-                )
-                
-                someNotRegistered = true
+                let username = results[i][0][0]
+                unsortedResults.push([username,calculatedWinrate,elo])
             }
         }
-        generalChannel.send(errorMsg)
-     })
-        
+    }).then(function(){
+        unsortedResults.sort(function(a, b) {
+                return parseFloat(b[2]) - parseFloat(a[2]);
+        });
+
+        let sortedResults = unsortedResults
+        const resultsMsg = new Discord.MessageEmbed()
+        sortedResults.forEach(result=>{
+             
+            resultsMsg
+             .setColor(messageColorBlue)
+             .setAuthor("Displaying Top Players")
+             .addFields(
+                 { name: "Username", value: result[0],inline: true},
+                 { name: "Winrate", value: result[1] + "%", inline: true},
+                 { name: "Elo", value: result[2] , inline: true},
+             )
+        })
+        if (resultsMsg.fields.length == 0){
+            resultsMsg
+            .setAuthor("No Top Players Yet")
+            .setColor(messageColorBlue)
+        }
+        generalChannel.send(resultsMsg)
+    })
+   
+    
 }
 
 async function deckinfo(receivedMessage, args){
