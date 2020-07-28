@@ -83,9 +83,109 @@ module.exports = {
         const matches = require('../Schema/Games')
         const seasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         var currentSeason = seasonObj._season_name
-        if (args.length == 0){
+        let argsWithCommas = args.toString()
+        let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+        let splitArgs = argsWithSpaces.split(" | ")
+        if (splitArgs[0][0] == "|"){
             return new Promise((resolve, reject)=>{
-                let query = {'_server': receivedMessage.guild.id, '_season': currentSeason, _Status: "FINISHED"}
+                var query
+                let cleaningName = splitArgs[0]
+                let checkFormat = cleaningName.indexOf("| ")
+                if (checkFormat == -1){
+                    resolve("Bad season deckstats input")
+                    return
+                }
+                else if (cleaningName.slice(2).toLowerCase() == "all"){
+                    query = {
+                        _server: receivedMessage.guild.id, 
+                        _Status: "FINISHED"
+                    }
+                    seasonName = "all"
+                }
+                else{
+                    seasonName = cleaningName.slice(2)
+                    query = {
+                        _server: receivedMessage.guild.id,
+                        _season: seasonName,
+                        _Status: "FINISHED"
+                    }
+                }
+                
+                
+                var passingResult
+                var passedArray = new Array()
+                matches.find(query, function(err, res){
+                    if (res){
+                        passingResult = res
+                    }
+                    else{
+                        resolve("Error 1")
+                    }
+                }).then(function(passingResult){
+                    if (passingResult != ""){
+                        var matchResults = []
+                        for (var i=0; i <passingResult.length; i++){
+                            var pasRes = passingResult[i]._player1Deck
+                            if (passingResult[i]._player1Deck == "Rogue"){
+                                pasRes = passingResult[i]._player1Rogue + " | Rogue"
+                            }
+                            var exists = matchResults.find(el => el[0] === pasRes)
+                            if (exists) {
+                                exists[1] += 1;
+                              } else {
+                                matchResults.push([pasRes, 1, 0]);
+                              }
+
+                            var pasRes = passingResult[i]._player2Deck
+                            if (passingResult[i]._player2Deck == "Rogue"){
+                                pasRes = passingResult[i]._player2Rogue + " | Rogue"
+                            }
+                            var exists2 = matchResults.find(el => el[0] === pasRes)
+                            if (exists2) {
+                                exists2[2] += 1;
+                                } else {
+                                matchResults.push([pasRes, 0, 1]);
+                                } 
+
+                            var pasRes = passingResult[i]._player3Deck
+                            if (passingResult[i]._player3Deck == "Rogue"){
+                                pasRes = passingResult[i]._player3Rogue + " | Rogue"
+                            }
+                            var exists3 = matchResults.find(el => el[0] === pasRes)
+                            if (exists3) {
+                                exists3[2] += 1;
+                                } else {
+                                matchResults.push([pasRes, 0, 1]);
+                                }
+
+                            var pasRes = passingResult[i]._player4Deck
+                            if (passingResult[i]._player4Deck == "Rogue"){
+                                pasRes = passingResult[i]._player4Rogue + " | Rogue"
+                            }
+                            var exists4 = matchResults.find(el => el[0] === pasRes)
+                            if (exists4) {
+                                exists4[2] += 1;
+                                } else {
+                                matchResults.push([[pasRes], 0, 1]);
+                                }
+                        }
+                        passedArray.push("Raw Deck Lookup",matchResults, seasonName)
+                        resolve(passedArray)
+                    }
+                    else{
+                        resolve("Can't find deck")
+                    }
+                })
+            })
+        }
+        else if (args.length == 0){
+            return new Promise((resolve, reject)=>{
+                let query = {
+                    _server: receivedMessage.guild.id, 
+                    _season: currentSeason, 
+                    _Status: "FINISHED"
+                }
+                
                 var passingResult
                 var passedArray = new Array()
                 matches.find(query, function(err, res){
@@ -169,7 +269,8 @@ module.exports = {
                 var passingResult
                 
                 if (splitArgs[1] == undefined){
-                    conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
+                    conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED",  
+                    $or: 
                         [
                         {_player1: splitArgs[0]}, 
                         {_player2: splitArgs[0]},
@@ -179,7 +280,8 @@ module.exports = {
                     }
                 }
                 else if (splitArgs[1].toLowerCase() == "all"){
-                    conditionalQuery = {_server: receivedMessage.guild.id, $or: 
+                    conditionalQuery = {_server: receivedMessage.guild.id, _Status: "FINISHED", 
+                    $or: 
                         [
                         {_player1: splitArgs[0]}, 
                         {_player2: splitArgs[0]},
@@ -187,9 +289,11 @@ module.exports = {
                         {_player4: splitArgs[0]},
                         ]
                     }
+                    currentSeason = "all"
                 }
                 else{
-                    conditionalQuery = {_server: receivedMessage.guild.id, _season: splitArgs[1], $or: 
+                    conditionalQuery = {_server: receivedMessage.guild.id, _season: splitArgs[1], _Status: "FINISHED", 
+                    $or: 
                         [
                         {_player1: splitArgs[0]}, 
                         {_player2: splitArgs[0]},
@@ -197,6 +301,7 @@ module.exports = {
                         {_player4: splitArgs[0]},
                         ]
                     }
+                    currentSeason = splitArgs[1]
                 }
                 matches.find(conditionalQuery, function(err,res){
                     if (err){
@@ -231,21 +336,35 @@ module.exports = {
             })
         }
         else{
+            
             args = args.join(' ')
-            args = DeckHelper.toUpper(args)
             var query
 
             let argsWithCommas = args.toString()
             let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
             let splitArgs = argsWithSpaces.split(" | ")
+            splitArgs[0] = DeckHelper.toUpper(splitArgs[0])
+            
             if (splitArgs[1] == undefined){
-                query = {_season: currentSeason, $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
+                query = {
+                    _season: currentSeason,
+                    _Status: "FINISHED", 
+                    $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ],
+
+                }
             }
             else if (splitArgs[1].toLowerCase() == "all"){
-                query = { $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
+                query = {
+                    _Status: "FINISHED", 
+                    $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] 
+                }
             }
             else{
-                query = {_season: splitArgs[1], $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] }
+                query = {
+                    _season: splitArgs[1], 
+                    _Status: "FINISHED", 
+                    $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] 
+                }
             }
             let wins = 0
             let losses = 0
@@ -282,7 +401,7 @@ module.exports = {
                         deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
                             return inputArray.indexOf(item) == index;
                         });
-                        passedArray.push("Deck Lookup",args, currentSeason, wins, losses, deckPlayers,passingResult)
+                        passedArray.push("Deck Lookup",args, currentSeason, wins, losses, deckPlayers, passingResult)
                         resolve(passedArray)
                     }
                     else{

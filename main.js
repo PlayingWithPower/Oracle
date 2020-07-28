@@ -152,7 +152,7 @@ async function processCommand(receivedMessage){
             listDecks(receivedMessage, arguments)
             break;
         case "deckstats":
-            deckStats(receivedMessage, arguments);
+            deckStats(receivedMessage, rawArguments);
             break;
         case "deckinfo":
             deckinfo(receivedMessage, arguments);
@@ -182,7 +182,7 @@ async function processCommand(receivedMessage){
             }
             break;
         case "top":
-            top(receivedMessage)
+            top(receivedMessage, rawArguments)
             break;
         case "startseason":
             if (adminGet){
@@ -201,7 +201,7 @@ async function processCommand(receivedMessage){
             }
             break;
         case "seasoninfo":
-            seasonInfo(receivedMessage, arguments)
+            seasonInfo(receivedMessage, rawArguments)
             break;
         case "setendseason":
             if (adminGet){
@@ -566,11 +566,6 @@ async function endSeason(receivedMessage, args){
 }
 async function startSeason(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-    const pleaseWaitEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorBlue)
-        .setAuthor("Please wait")
-        .setDescription("This may take a few seconds. Please give the bot a second")
-        generalChannel.send(pleaseWaitEmbed)
     let returnArr = await seasonObj.startSeason(receivedMessage)
 
     if (returnArr[0] == "Season Ongoing"){
@@ -612,46 +607,23 @@ async function startSeason(receivedMessage, args){
         generalChannel.send(startSeason)
     }
 }
-async function top(receivedMessage){
+async function top(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await seasonObj.leaderBoard(receivedMessage)
     var mentionValues = new Array()
     let lookUpUsers
-    returnArr.forEach(user =>{
-        mentionValues.push([user._mentionValue, receivedMessage.guild.id])
-    })
-        
-        // returnArr.sort(function(a, b) {
-        //     return parseFloat(b._elo) - parseFloat(a._elo);
-        // });
-        // returnEmbed
-        //     .setColor(messageColorGreen)
-        //     .setFooter("Note: The threshold to appear on this list is " + playerThreshold.toString() + " game(s)\nAdmins can configure this using !setconfigs")
-
-        // returnArr.forEach(user =>{
-        //     let calculatedWinrate = ((user._wins)/(user._wins+user._losses))*100
-        //     if (isNaN(calculatedWinrate)){
-        //         calculatedWinrate = 0
-        //     }
-        //     if ((user._wins + user._losses) < playerThreshold){ 
-        //         return 
-        //     }
-        //     else{
-        //         calculatedWinrate = Math.round(calculatedWinrate)
-        //     }
-        //     returnEmbed.addFields(
-        //         { name: "Username", value: user._name, inline: true},
-        //         { name: "Elo", value: user._elo, inline: true},
-        //         { name: "Winrate", value: calculatedWinrate + "%", inline: true},
-        //     )
-            
-        // })
-        // if (returnEmbed.fields.length == 0){
-        //     returnEmbed
-        //     .setAuthor("No Top Ten Players Yet")
-        // }
-        // generalChannel.send(returnEmbed)
-    lookUpUsers =  mentionValues.map(SeasonHelper.lookUpUsers)
+    if (args.length == 0){
+        returnArr.forEach(user =>{
+            mentionValues.push([user._mentionValue, receivedMessage.guild.id])
+        })
+    }
+    else{
+        returnArr.forEach(user =>{
+            mentionValues.push([user._mentionValue, receivedMessage.guild.id, args.join(' ')])
+        })
+    }
+    
+    lookUpUsers = mentionValues.map(SeasonHelper.lookUpUsers)
     let getConfig = await leagueObj.configGet(receivedMessage.guild.id)
     const playerThreshold = getConfig._player_threshold
     const returnEmbed = new Discord.MessageEmbed()
@@ -663,31 +635,44 @@ async function top(receivedMessage){
                 let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][2])*100)
                 let elo = (20*(results[i][0][1])) - (10*(results[i][0][2])) + 1000
                 let username = results[i][0][0]
-                unsortedResults.push([username,calculatedWinrate,elo])
+                let gamesPlayed = (results[i][0][1] + results[i][0][2])
+                unsortedResults.push([username,calculatedWinrate,elo, gamesPlayed])
             }
         }
-    }).then(function(){
+    }).then(async function(){
         unsortedResults.sort(function(a, b) {
                 return parseFloat(b[2]) - parseFloat(a[2]);
         });
 
+        let getDeckThreshold = await ConfigHelper.getDeckThreshold(receivedMessage.guild.id)
         let sortedResults = unsortedResults
+        var threshold = 5
+
         const resultsMsg = new Discord.MessageEmbed()
-        sortedResults.forEach(result=>{
-             
-            resultsMsg
+        resultsMsg
              .setColor(messageColorBlue)
-             .setAuthor("Displaying Top Players")
-             .addFields(
-                 { name: "Username", value: result[0],inline: true},
-                 { name: "Winrate", value: result[1] + "%", inline: true},
-                 { name: "Elo", value: result[2] , inline: true},
-             )
+             .setAuthor("Displaying Top Players for the season name: " + args.join(' '))
+             .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfigs")
+        sortedResults.forEach(result=>{
+            if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._deck_threshold }
+            if (result[3] < threshold){ }
+            else{
+                resultsMsg
+                .addFields(
+                    { name: "Username", value: result[0],inline: true},
+                    { name: "Winrate", value: result[1] + "%", inline: true},
+                    { name: "Elo", value: result[2] , inline: true},
+                )
+            }
+
         })
+        if (args.length == 0){
+            resultsMsg
+            .setAuthor("Displaying Top Players of the current season")
+        }
         if (resultsMsg.fields.length == 0){
             resultsMsg
             .setAuthor("No Top Players Yet")
-            .setColor(messageColorBlue)
         }
         generalChannel.send(resultsMsg)
     })
@@ -850,16 +835,19 @@ async function deckStats(receivedMessage, args){
         }else{ seasonName = deckName[1]}
         deckStatsEmbed
         .setColor(messageColorBlue)
-        .setAuthor(deckName[0] + " Deckstats")
+        .setAuthor(DeckHelper.toUpper(deckName[0]) + " Deckstats")
         .setTitle("For Season Name: " + seasonName)
         .addFields(
             { name: 'Wins', value: returnArr[3], inline: true},
             { name: 'Losses', value: returnArr[4], inline: true},
-            { name: 'Number of Matches', value: returnArr[5].length, inline: true}, 
+            { name: 'Number of Matches', value: returnArr[6].length, inline: true}, 
             { name: 'Winrate', value: Math.round((returnArr[3]/(returnArr[3]+returnArr[4]))*100) + "%"}, 
         )
-        .setFooter("For Season Name: " + seasonName)
-        
+        if (seasonName == "all"){
+            deckStatsEmbed
+            .setTitle("Across all seasons")
+        }
+        console.log(returnArr[6])
         usersList
             .setColor(messageColorBlue)
             .setTitle("People who've played this deck in the time frame provided.")
@@ -876,14 +864,17 @@ async function deckStats(receivedMessage, args){
         deckStatsEmbed
         .setColor(messageColorBlue)
         .setTitle("Deck Stats")
-        .setDescription("For user: "+ returnArr[1])
-        .setFooter("For Season Name: " + returnArr[4] + "\nLooking for detailed deck breakdown? Try !profile @user to see exactly what decks this user plays.")
+        .setDescription("For user: "+ returnArr[1]+ ". For Season Name: " + returnArr[4])
+        .setFooter("Looking for detailed deck breakdown? Try !profile @user to see exactly what decks this user plays.")
         .addFields(
             { name: 'Wins', value: returnArr[2], inline: true},
             { name: 'Losses', value: returnArr[3], inline: true},
             { name: 'Number of Matches', value: returnArr[2] + returnArr[3], inline: true}, 
             { name: 'Winrate', value: Math.round((returnArr[2]/(returnArr[2]+returnArr[3]))*100) + "%"}, 
         ) 
+        if (returnArr[4] == "all"){
+            deckStatsEmbed.setDescription("For user: "+ returnArr[1]+ ". Across all seasons")
+        }
         generalChannel.send(deckStatsEmbed)
         
     }
@@ -891,6 +882,12 @@ async function deckStats(receivedMessage, args){
         const allDecksEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
         .setTitle("Deck Stats")
+        .setDescription("Data for the season named: " + returnArr[2])
+        if (returnArr[2] == "all"){
+            allDecksEmbed
+            .setDescription("Data across all seasons")
+        }
+        
          
         var nameVar = ""
         
@@ -910,9 +907,17 @@ async function deckStats(receivedMessage, args){
             }
         })
         allDecksEmbed
-        .setFooter("Data for the current season. Season Name: " + returnArr[2] + "\nNote: The threshold to appear on this list is " + threshold.toString() + " games\nAdmins can configure this using !setconfigs\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks")
+        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfigs\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks")
         generalChannel.send(allDecksEmbed)
 
+    }
+    else if (returnArr == "Bad season deckstats input"){
+        const errorMsg = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Improper Input")
+        .setDescription("It looks like you're trying to search for deckstats by season.\n\
+        Proper format: !deckstats | <Season Name>")
+        generalChannel.send(errorMsg)
     }
     else{
         deckStatsEmbed
@@ -925,50 +930,6 @@ async function deckStats(receivedMessage, args){
          !deckstats @user to find information about a user's deckstats.")
         generalChannel.send(deckStatsEmbed)
     }
-}
-
-/**
- * listCollection()
- * @param {*} receivedMessage 
- * @param {*} args 
- */
-function listCollection(receivedMessage, args){
-    var callbackName = new Array();
-    var callbackWins = new Array();
-    var callbackLosses = new Array();
-    const profileEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorBlue)
-            .setURL('')
-
-    let generalChannel = getChannelID(receivedMessage)
-    userObj.profile(receivedMessage, args, function(callback, err){
-            callback._deck.forEach(callbackItem =>{
-                callbackName.push(DeckHelper.toUpper(callbackItem.Deck))
-                callbackWins.push(callbackItem.Wins)
-                callbackLosses.push(callbackItem.Losses)
-            })
-            if (callbackName.length > 1){
-                for (i = 1; i < callbackName.length; i++){
-                    var calculatedWinrate = (callbackWins[i]/((callbackLosses[i])+(callbackWins[i])))*100
-                    if (isNaN(calculatedWinrate)){
-                        calculatedWinrate = 0;
-                    }
-
-                    profileEmbed.addFields(
-                        { name: " \u200b", value: callbackName[i]},
-                        { name: 'Wins', value: callbackWins[i], inline: true },
-                        { name: 'Losses', value: callbackLosses[i], inline: true },
-                        { name: 'Winrate', value: calculatedWinrate + "%", inline: true },
-                    )
-                }
-                generalChannel.send(profileEmbed)
-            }
-            else{
-                generalChannel.send(">>> No decks in "+"<@!"+receivedMessage.author.id+">"+"'s collection. Please add decks using !addtoprofile <deckname>")
-            }
-        })
-        
-            
 }
 /**
  * use()

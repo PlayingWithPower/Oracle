@@ -1,5 +1,4 @@
 const Discord = require('discord.js')
-
 const matches = require('../Schema/Games')
 
 module.exports = {
@@ -43,20 +42,28 @@ module.exports = {
     async lookUpUsers(users){
         // const seasonObj = await module.exports.getCurrentSeason(users[1])
         // var seasonName = seasonObj._season_name
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
+            let seasonObj = await module.exports.getCurrentSeason(users[1])
+            var seasonName = seasonObj._season_name
+
+            if (users[2] != undefined){
+                seasonName = users[2]
+            }
+
             var passingResult
             var matchResults = []
+            var season = seasonName
             var server = users[1]
             var personLookedUp = users[0]
-                let getWinnersQuery = {_server: server, $or: 
-                    [
-                    {_player1: personLookedUp}, 
+                let getWinnersQuery = {
+                    _server: server, 
+                    _season: season,
+                    $or: 
+                    [{_player1: personLookedUp}, 
                     {_player2: personLookedUp},
                     {_player3: personLookedUp},
-                    {_player4: personLookedUp},
-                    ]
+                    {_player4: personLookedUp},]
                 }
-                //console.log(getWinnersQuery)
                 matches.find(getWinnersQuery, function(err,res){
                     if (err){
                         throw err;
