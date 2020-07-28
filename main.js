@@ -62,6 +62,7 @@ client.on('ready', (on) =>{
 })
 client.on("guildCreate", (guild) => {
     deckObj.setUpPopulate(guild.id)
+    tutorial(guild)
 });
 client.on('message', (receivedMessage) =>{
     if (receivedMessage.author == client.user){
@@ -114,9 +115,9 @@ async function processCommand(receivedMessage){
         case "log":
             startMatch(receivedMessage, arguments)
             break;
-        case "remind":
-            remindMatch(receivedMessage, arguments)
-            break;
+        // case "remind":
+        //     remindMatch(receivedMessage, arguments)
+        //     break;
         case "deletematch":
             if (adminGet){
                 deleteMatch(receivedMessage, arguments)
@@ -144,6 +145,9 @@ async function processCommand(receivedMessage){
             break;
         case "pending":
             getPending(receivedMessage)
+            break;
+        case "disputed":
+            getDisputed(receivedMessage)
             break;
         case "use":
             use(receivedMessage, arguments)
@@ -235,12 +239,23 @@ async function processCommand(receivedMessage){
                 nonAdminAccess(receivedMessage, primaryCommand)
             }
             break;
+        case "tutorial":
+            tutorial(receivedMessage)
         case "credits":
             credits(receivedMessage, arguments)
             break;
         default:
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
+}
+async function tutorial(guild){
+    let generalChannel = getChannelID(guild)
+    const welcomeEmbed = new Discord.MessageEmbed()
+    .setAuthor("Thank you for inviting me to your server! I am ____ Bot and am used to track Magic The Gathering statistics and information")
+    .setTitle("Want to contribute to this bot? Click here")
+    .setURL("https://github.com/PlayingWithPower/DiscordBot")
+    .setColor(messageColorGreen)
+    generalChannel.send(welcomeEmbed)
 }
 async function forceAccept(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
@@ -288,6 +303,49 @@ async function forceAccept(receivedMessage, args){
         generalChannel.send(invalidInputEmbed)
     }
     
+}
+async function getDisputed(receivedMessage){
+    let generalChannel = getChannelID(receivedMessage)
+    let returnArr = await gameObj.getPending(receivedMessage.guild.id, "Disputed")
+    if (returnArr == "No Pending"){
+        const noPendingEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setAuthor("There are no disputed matches")
+        generalChannel.send(noPendingEmbed)
+    }
+    else if(returnArr == "No Matches"){
+        const noMatchesEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("No matches have been logged this season")
+        .setDescription("Log matches with !log @loser1 @loser2 @loser3")
+        generalChannel.send(noMatchesEmbed)
+    }
+    else{
+        const overallEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorGreen)
+        .setAuthor("Displaying Disputed Matches")
+        .setFooter("'Player 1' is the logged winner of each pending match")
+        generalChannel.send(overallEmbed)
+        returnArr.forEach((pendingMatch)=>{
+            const matchEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorBlue)
+            .setAuthor("Match ID: " + pendingMatch._match_id)
+            .addFields(
+                {name: "Player 1", value: pendingMatch._player1, inline: true},
+                {name: "Piloting", value: pendingMatch._player1Deck, inline: true},
+                {name: "\u200b", value: " \u200b"},
+                {name: "Player 2", value: pendingMatch._player2, inline: true},
+                {name: "Piloting", value: pendingMatch._player2Deck, inline: true},
+                {name: "\u200b", value: " \u200b"},
+                {name: "Player 3", value: pendingMatch._player3, inline: true},
+                {name: "Piloting", value: pendingMatch._player3Deck, inline: true},
+                {name: "\u200b", value: " \u200b"},
+                {name: "Player 4", value: pendingMatch._player4, inline: true},
+                {name: "Piloting", value: pendingMatch._player4Deck, inline: true},
+            )
+            generalChannel.send(matchEmbed)
+        })
+    }
 }
 async function getPending(receivedMessage){
     let generalChannel = getChannelID(receivedMessage)
@@ -683,10 +741,17 @@ async function top(receivedMessage, args){
 async function deckinfo(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await deckObj.deckInfo(receivedMessage, args)
+    if (args.length == 0){
+        const errorEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setDescription("Please enter the name of a deck, type !deckinfo <Deck Name>.\nUse !decks to find a list of decks")
+        generalChannel.send(errorEmbed)
+        return
+    }
     if (returnArr == "Error 1"){
         const errorEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed)
-            .setDescription("Error finding the deck **" + args.join(' ') + "** \n Try !decks to find a list of decks")
+            .setDescription("Error finding the deck **" + args.join(' ') + "** \nUse !decks to find a list of decks")
         generalChannel.send(errorEmbed)
     }
     else{
@@ -847,7 +912,6 @@ async function deckStats(receivedMessage, args){
             deckStatsEmbed
             .setTitle("Across all seasons")
         }
-        console.log(returnArr[6])
         usersList
             .setColor(messageColorBlue)
             .setTitle("People who've played this deck in the time frame provided.")
@@ -886,11 +950,8 @@ async function deckStats(receivedMessage, args){
         if (returnArr[2] == "all"){
             allDecksEmbed
             .setDescription("Data across all seasons")
-        }
-        
-         
+        }         
         var nameVar = ""
-        
         
         returnArr[1].forEach((deck)=>{
             nameVar += deck[0] + "\n"
@@ -1183,6 +1244,7 @@ async function addDeck(receivedMessage, args){
     const errorEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed)
             .setTitle("Error Adding New Deck")
+            .setFooter("If you don't have a Deck or Discord Link, type 'no link' in those slots")
 
     if (splitArgs.length == 9){
         let deckNick = splitArgs[0]
@@ -1250,6 +1312,7 @@ async function addDeck(receivedMessage, args){
                     { name: "Has Primer?", value: DeckHelper.toUpper(promiseReturn[7].toString()), inline:true},
                     { name: "Discord Link", value: promiseReturn[8], inline:true},
                 )
+                .setFooter("If you don't have a Deck or Discord Link, type 'no link' in those slots")
             
             generalChannel.send(awaitReactionEmbed).then(function(message, callback){
                 message.react("👍")
@@ -1272,6 +1335,7 @@ async function profile(receivedMessage, args){
     let returnArr = await userObj.profile(receivedMessage, args)
     var compareDeck = 0
     var favDeck = ""
+    var elo = 1000
     var overallWins = 0
     var overallLosses = 0
     if (returnArr == "Can't find user"){
@@ -1302,6 +1366,7 @@ async function profile(receivedMessage, args){
                 compareDeck = returnArr[1][i][1]+returnArr[1][i][2]
                 favDeck = returnArr[1][i][0]
             }
+            elo += (20*(returnArr[1][i][1])) - (10*(returnArr[1][i][2]))
         }
         const profileEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
@@ -1309,7 +1374,7 @@ async function profile(receivedMessage, args){
         .addFields(
             { name: 'User', value: returnArr[3], inline: true },
             { name: 'Current Deck', value: returnArr[5], inline: true },
-            { name: 'Current Rating', value: returnArr[4], inline: true },
+            { name: 'Current Rating', value: elo, inline: true },
             { name: 'Favorite Deck', value: favDeck, inline: true },
         )
         var threshold = 5

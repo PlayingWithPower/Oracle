@@ -37,7 +37,7 @@ module.exports = {
             //Query
             if (args[0] == "Not Defined"){
                 personLookedUp = "<@!"+receivedMessage.author.id+">"
-                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
+                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or: 
                     [
                     {_player1: "<@!"+receivedMessage.author.id+">"}, 
                     {_player2: "<@!"+receivedMessage.author.id+">"},
@@ -48,7 +48,7 @@ module.exports = {
             }
             else{
                 personLookedUp = args[0]
-                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, $or: 
+                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or: 
                     [
                     {_player1: args[0]}, 
                     {_player2: args[0]},

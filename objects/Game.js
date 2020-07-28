@@ -634,21 +634,25 @@ module.exports = {
         }
         return false;
     },
-    async getPending(guild){
+    async getPending(guild, disputedTag){
         const matches = require('../Schema/Games')
         const SeasonHelper = require('../Helpers/SeasonHelper')
 
         var seasonObj = await SeasonHelper.getCurrentSeason(guild)
         let seasonName = seasonObj._season_name
 
-        let arrayOfPending = new Array();
+        var statusSearch = "STARTED"
 
+        let arrayOfPending = new Array();
+        if (disputedTag == "Disputed"){
+            statusSearch = "CLOSED"
+        }
         let matchQuery = {_server: guild, _season: seasonName}
         return new Promise((resolve, reject)=>{
             matches.find(matchQuery, function(err, foundMatches){
                 if (foundMatches){
                     foundMatches.forEach((match)=>{
-                        if (match._Status == "STARTED"){
+                        if (match._Status == statusSearch){
                             arrayOfPending.push(match)
                         }
                     })

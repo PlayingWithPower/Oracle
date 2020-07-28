@@ -23,7 +23,7 @@ deckDictionary = {
 }
 gameDictionary = {
     log: "Logs a game to this server's league",
-    remind: "Reminds users to confirm logged matches",
+    //remind: "Reminds users to confirm logged matches",
     pending: "Lists all unfinished matches",
     matchinfo: "Provides information on a match",
 }
@@ -66,7 +66,6 @@ exampleDictionary =
     register : "!register - registers you to the league.",
     users : "!users - Lists all users, by username, that are registered in the league.",
     log : "!log @<loser1> @<loser2> @<user3> - logs you as the winner of a game and logs the pod.\n\nex. !log @cruzer @noah @ben",
-    remind : "!remind @<user> - to remind them to confirm a pending game.\n\nex. !remind @cruzer",
     delete : "!delete <match id> - deletes the specifc match. [admin-only]\n\nex. !delete 4jjf65",
     info : "!info <match id> - provides information about given match.\n\nex. !info 4jjf65",
     profile : "!profile - to see your profile\n\n!profile @<user> - to see their profile\n\nex. !profile , !profile @noah",
