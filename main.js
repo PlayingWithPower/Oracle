@@ -34,7 +34,6 @@ const Module = require('./mongoFunctions')
 const generalID = require('./constants')
 const moongoose = require('mongoose');
 const Season = require('./objects/Season');
-const { lookup } = require('dns');
 
 client.login(config.discordKey)
 
@@ -62,7 +61,16 @@ client.on('ready', (on) =>{
 })
 client.on("guildCreate", (guild) => {
     deckObj.setUpPopulate(guild.id)
-    tutorial(guild)
+    //let channel = client.channels.get(guild.systemChannelID || channelID);
+    let defaultChannel = "";
+    guild.channels.cache.forEach((channel) => {
+    if(channel.type == "text" && defaultChannel == "") {
+        if(channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
+        defaultChannel = channel;
+        }
+    }
+    })
+    tutorial(defaultChannel)
 });
 client.on('message', (receivedMessage) =>{
     if (receivedMessage.author == client.user){
@@ -240,7 +248,7 @@ async function processCommand(receivedMessage){
             }
             break;
         case "tutorial":
-            tutorial(receivedMessage)
+            tutorial(getChannelID(receivedMessage))
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -248,14 +256,25 @@ async function processCommand(receivedMessage){
             receivedMessage.channel.send(">>> Unknown command. Try '!help'")
     }
 }
-async function tutorial(guild){
-    let generalChannel = getChannelID(guild)
+async function tutorial(channel){
     const welcomeEmbed = new Discord.MessageEmbed()
     .setAuthor("Thank you for inviting me to your server! I am ____ Bot and am used to track Magic The Gathering statistics and information")
-    .setTitle("Want to contribute to this bot? Click here")
+    .setTitle("Want to contribute to this bot? Click here for the GitHub")
     .setURL("https://github.com/PlayingWithPower/DiscordBot")
+    .setDescription("This command will help you walk through how to properly set up the bot\n\
+    There are a few key steps for an Admin to preform before games can be logged, decks can be tracked and users can register\n\
+    Type !tutorial at any time to find this command again")
     .setColor(messageColorGreen)
-    generalChannel.send(welcomeEmbed)
+    .addFields(
+        {name: "Stuck?", value: "Use out !help <Command Name> or !help to find more information about a command"},
+        {name: "Step 1", value: "Start a new season for your server\nType !startseason"},
+        {name: "Step 2", value: "Have users register for your new season\nTo participate, type !register "},
+        {name: "Step 3", value: "Set your decks before logging a game\nUse !use <Deck Name> to set your deck\nUse !decks to see pre-loaded decks. Add more decks with !add and follow the formatting tips provided"},
+        {name: "Step 4", value: "Play games of Magic and then log them\n!log @loser1 @loser2 @loser3\nThe person who logs the match is always the winner!"},
+        {name: "Step 5", value: "That is it! Congrats on setting up this bot\nCheck !help to see everything it is capable of\nSubmit feature requests and fixes to the Github or the official Discord"}
+    )
+    .setFooter("Note: By default, 'Admin' is anyone in your server with general Discord Administrative privileges. This is configurable using !setconfig")
+    channel.send(welcomeEmbed)
 }
 async function forceAccept(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
@@ -449,6 +468,17 @@ async function configSet(receivedMessage, args){
          **" + commandType + "** to **" + returnArr[2] + "**")
         generalChannel.send(updatedEmbed)
     }
+    else if (returnArr[0] == "New Save"){
+        var commandType = returnArr[1]
+        commandType = DeckHelper.toUpper(commandType)
+        const updatedEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorGreen)
+        .setAuthor("Created a new set of configs for this rver")
+        .setDescription("You have set the configuration:\n\
+         **" + commandType + "** to **" + returnArr[2] + "**\n\
+         Your other configurations have been given default values. Check those with !getconfig")
+        generalChannel.send(updatedEmbed)
+    }
 }
 async function setSeasonName(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
@@ -540,8 +570,8 @@ async function seasonInfo(receivedMessage, args){
     }
     else if (args[0] == "all"){
         let returnArr = await seasonObj.getInfo(receivedMessage, "all")
-        if (returnArr != ""){
-            returnArr.forEach((season)=>{
+        if (returnArr[0] != ""){
+            returnArr[0].forEach((season)=>{
                 const seasonInfo = new Discord.MessageEmbed()
                 .setColor(messageColorGreen)
                 .setAuthor("Displaying Season Info about the Season named: " + season._season_name)
@@ -572,10 +602,11 @@ async function seasonInfo(receivedMessage, args){
         else{
             const seasonInfo = new Discord.MessageEmbed()
             .setColor(messageColorGreen)
-            .setAuthor("Displaying Season Info about the Season named: " + returnArr._season_name)
+            .setAuthor("Displaying Season Info about the Season named: " + returnArr[0][0]._season_name)
             .addFields(
-                {name: "Season Start", value: returnArr._season_start, inline: true},
-                {name: "Season End", value: returnArr._season_end, inline: true},
+                {name: "Season Start", value: returnArr[0][0]._season_start, inline: true},
+                {name: "Season End", value: returnArr[0][0]._season_end, inline: true},
+                {name: "Total Matches Played", value: returnArr[2], inline: true},
             )
             generalChannel.send(seasonInfo)
         }
@@ -701,7 +732,6 @@ async function top(receivedMessage, args){
         unsortedResults.sort(function(a, b) {
                 return parseFloat(b[2]) - parseFloat(a[2]);
         });
-
         let getDeckThreshold = await ConfigHelper.getDeckThreshold(receivedMessage.guild.id)
         let sortedResults = unsortedResults
         var threshold = 5
@@ -710,20 +740,20 @@ async function top(receivedMessage, args){
         resultsMsg
              .setColor(messageColorBlue)
              .setAuthor("Displaying Top Players for the season name: " + args.join(' '))
-             .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfigs")
-        sortedResults.forEach(result=>{
+        for (var i = 0; i < sortedResults.length; i++){
             if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._deck_threshold }
-            if (result[3] < threshold){ }
+            if (sortedResults[i][3] < threshold){ }
+            if (i > 10){break}
             else{
                 resultsMsg
                 .addFields(
-                    { name: "Username", value: result[0],inline: true},
-                    { name: "Winrate", value: result[1] + "%", inline: true},
-                    { name: "Elo", value: result[2] , inline: true},
+                    { name: "Username", value: sortedResults[i][0],inline: true},
+                    { name: "Winrate", value: sortedResults[i][1] + "%", inline: true},
+                    { name: "Elo", value: sortedResults[i][2] , inline: true},
                 )
             }
-
-        })
+        }
+        resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig")
         if (args.length == 0){
             resultsMsg
             .setAuthor("Displaying Top Players of the current season")
@@ -794,7 +824,7 @@ function nonAdminAccess(receivedMessage, command){
         .setColor(messageColorRed)
         .setDescription("It looks like you're trying to access the **" + command + "** command.\n\
         This is an **Admin Only** command.\n\
-        If you would like to access this command, you need to add a **role** using !setconfigs.")
+        If you would like to access this command, you need to add a **role** using !setconfig.")
     generalChannel.send(adminAccessNotGrantedEmbed)
 }
 
@@ -968,7 +998,7 @@ async function deckStats(receivedMessage, args){
             }
         })
         allDecksEmbed
-        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfigs\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks")
+        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks")
         generalChannel.send(allDecksEmbed)
 
     }
@@ -1381,7 +1411,7 @@ async function profile(receivedMessage, args){
         if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._deck_threshold }
         const decksEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfigs")
+        .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig")
         returnArr[1].forEach((deck) =>{
             overallWins = overallWins + deck[1]
             overallLosses = overallLosses + deck[2]

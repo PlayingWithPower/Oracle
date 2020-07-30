@@ -134,25 +134,40 @@ module.exports = {
             })
         }
         
-        else if (args.toLowerCase() == "all"){
-            return new Promise((resolve, reject)=>{
-                let query = {_server: receivedMessage.guild.id}
-                season.find(query, function(err,res){
-                    if (res){
-                        resolve(res)
-                    }
-                    else{
-                        resolve("Can't Find Season")
-                    }
-                })
-            })
-        }
         else{
+            var seasonQuery
+            var userQuery = {_server: receivedMessage.guild.id}
+            var matchQuery 
+            if (args.toLowerCase() == "all"){
+                seasonQuery = {_server: receivedMessage.guild.id}
+                matchQuery = {_server: receivedMessage.guild.id, _Status: "FINISHED"}
+            }
+            else {
+                seasonQuery = {_server: receivedMessage.guild.id, _season_name: args}
+                matchQuery = {_server: receivedMessage.guild.id, _season: args, _Status: "FINISHED"}
+            }
             return new Promise((resolve, reject)=>{
-                let query = {_server: receivedMessage.guild.id, _season_name: args}
-                season.findOne(query, function(err,res){
-                    if (res){
-                        resolve(res)
+                var resolveArr = new Array()
+                season.find(seasonQuery, function(err,seasonRes){
+                    if (seasonRes){
+                        resolveArr.push(seasonRes)
+                        user.find(userQuery, function(err,userRes){
+                            if (userRes){
+                                resolveArr.push(userRes.length)
+                                match.find(matchQuery, function(err,matchRes){
+                                    if (matchRes){
+                                        resolveArr.push(matchRes.length)
+                                        resolve(resolveArr)
+                                    }
+                                    else{
+                                        resolve("Can't Find Season")
+                                    }
+                                })
+                            }
+                            else{
+                                resolve("Can't Find Season")
+                            }
+                        })
                     }
                     else{
                         resolve("Can't Find Season")

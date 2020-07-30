@@ -74,9 +74,13 @@ module.exports = {
         
         return new Promise((resolve, reject)=>{
             var conditionalQuery
+            var playerThreshold = 10
+            var deckThreshold = 10
+            var timeout = 60
+            var admin = ""
             if ((splitArgs[0]!= "player threshold") && (splitArgs[0]!= "deck threshold")
             &&(splitArgs[0]!= "timeout")&&(splitArgs[0]!= "admin")){
-             resolve("Invalid Input")
+                resolve("Invalid Input")
             }
             else{
                 if ((splitArgs[0]== "player threshold")){
@@ -88,6 +92,7 @@ module.exports = {
                                     _player_threshold: splitArgs[1]
                                 }
                             }
+                            playerThreshold = splitArgs[1]
                         }
                     }
                 }else if ((splitArgs[0]== "deck threshold")){ 
@@ -99,6 +104,7 @@ module.exports = {
                                     _deck_threshold: splitArgs[1]
                                 }
                             }
+                            deckThreshold = splitArgs[1]
                         }
                     }
                 }else if ((splitArgs[0]== "timeout")){ 
@@ -113,6 +119,7 @@ module.exports = {
                                         _timeout: splitArgs[1]
                                     }
                                 }
+                                timeout = splitArgs[1]
                             }   
                         }
                     }
@@ -121,15 +128,21 @@ module.exports = {
                     adminList = adminList.replace(/  /g, ', ')
                     conditionalQuery = {
                         _server: receivedMessage.guild.id,
-                        $set:{
-                            _admin: adminList
-                        }
+                        _admin: adminList
                     }
+                    admin = adminList
                 }
                 else{
                     resolve("Invalid Input")
                 }
-                config.updateOne({_server:receivedMessage.guild.id}, conditionalQuery, function(err,res){
+                let newSave = {
+                    _server: receivedMessage.guild.id,
+                    _player_threshold: playerThreshold,
+                    _deck_threshold: deckThreshold,
+                    _timeout: timeout, 
+                    _admin: admin, 
+                }
+                config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, function(err,res){
                     if (res.n > 0){
                         let savedValue = splitArgs[1]
                         if (splitArgs[0] == "admin"){
@@ -140,8 +153,22 @@ module.exports = {
                         resolve(resArr)
                     }
                     else{
-                        resolve("Error")
+                        config(newSave).save({_server: receivedMessage.guild.id}, function(err,configSaveRes){
+                            if (res){
+                                let savedValue = splitArgs[1]
+                                if (splitArgs[0] == "admin"){
+                                    savedValue = adminList
+                                }
+                                var resArr = new Array();
+                                resArr.push("New Save", splitArgs[0], savedValue)
+                                resolve(resArr)
+                            }
+                            else{
+                                resolve("Error")
+                            }
+                        })
                     }
+                    
                 })
             }
         })
