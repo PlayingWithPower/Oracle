@@ -41,7 +41,6 @@ module.exports = {
         else{
             embeds = embeds.author.name.toString().split(' ')
         }
-        //console.log(upperLevelEmbeds.description.toString().split(' '))
         let sanitizedString = "<@!"+user.id+">"
         
         // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
@@ -64,16 +63,12 @@ module.exports = {
                         if (next == "SUCCESS") {
                             gameObj.logMatch(grabMatchID, reaction.message).then(function(final) {
                                 gameObj.finishMatch(grabMatchID, reaction.message).then(function(){
-                                    const logMessage = new Discord.MessageEmbed()
-                                            .setColor(messageColorGreen)
-                                            .setDescription("Match logged!")
-                                    channel.send(logMessage)
-                                    final.forEach(message => {
-                                        const confirmMessage = new Discord.MessageEmbed()
-                                            .setColor(messageColorGreen)
-                                            .setDescription(message)
-                                            channel.send(confirmMessage)
-                                    })
+                                    const confirmMessage = new Discord.MessageEmbed()
+                                        .setColor(messageColorGreen)
+                                        .setAuthor("Sucessfully Logged Match!")
+                                        .setDescription("Type **!profile** to see changes to your score\n\
+                                        Type **!top** to see changes to this season's leaderboard")
+                                        channel.send(confirmMessage)
                                     //console.log("Game #" + grabMatchID + " success")
                                     return
                                 }).catch((message) => {
@@ -99,11 +94,11 @@ module.exports = {
             grabMentionValue = upperLevelEmbeds.description.toString().split(' ')[0]
             grabMatchID =  embeds[2]
             if (sanitizedString !=  grabMentionValue){
-                console.log("not the right user")
+                //console.log("not the right user")
                 return
             }
             const result = await gameObj.closeMatch(grabMatchID).catch((message) => {
-                console.log("Closing Game #" + grabMatchID + " failed.")
+                //console.log("Closing Game #" + grabMatchID + " failed.")
             })
             if (result == 'SUCCESS'){
                 const cancelledEmbed = new Discord.MessageEmbed()

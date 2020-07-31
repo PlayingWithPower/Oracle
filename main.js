@@ -171,7 +171,7 @@ async function processCommand(receivedMessage){
             break;
         case "add":
             if (adminGet){
-                addDeck(receivedMessage, arguments)
+                addDeck(receivedMessage, rawArguments)
             }
             else{
                 nonAdminAccess(receivedMessage, primaryCommand)
@@ -1109,7 +1109,11 @@ async function recent(receivedMessage, args) {
         else if ((args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") && args[0].toLowerCase() != "server") {
             const errorEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
-                .setDescription("Use **@[user]** when searching other users recent matches or \"server\" to see server matches and type \"more\" after the command to load more results")
+                .setAuthor("Improper Input")
+                .setTitle("You're attempting to check a recent match log")
+                .setDescription("Type !recent **@[user]** when searching other users recent matches or \"server\" to see server matches\n\
+                Type \"more\" after the command to load more results\n\
+                Check !help recent for more information on proper usage")
             generalChannel.send(errorEmbed)
             return
         }
@@ -1123,8 +1127,12 @@ async function recent(receivedMessage, args) {
     else if (args.length == 2) {
         if ((args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") && args[0].toLowerCase() != "server" || args[1].toLowerCase() != "more") {
             const errorEmbed = new Discord.MessageEmbed()
-                .setColor(messageColorRed)
-                .setDescription("Use **@[user]** when searching other users recent matches or \"server\" to see server matches and type \"more\" after the command to load more results")
+            .setColor(messageColorRed)
+            .setAuthor("Improper Input")
+            .setTitle("You're attempting to check a recent match log")
+            .setDescription("Type !recent **@[user]** when searching other users recent matches or \"server\" to see server matches\n\
+            Type \"more\" after the command to load more results\n\
+            Check !help recent for more information on proper usage")
             generalChannel.send(errorEmbed)
             return
         }
@@ -1140,14 +1148,19 @@ async function recent(receivedMessage, args) {
     else {
         const errorEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
-                .setDescription("**Error**: Bad Input")
-        generalChannel.send(errorEmbed)
-        return
+                .setAuthor("Improper Input")
+                .setTitle("You're attempting to check a recent match log")
+                .setDescription("Type !recent **@[user]** when searching other users recent matches or \"server\" to see server matches\n\
+                Type \"more\" after the command to load more results\n\
+                Check !help recent for more information on proper usage")
+            generalChannel.send(errorEmbed)
+            return
     }
     // Checking block over
 
 
     //Log only 5 most recent matches or if the user types "more" 
+    matches_arr = matches_arr.reverse()
     if (more) {
         matches_arr = matches_arr.slice(0,10)
     }
@@ -1158,8 +1171,9 @@ async function recent(receivedMessage, args) {
     // Make sure there are matches
     if (matches_arr.length == 0) {
         const errorEmbed = new Discord.MessageEmbed()
-                .setColor(messageColorRed)
-                .setDescription("**Error:** User has no matches this season")
+                .setColor(messageColorBlue)
+                .setAuthor("No Matches Logged")
+                .setTitle("The user you're attempting to mention has no matches logged")
         generalChannel.send(errorEmbed)
         return
     }
@@ -1174,8 +1188,8 @@ async function recent(receivedMessage, args) {
     }
 
     const confirmEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorGreen)
-            .setDescription("Showing " + matches_arr.length.toString() + " recent " + matchGrammar)
+        .setColor(messageColorGreen)
+        .setDescription("Showing " + matches_arr.length.toString() + " recent " + matchGrammar)
     generalChannel.send(confirmEmbed)
 
     //Main loop
@@ -1228,21 +1242,26 @@ async function listDecks(receivedMessage, args){
         newStr = newStr.replace(/ /g, '');
         
         if (newStr.length == 1){
-            oneColorArr.push(entry._name)
+            oneColorArr.push(entry._name + " - " + entry._colors)
         }
         else if (newStr.length == 2){
-            twoColorArr.push(entry._name)
+            twoColorArr.push(entry._name + " - " + entry._colors)
         }
         else if (newStr.length == 3){
-            threeColorArr.push(entry._name)
+            threeColorArr.push(entry._name + " - " + entry._colors)
         }
         else if (newStr.length == 4){
-            fourColorArr.push(entry._name)
+            fourColorArr.push(entry._name + " - " + entry._colors)
         }
         else{
-            fiveColorArr.push(entry._name)
+            fiveColorArr.push(entry._name + " - " + entry._colors)
         }
     })
+    oneColorArr.sort()
+    twoColorArr.sort()
+    threeColorArr.sort()
+    fourColorArr.sort()
+    fiveColorArr.sort()
     generalChannel.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
     generalChannel.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
     generalChannel.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
@@ -1286,6 +1305,8 @@ async function addDeck(receivedMessage, args){
         let deckType = splitArgs[6]
         let hasPrimer = splitArgs[7]
         let discordLink = splitArgs[8]
+
+        commanderName = commanderName.replace(/  /g, ', ')
 
         if((hasPrimer.toLowerCase() != "yes") && (hasPrimer.toLowerCase() !="no")){
             errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
@@ -1509,7 +1530,7 @@ async function startMatch(receivedMessage, args){
     if (currentSeason == "No Current"){
         const errorMsg = new Discord.MessageEmbed()
             .setColor(messageColorRed)
-            .setAuthor("Error: No On-Going Season")
+            .setAuthor("No On-Going Season")
             .setDescription("There is no on-going season. Please start a season before logging matches")
             .setFooter("Admins can use !startseason")
         generalChannel.send(errorMsg)
@@ -1519,7 +1540,7 @@ async function startMatch(receivedMessage, args){
     if (args.length < 3 || args.length > 3) {
         const errorMsg = new Discord.MessageEmbed()
             .setColor(messageColorRed)
-            .setAuthor("Error: Incorrect input")
+            .setAuthor("Improper input")
             .setDescription("Please submit only the **3 players** who lost in the pod")
             .setFooter("Example: !log @user @user @user")
         generalChannel.send(errorMsg)

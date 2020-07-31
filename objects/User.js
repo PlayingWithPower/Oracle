@@ -302,7 +302,6 @@ module.exports = {
         var typeOfQuery = ""
         const seasonObj = SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         var seasonName = seasonObj.seasonName
-        console.log(args)
         return new Promise((resolve, reject)=>{
             if (args.length > 2){
                 let argsWithCommas = args.toString()

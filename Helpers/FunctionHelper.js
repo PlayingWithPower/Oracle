@@ -55,11 +55,23 @@ adminDictionary =
 
 exampleDictionary =
 {
-    deletematch: "!deletematch <Match ID>. Use !pending to find a list of matches that haven't been accepted. Use !recent to find match IDs.",
-    acceptmatch: "!accept <Match ID>. Use !pending to find a list of matches that haven't been accepted. Use !recent to find match IDs.",
-    add: "!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link.\n\
-    Example: !add Sphinx Control | Unesh, Criosphinx Sovereign | https://www.google.com | Gnarwhal | This is a control deck that seeks to win through isochron scepter | Disruptive | No | https://discord.gg/12345 | ",
-    removedeck: "!removedeck <Deck Name>",
+    deletematch: "Use this function to force delete a match. This is an Admin-Only command that should be used in conjunction with !pending or !disputed and should be used with discretion.\
+    Admins should use this command when they feel a game was wrongfully submitted. This can be for a variety of reasons including: players disputing matches, cheating, or many other reasons.\n\n\
+    Use !pending to find a list of matches that haven't been accepted. Use !disputed to find a list of matches that have been disputed.\n\n\
+    Example usage: !deletematch <Match ID>. ",
+    acceptmatch: "Use this function to force accept a match. This is an Admin-Only command that should be used in conjunction with !pending or !disputed.\
+    Use this function to accept matches that are in a pending or disputed state. This will force the matches to be recognized and counted towards deckstats, ratings, and other aspects of the bot.\n\n\
+    Use !pending to find a list of matches that haven't been accepted. Use !disputed to find a list of matches that have been disputed.\n\n\
+    Example usage: !accept <Match ID>.",
+    add: "Use this function to add a new deck to your server's list of decks. This is an Admin-Only command that will allow users to have more options when setting their deck.\
+    This function is meant to make this bot adaptive for all servers and metas. An initial seed of decks is provided to each server and will be curated in conjuction to the CEDH Database.\
+    Add as many or as few decks as you want. We recommend adding a deck to your server once more than a few people play it. Users can track stats on their custom lists with the !use <Deck Name> | Rogue functionality,\
+    so it is not necessary to add every deck users play.\n\n\
+    !add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link.\n\n\
+    Example Usage: !add Sphinx Control | Unesh, Criosphinx Sovereign | https://www.google.com | Gnarwhal | This is a control deck that seeks to win through isochron scepter | Disruptive | No | https://discord.gg/12345 | ",
+    removedeck: "Use this function to remove a deck from your server's list of decks.  This will remove the list from your server, but will not remove stats about this deck from your server.\
+    This is an Admin-Only command to remove old, outdated or decks that are simply not used on your server. Curating your decklist is entirely optional\
+    !removedeck <Deck Name>",
 
     
     help : "Lists all available commands. Use !help <command> to get more specific help.",
@@ -83,41 +95,6 @@ exampleDictionary =
 }
 
 module.exports = {
-    test()
-    {
-        console.log("Testing other file.")
-    },
-    /**
-     * This is used in !deck to quickly create 5 embeds, one for each color
-     * @param {*} colorArr 
-     * @param {*} colorNum 
-     */
-    createDeckEmbed(colorArr, colorNum){
-        const someEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorBlue)
-            .setAuthor(colorNum)
-        for(i = 0; i < colorArr.length; i++){
-            someEmbed.addFields(
-                { name: " \u200b",value: colorArr[i], inline: true},
-            )
-        }
-        return someEmbed
-    },
-    /**
-     * toUpper()
-     * @param {*} str 
-     */
-    toUpper(str) {
-    return str
-        .toLowerCase()
-        .split(' ')
-        .map(function(word) {
-            // console.log("First capital letter: "+word[0]);
-            // console.log("remain letters: "+ word.substr(1));
-            return word[0].toUpperCase() + word.substr(1);
-        })
-        .join(' ');
-    },
     /**
      * showEmbedHelpForCommand()
      * @param {*} receivedMessage 
@@ -129,8 +106,10 @@ module.exports = {
     {
         const exampleEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-            exampleEmbed.addFields(
-                { name: "!" + [arguments], value: exampleDictionary[arguments] },
+            exampleEmbed
+            .setAuthor("Displaying information about the command: !" + [arguments])
+            .addFields(
+                { name: "Command Details", value: exampleDictionary[arguments] },
             )
 
         receivedMessage.channel.send(exampleEmbed);

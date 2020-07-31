@@ -27,11 +27,14 @@ module.exports = {
             )
         }
         else{
-            for(i = 0; i < colorArr.length; i++){
-                someEmbed.addFields(
-                    { name: " \u200b",value: colorArr[i], inline: true},
-                )
-            }
+            someEmbed.addFields(
+                { name: " \u200b", value: colorArr}
+            )
+            // for(i = 0; i < colorArr.length; i++){
+            //     someEmbed.addFields(
+            //         { name: " \u200b",value: colorArr[i], inline: true},
+            //     )
+            // }
         }
         return someEmbed
     },

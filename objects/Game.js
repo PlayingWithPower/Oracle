@@ -9,11 +9,6 @@
  * 3. Commit Match (this puts the match into an accepted status and performs match calculations)
  */
 
-const { match } = require('assert')
-
-const percentageToLose = 0.010
-const percentageToGain = 0.030
-
 module.exports = {
 
     logWinner(id, receivedMessage) {
@@ -22,33 +17,7 @@ module.exports = {
             let findQuery = {_mentionValue: id, _server: receivedMessage.guild.id}
             users.findOne(findQuery, function(err, res) {
                 if (res) {
-                    // // Deck W/L Handling
-                    // tempArr = res._deck
-                    // tempArr.forEach(deck => {
-                    //     if (deck.Deck == res._currentDeck){
-                    //         deck.Wins += 1
-                    //     }
-                    // })
-
-                    // Elo Handling
-                    var newVal
-                    var change
-                    let newWins = res._wins
-                    
-                    newWins += 1
-                    newVal = Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain))
-                    change = Math.round(Number(res._elo)*(percentageToGain))
-                    
-
-                    newInfo = { $set: {'_elo': newVal}}
-                    users.updateOne(findQuery, newInfo, function(err, res) {
-                        if (res) {
-                            resolve("**" + id + "**'s Score " + newVal + " (+" + change + ")")
-                        }
-                        else {
-                            reject('SET FAIL')
-                        }
-                    })
+                    resolve("**" + id + "**'s won. Check !profile to see your update score")
                 }
                 else {
                     reject('PLAYER NOT FOUND')
@@ -63,33 +32,7 @@ module.exports = {
             let findQuery = {_mentionValue: id, _server: receivedMessage.guild.id}
             users.findOne(findQuery, function(err, res) {
                 if (res) {
-                    // // Deck W/L Handling
-                    // tempArr = res._deck
-                    // tempArr.forEach(deck => {
-                    //     if (deck.Deck == res._currentDeck){
-                    //         deck.Losses += 1
-                    //     }
-                    // })
-
-                    // Elo Handling
-                    var newVal
-                    var change
-                    let newLosses = res._losses
-                    
-                    newLosses += 1
-                    newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
-                    change = Math.round(Number(res._elo)*(percentageToLose))
-                    
-
-                    let newInfo = { $set: {'_elo': newVal}}
-                    users.updateOne(findQuery, newInfo, function(err, res) {
-                        if (res) {
-                            resolve("**" + id + "**'s Score " + newVal + " (-" + change + ")")
-                        }
-                        else {
-                            reject('SET FAIL')
-                        }
-                    })
+                    resolve("**" + id + "**'s lost. Check !profile to see your update score")
                 }
                 else {
                     reject('PLAYER NOT FOUND')
@@ -117,7 +60,7 @@ module.exports = {
                         })
                         resolve(out)
                     }, function(err) {
-                        console.log(err)
+                        //console.log(err)
                     });
                 }
                 else {
@@ -126,125 +69,6 @@ module.exports = {
             })
         })
     },
-
-    /**
-     * Logs a new match to the season.
-     * TODO: Change specific deck w/l
-     */
-    oldLogMatch(id) {
-        const games = require('../Schema/Games')
-        const users = require('../Schema/Users')
-
-        var loserArr = new Array()
-        var callbackArr = new Array()
-
-        return new Promise((resolve, reject) => {
-            let findQuery = {_match_id: id, _Status: "STARTED"}
-            games.findOne(findQuery, function(err, res){
-                if (res) {
-                    // Deal with Winner
-                    let player1_id = res._player1
-                    let player2_id = res._player2
-                    let player3_id = res._player3
-                    let player4_id = res._player4
-
-                    let findQuery = {_mentionValue: res._player1}
-                    loserArr.push(res._player2)
-                    loserArr.push(res._player3)
-                    loserArr.push(res._player4)
-
-                    users.findOne(findQuery, function(err, res){
-                        if (res){
-                            var newVal = Math.round(Number(res._elo) + Number(res._elo)*(percentageToGain))
-                            var change = Math.round(Number(res._elo)*(percentageToGain))
-                            var newElo = {$set: {_elo: newVal, _wins: Number(res._wins) + 1}}
-                            users.updateOne(findQuery, newElo, function(err, res){
-                                if (res){
-                                    callbackArr.push("**" + player1_id + "**'s Score " + newVal + " (+" + change + ")")
-
-                                    //Deal with Losers **Yes I know this could be solved better with a loop but that would require a completely different implementation shhhhh
-                                    //loser 1
-                                    findQuery = {_mentionValue: loserArr[0]}
-                                    users.findOne(findQuery, function(err, res){
-                                        if (res){
-                                            var newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
-                                            var change = Math.round(Number(res._elo)*(percentageToLose))
-                                            var newElo = {$set: {_elo: newVal, _losses: Number(res._losses) + 1}}
-                                            users.updateOne(findQuery, newElo, function(err, res){
-                                                if (res){
-                                                    callbackArr.push("**" + player2_id + "**'s Score " + newVal + " (-" + change + ")")
-                                                    
-                                                    //loser 2
-                                                    findQuery = {_mentionValue: loserArr[1]}
-                                                    users.findOne(findQuery, function(err, res){
-                                                        if (res){
-                                                            var newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
-                                                            var change = Math.round(Number(res._elo)*(percentageToLose))
-                                                            var newElo = {$set: {_elo: newVal, _losses: Number(res._losses) + 1}}
-                                                            users.updateOne(findQuery, newElo, function(err, res){
-                                                                if (res){
-                                                                    callbackArr.push("**" + player3_id + "**'s Score " + newVal + " (-" + change + ")")
-                                                                    
-                                                                    //loser 3
-                                                                    findQuery = {_mentionValue: loserArr[2]}
-                                                                    users.findOne(findQuery, function(err, res){
-                                                                        if (res){
-                                                                            var newVal = Math.round(Number(res._elo) - Number(res._elo)*(percentageToLose))
-                                                                            var change = Math.round(Number(res._elo)*(percentageToLose))
-                                                                            var newElo = {$set: {_elo: newVal, _losses: Number(res._losses) + 1}}
-                                                                            users.updateOne(findQuery, newElo, function(err, res){
-                                                                                if (res){
-                                                                                    callbackArr.push("**" + player4_id + "**'s Score " + newVal + " (-" + change + ")")
-                                                                                    resolve(callbackArr)
-                                                                                    
-                                                                                }
-                                                                                else{
-                                                                                    reject('Error: FAIL LOSER 3')
-                                                                                }
-                                                                            })        
-                                                                        }
-                                                                        else{
-                                                                            reject('Error: NO-REGISTER LOSER 3')
-                                                                        }
-                                                                    })
-                                                                }
-                                                                else{
-                                                                    reject('Error: FAIL LOSER 2')
-                                                                }
-                                                            })        
-                                                        }
-                                                        else{
-                                                            reject('Error: NO-REGISTER LOSER 2')
-                                                        }
-                                                    })
-                                                }
-                                                else{
-                                                    reject('Error: FAIL LOSER 1')
-                                                }
-                                            })        
-                                        }
-                                        else{
-                                            reject('Error: NO-REGISTER LOSER 1')
-                                        }
-                                    })
-                                }
-                                else{
-                                    reject('Error: FAIL WINNER')
-                                }
-                            })        
-                        }
-                        else{
-                            reject('Error: NO-REGISTER')
-                        }
-                    })
-                    
-
-                }
-            })
-        })
-        
-    },
-
     /**
      * Confirms match against for user.
      */
@@ -424,7 +248,7 @@ module.exports = {
                 }
             game(matchSave).save(function(err, result){
                 if (result){
-                    console.log("Successfully created Game #" + id)
+                    //console.log("Successfully created Game #" + id)
                     callback("SUCCESS")
                 }
                 else {
