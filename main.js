@@ -713,9 +713,6 @@ async function top(receivedMessage, args){
     }
     
     lookUpUsers = mentionValues.map(SeasonHelper.lookUpUsers)
-    let getConfig = await leagueObj.configGet(receivedMessage.guild.id)
-    const playerThreshold = getConfig._player_threshold
-    const returnEmbed = new Discord.MessageEmbed()
     
     var unsortedResults = new Array()
     Promise.all(lookUpUsers).then(results => {
@@ -741,7 +738,7 @@ async function top(receivedMessage, args){
              .setColor(messageColorBlue)
              .setAuthor("Displaying Top Players for the season name: " + args.join(' '))
         for (var i = 0; i < sortedResults.length; i++){
-            if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._deck_threshold }
+            if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._player_threshold }
             if (sortedResults[i][3] < threshold){ }
             if (i > 10){break}
             else{
