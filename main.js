@@ -1746,7 +1746,6 @@ async function deleteMatch(receivedMessage, args) {
  */
 async function matchInfo(receivedMessage, args) {
     var generalChannel = getChannelID(receivedMessage)
-    let sanitizedString = "<@!"+receivedMessage.author.id+">"
 
     //Catch bad input
     if (args.length != 1 || args[0].length != 12) {
@@ -1756,39 +1755,34 @@ async function matchInfo(receivedMessage, args) {
         generalChannel.send(errorMsg)
         return
     }
-    let failed = false
-    const response = await gameObj.matchInfo(args[0], receivedMessage).catch((message) => {
-        const errorMsg = new Discord.MessageEmbed()
-                .setColor(messageColorRed)
-                .setDescription("**Error**: Match not found")
-        generalChannel.send(errorMsg)
-        failed = true
-        return
-    }).then(async(match) => {
-        if (!failed) {
-            var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
-
-            const bot = await getUserFromMention('<@!717073766030508072>')
-            const winner = await getUserFromMention(match[4])
-            const loser1 = await getUserFromMention(match[5])
-            const loser2 = await getUserFromMention(match[6])
-            const loser3 = await getUserFromMention(match[7])
+    const response = await gameObj.matchInfo(args[0], receivedMessage)
+        if (response != "FAIL") {
+            var convertedToCentralTime = response[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
+            const winner = await getUserFromMention(response[4])
+            const loser1 = await getUserFromMention(response[5])
+            const loser2 = await getUserFromMention(response[6])
+            const loser3 = await getUserFromMention(response[7])
             tempEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorBlue) //blue
-                .setTitle('Game ID: ' + match[1])
+                .setTitle('Game ID: ' + response[1])
                 .setThumbnail(getUserAvatarUrl(winner))
                 .addFields(
-                    { name: 'Season: ', value: match[3], inline: true},
+                    { name: 'Season: ', value: response[3], inline: true},
                     { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
-                    { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+match[8]+'**'},
+                    { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+response[8]+'**'},
                     { name: 'Opponents:', value: 
-                    '**'+loser1.username+'**'+ ' piloting ' + '**'+match[9]+'**' + '\n'
-                    + '**'+loser2.username+'**'+ ' piloting ' + '**'+match[10]+'**' + '\n' 
-                    + '**'+loser3.username+'**'+ ' piloting ' + '**'+match[11]+'**' }
+                    '**'+loser1.username+'**'+ ' piloting ' + '**'+response[9]+'**' + '\n'
+                    + '**'+loser2.username+'**'+ ' piloting ' + '**'+response[10]+'**' + '\n' 
+                    + '**'+loser3.username+'**'+ ' piloting ' + '**'+response[11]+'**' }
                 )
             generalChannel.send(tempEmbed)
         }
-    })
+        else if (response == "FAIL"){
+            const errorMsg = new Discord.MessageEmbed()
+                .setColor(messageColorRed)
+                .setDescription("**Error**: Match not found")
+            generalChannel.send(errorMsg)
+        }
 }
 /**
  * logMatch()

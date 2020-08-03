@@ -326,7 +326,7 @@ module.exports = {
         const games = require('../Schema/Games')
 
         return new Promise((resolve, reject) => {
-            let findQuery = {_match_id: match_id, _server: server_id, _season: seasonName}
+            let findQuery = {_match_id: match_id, _server: server_id, _season: currentSeasonName}
             games.findOne(findQuery, function(err, res) {
                 if (res) {
                     timestamp = res._id.toString().substring(0,8)
@@ -346,7 +346,7 @@ module.exports = {
                     resolve(returnArr)
                 }
                 else {
-                    reject('FAIL')
+                    resolve('FAIL')
                 }
             })
         })

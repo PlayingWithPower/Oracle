@@ -26,7 +26,7 @@ gameDictionary = {
     //remind: "Reminds users to confirm logged matches",
     pending: "Lists all unfinished matches",
     disputed: "Lists all disputed matches",
-    matchinfo: "Provides information on a match",
+    info: "Provides information on a match",
 }
 leagueDictionary = {
     register: "Registers a user to participate in this server's league",
@@ -118,9 +118,9 @@ exampleDictionary =
     disputed: "Use this function to see a list of disputed matches. Matches are disputed when any user contests a match log (downvotes their confirm message). This command is to see a list of these disputed matches, and then force accept or force delete the with the !acceptmatch\
      or !deletematch commands. More information found using !help acceptmatch and !help deletematch\n\n\
     Example usage: !disputed",
-    matchinfo: "Use this function to find information about a match. This information includes: Winnners, Losers, Time the match took place, etc. Find matches with commands such as !recent, !pending or !disputed. Learn more about each of these functions using !help recent, !help pending or !help disputed\n\n\
-    Generic usage: !matchinfo <Match ID>\n\
-    Example usage: !matchinfo 123456789123",
+    info: "Use this function to find information about a match. This information includes: Winnners, Losers, Time the match took place, etc. Find matches with commands such as !recent, !pending or !disputed. Learn more about each of these functions using !help recent, !help pending or !help disputed\n\n\
+    Generic usage: !info <Match ID>\n\
+    Example usage: !info 123456789123",
     register: "Use this function to register yourself for this server's league. Registering is a key step to accessing other portions of the bot. By registering your: matches will be logged, stats will be tracked, other users will be able to look you up and much more\n\n\
     Example usage: !register", 
     top: "Use this function to see the top players on the leaderboard for this server's current season. Players are assigned a point based value based on their number of wins and losses. A win gains you X points, while a loss loses you Y points. The system accounts for an average of 25% winrate.\
