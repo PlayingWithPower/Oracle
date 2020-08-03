@@ -71,7 +71,7 @@ exampleDictionary =
     !add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link.\n\n\
     Example usage: !add Sphinx Control | Unesh, Criosphinx Sovereign | https://www.google.com | Gnarwhal | This is a control deck that seeks to win through isochron scepter | Disruptive | No | https://discord.gg/12345 | ",
     removedeck: "Use this function to remove a deck from your server's list of decks.  This will remove the list, but will not remove stats about this deck from your server.\
-    This is an Admin-Only command to remove old, outdated or decks that are simply not used on your server. Curating your decklist is entirely optional\n\n\
+    This is an Admin-Only command to remove old and outdecked deck. Or ones that are simply not used on your server. Curating your decklist is entirely optional\n\n\
     Example usage: !removedeck <Deck Name>",
     startseason:"Use this function to start a new season for this server. This is an Admin-Only command. When you start a season, the bot will automatically name the season a numerical value and assign indefinite end date.\
     When you start a season, users will be able to log matches, check their stats across decks and games, and much more. Seasons can be renamed and configured using a variety of commands including: \
@@ -82,7 +82,9 @@ exampleDictionary =
     Example usage: !endseason",
     setendseason: "Use this function to set an automatic end date to a season. This is an Admin-Only command. Similar to the !endseason function, you will provide this function a date at which you want the current season to end\
     and it will end it automatically for you at the specified date. See !help endseason for more information on what ending a season does. \n\n\
-    Example usage !setendseason 12/12/2020",
+    Example usage: !setendseason 12/12/2020",
+    setseasonname: "Use this function to set the name of a season. This is an Admin-Only command that can be changed as many times as you want and as frequently as you want\n\n\
+    Example usage: !setseasonname Season 2",
     setconfig: "Use this function to set the configurations for your server. This is an Admin-Only command. Default configurations for your server are provided\
     without the need for this command. This command will let you fine tune this experience in a variety of categories. These categories are:\n\n\
     'Player Threshold' - The number of games a player must play before appearing on the leaderboard\n\
@@ -97,14 +99,15 @@ exampleDictionary =
 
     decks: "Use this function to list all decks on this server. This command will organize by color and then alphabetize all decks. Use this function before you set your deck with !use <Deck Name>\n\n\
     Example usage: !decks",
-    deckstats: "Use this function to find information about a decks statistics on this server. This is a versatile command that accepts many inputs. You can look up deck statistics for a server, for a season, for a deck and for a user\n\n\
+    deckstats: "Use this function to find information about a decks statistics on this server. Add the 'all' modifier to any query to find information across all seasons. This is a versatile command that accepts many inputs. You can look up deck statistics for a server, for a season, for a deck and for a user\n\n\
     Generic usage:\n\
-    !deckstats - lists overall deck information for this server in this server\n\
+    !deckstats - lists overall deck information for this season in this server\n\
+    !deckstats all - lists overall deck information in this server\n\
     !deckstats <Deck Name> - information about a deck this season\n\
     !deckstats | <Season Name> - lists overall deck information for this server in the specified season. Seasons are case sensitive!\n\
     !deckstats <Deck Name> | <Season Name> - information about a deck in the specified season\n\
     !deckstats @Username - information about a user's deck statistics for this season\n\
-    !deckstats @Username | <Season Name> - information about a user's deck statistics for the specified season",
+    !deckstats @Username | <Season Name> - information about a user's deck statistics for the specified season\n",
     deckinfo: "Use this function to find information about a specific deck. This command will return information on a variety of topics pertaining to the specified deck. Examples of information include: Deck Name, Commander, Color Identity, Deck List, and much more\n\
     Generic usage: !deckinfo <Deck Name>\n\
     Example usage: !deckinfo Gitrog Dredge",
@@ -128,7 +131,9 @@ exampleDictionary =
     Example usage: !top",
     seasoninfo: "Use this function to see information about the specified season. This command defaults to the current season when provided no arguments. Information provided includes: Season Name, Season Start Date, Season End Date, etc.\n\n\
     Generic usage: !seasoninfo or !seasoninfo <Season Name>. Season names **are case sensitive**\n\
-    Example usage: !seasoninfo My Season Name",
+    Example usage: \n\
+    !seasoninfo My Season Name\n\
+    !seasoninfo all",
     profile: "Use this function to see information about a user's statistics on the server. These statistics include: Current Deck, Rating, Favorite Deck, Winrate and specific Deck Stats breakdown. This function defaults to the user typing the command, but can lookup other users\n\n\
     Generic usage: !profile or !profile @User\n\
     Example usage: !profile or !profile @Gnarwhal",

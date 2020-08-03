@@ -718,7 +718,6 @@ module.exports = {
         else{
             hasPrimer = true
         }
-
         const sendBackArr = new Array();
         
         let deckAliasQuery = {
@@ -726,6 +725,9 @@ module.exports = {
             '_server': receivedMessage.guild.id
         }
         return new Promise ((resolve,reject)=>{
+            if (deckDescription.length > 750){
+                resolve("Error 2")
+            }
             deck.findOne(deckAliasQuery, function(err, res){
                 if (res){
                     resolve("Error 1")

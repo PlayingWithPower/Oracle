@@ -273,15 +273,7 @@ module.exports = {
             let findQuery = {_match_id: id, _server: server, _season: currentSeasonName}
             games.findOne(findQuery, function(err, res) {
                 if (res) {
-                    if (res._Status != "FINISHED") {
-                        games.deleteOne(findQuery, function(err, res) {
-                            if (err) throw err;
-                            resolve('SUCCESS')
-                        })
-                    }
-                    else {
-                        resolve('CONFIRM')
-                    }
+                    resolve('CONFIRM')
                 }
                 else {
                     reject('ERROR')

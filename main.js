@@ -253,7 +253,11 @@ async function processCommand(receivedMessage){
             credits(receivedMessage, arguments)
             break;
         default:
-            receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+            const UnknownCommandEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("Unknown command.")
+            .setDescription("Type !help to get a list of available commands")
+            receivedMessage.channel.send(UnknownCommandEmbed)
     }
 }
 async function tutorial(channel){
@@ -309,7 +313,7 @@ async function forceAccept(receivedMessage, args){
             .setColor(messageColorRed)
             .setAuthor("Can't find match")
             .setDescription("You have entered an invalid match ID\n\
-            Use !pending to find a list of pending matches")
+            Check !help acceptmatch for more information")
             generalChannel.send(invalidInputEmbed)
         }
     }
@@ -318,7 +322,7 @@ async function forceAccept(receivedMessage, args){
         .setColor(messageColorRed)
         .setAuthor("Incorrect Input")
         .setDescription("Please type !acceptmatch <Match ID>\n\
-        Use !pending to find a list of pending matches")
+        Check !help acceptmatch for more information")
         generalChannel.send(invalidInputEmbed)
     }
     
@@ -343,7 +347,6 @@ async function getDisputed(receivedMessage){
         const overallEmbed = new Discord.MessageEmbed()
         .setColor(messageColorGreen)
         .setAuthor("Displaying Disputed Matches")
-        .setFooter("'Player 1' is the logged winner of each pending match")
         generalChannel.send(overallEmbed)
         returnArr.forEach((pendingMatch)=>{
             const matchEmbed = new Discord.MessageEmbed()
@@ -517,6 +520,15 @@ async function setSeasonName(receivedMessage, args){
 }
 async function setEndSeason(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
+    if (args.length == 0){
+        const errorEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorRed)
+        .setAuthor("Please enter an end date")
+        .setDescription("Please type in the format: MM/DD/YY\n\
+        Type !help setendseason for more information")
+        generalChannel.send(errorEmbed)
+        return
+    }
     if (args[0].length > 8){
         const errorEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
@@ -592,6 +604,7 @@ async function seasonInfo(receivedMessage, args){
     }
     else{
         let returnArr = await seasonObj.getInfo(receivedMessage, args.join(' '))
+        console.log(returnArr)
         if (returnArr == "Can't Find Season"){
             const cantFindEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed)
@@ -715,6 +728,7 @@ async function top(receivedMessage, args){
     lookUpUsers = mentionValues.map(SeasonHelper.lookUpUsers)
     
     var unsortedResults = new Array()
+    const resultsMsg = new Discord.MessageEmbed()
     Promise.all(lookUpUsers).then(results => {
         for (var i = 0; i < results.length; i++){
             if (results[i] != "Can't find deck"){
@@ -732,13 +746,12 @@ async function top(receivedMessage, args){
         let getDeckThreshold = await ConfigHelper.getDeckThreshold(receivedMessage.guild.id)
         let sortedResults = unsortedResults
         var threshold = 5
+        if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._player_threshold }
 
-        const resultsMsg = new Discord.MessageEmbed()
         resultsMsg
              .setColor(messageColorBlue)
              .setAuthor("Displaying Top Players for the season name: " + args.join(' '))
         for (var i = 0; i < sortedResults.length; i++){
-            if (getDeckThreshold != "No configs"){ threshold = getDeckThreshold._player_threshold }
             if (sortedResults[i][3] < threshold){ }
             if (i > 10){break}
             else{
@@ -757,6 +770,7 @@ async function top(receivedMessage, args){
         }
         if (resultsMsg.fields.length == 0){
             resultsMsg
+            .setDescription("Seasons are case sensitive! Make sure you are spelling the season name correctly. See a list of all seasons with !seasoninfo all")
             .setAuthor("No Top Players Yet")
         }
         generalChannel.send(resultsMsg)
@@ -885,7 +899,9 @@ async function removeDeck(receivedMessage, args){
     if (promiseReturn == "Error 1"){
         addingDeckEmbed
         .setColor(messageColorRed) //red
-        .setDescription("Error deck not found. Try !help, !decks or use the format !removedeck <deckname>")
+        .setDescription("Error deck not found\n\
+        Please use the format !removedeck <Deck Name>\n\
+        For more information, check !help removedeck")
         generalChannel.send(addingDeckEmbed)
     }
     else{
@@ -1281,7 +1297,7 @@ async function listDecks(receivedMessage, args){
  */
 async function addDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-
+    
     let argsWithCommas = args.toString()
     let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
     let argsLowerCase = argsWithSpaces.toLowerCase()
@@ -1341,12 +1357,20 @@ async function addDeck(receivedMessage, args){
         if (promiseReturn == "Error 1"){
             const sameNamedEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
-                .setTitle("Error. A deck with that name already exists. Please try a new name.")
+                .setAuthor("Duplicate Entry")
+                .setDescription("A deck with that name already exists. Please try a new name.")
+            generalChannel.send(sameNamedEmbed)
+        }
+        if (promiseReturn == "Error 2"){
+            const sameNamedEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorRed)
+                .setAuthor("Too many characters")
+                .setDescription("Your description is too long, there is a 750 character limit. Please try again")
             generalChannel.send(sameNamedEmbed)
         }
         else{
             const awaitReactionEmbed = new Discord.MessageEmbed()
-                .setColor(messageColorGreen)
+                .setColor(messageColorBlue)
                 .setAuthor("Trying to save a new deck named: " + promiseReturn[0])
                 .setDescription("Please confirm the information below. \nUpvote to confirm \nDownvote to cancel")
                 .addFields(
@@ -1389,8 +1413,8 @@ async function profile(receivedMessage, args){
     if (returnArr == "Can't find user"){
         const errorUserEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
-        .setDescription("Cannot find specified user: " + args)
-        .setFooter("User is not registered for this league. Have them type !register")
+        .setDescription("Cannot find specified user: " + args[0])
+        .setFooter("User is not registered for this league. Make sure you are using Discord Mentions and the user is registered. Type !help profile for more information")
         generalChannel.send(errorUserEmbed)
     }
     else if (returnArr[0] == "No On-Going Season"){
@@ -1569,6 +1593,7 @@ async function startMatch(receivedMessage, args){
                 .setColor(messageColorRed)
                 .setAuthor("Unregistered User")
                 .setDescription(mentionValues[i][0] + " isn't registered, type !register")
+                .setFooter("Make sure to use the Discord Mention feature when using this command. Check !help log for more information")
                 generalChannel.send(errorMsg)
                 someNotRegistered = true
             }
@@ -1700,7 +1725,9 @@ async function deleteMatch(receivedMessage, args) {
     if (args.length != 1) {
         const errorMsg = new Discord.MessageEmbed()
                 .setColor('#af0000')
-                .setDescription("**Error**: Bad input")
+                .setAuthor("Incorrect Input")
+                .setDescription("Please type !deletematch <Match ID>\n\
+                See !help deletematch for more information.")
         generalChannel.send(errorMsg)
         return
     }
@@ -1708,7 +1735,8 @@ async function deleteMatch(receivedMessage, args) {
     const response = await gameObj.deleteMatch(args[0], receivedMessage).catch((message) => {
         const errorMsg = new Discord.MessageEmbed()
                 .setColor('#af0000')
-                .setDescription("**Error**: Match not found")
+                .setAuthor("Incorrect Match ID")
+                .setDescription("Match not found")
         generalChannel.send(errorMsg)
         return
     })
@@ -1726,9 +1754,6 @@ async function deleteMatch(receivedMessage, args) {
             .setDescription(sanitizedString + " This is a finished match \n **Upvote** to confirm \n **Downvote** to cancel")
         generalChannel.send(confirmMsgEmbed)
         .then(function (message, callback){
-            // const filter = (reaction, user) => {
-            //     return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
-            // };  
             message.react("👍")
             message.react("👎")
         })
@@ -1750,8 +1775,10 @@ async function matchInfo(receivedMessage, args) {
     //Catch bad input
     if (args.length != 1 || args[0].length != 12) {
         const errorMsg = new Discord.MessageEmbed()
-                .setColor(messageColorRed)
-                .setDescription("**Error**: Bad input")
+            .setColor(messageColorRed)
+            .setAuthor("Incorrect input")
+            .setDescription("Use the format: !info <Match ID>")
+            .setFooter("Check !help info for more")
         generalChannel.send(errorMsg)
         return
     }
