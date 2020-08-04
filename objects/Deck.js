@@ -91,6 +91,7 @@ module.exports = {
                 var query
                 let cleaningName = splitArgs[0]
                 let checkFormat = cleaningName.indexOf("| ")
+                console.log(checkFormat)
                 if (checkFormat == -1){
                     resolve("Bad season deckstats input")
                     return
@@ -257,7 +258,6 @@ module.exports = {
             return new Promise((resolve, reject) => {
 
                 args = args.join(' ')
-                args = DeckHelper.toUpper(args)
                 var conditionalQuery
 
                 let argsWithCommas = args.toString()
@@ -762,68 +762,7 @@ module.exports = {
             })
         })
     },
-    /**
-     * Seed the server with an initial list of Deck Aliases.
-     */
-    populateDecks(receivedMessage) {
-        const deck = require('../Schema/Deck')
-        const alias = require('../Schema/Alias')
-        
-        var deckListArray = new Array();
-        var aliasListArray = new Array();
-
-        deckListArray.push("https://tappedout.net/mtg-decks/waiting-for-godo-cedh-primer/")
-        aliasListArray.push("Godo Helm")
-        deckListArray.push("https://tappedout.net/mtg-decks/the-gitfrog-1/")
-        aliasListArray.push("Gitrog Dredge")
-        deckListArray.push("https://cedh-decklist-database.xyz/primary.html")
-        aliasListArray.push("Kess Storm")
-        aliasListArray.push("Rogue")
-
-        var internalIndex = 0;
-        
-        for (i = 0; i < aliasListArray.length; i++){
-            let deckAliasQuery = {_alias: aliasListArray[i].toLowerCase(), _server: receivedMessage.guild.id}
-            deck.findOne(deckAliasQuery, function(err, res){
-                if (res){
-                    //console.log("Populate already ran... ignore this if NOT first set up. Large error if this prints out on first set up. Will print out a few times")
-                }
-                else{
-                        let deckSave = {_link: deckListArray[internalIndex], _name: aliasListArray[internalIndex], _alias: aliasListArray[internalIndex].toLowerCase(), _user: "Discord Bot", _server: receivedMessage.guild.id, _season: "1"}
-                        deck(deckSave).save(function(err, res){
-                            if (res){
-                                //console.log(deckListArray[i])
-                            }
-                            else{
-                                console.log("Error: Unable to save to Database, please try again")
-                            }
-                        })
-                        let aliasSave = {_name: aliasListArray[internalIndex], _server: receivedMessage.guild.id}
-                        alias(aliasSave).save(function(err, res){
-                            if (res){
-                                //console.log(deckListArray[i])
-                            }
-                            else{
-                                console.log("Error: Unable to save to Database, please try again")
-                            }
-                        })
-                    internalIndex++
-                }
-            })
-        }
-    },
     setUpPopulate(guild){
-        // Columns are:
-        // Has Primer
-        // Deck Type: (Proactive, Adaptive, Disruptive)
-        // Deck Name
-        // Deck Link
-        // Commander Name
-        // Description
-        // Color Identity
-        // Discord Link
-        // Authors
-        // Date Added
         const data = require('../data/decklists.json');
         const deck = require('../Schema/Deck')
         const alias = require('../Schema/Alias')

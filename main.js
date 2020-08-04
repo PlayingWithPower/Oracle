@@ -225,7 +225,7 @@ async function processCommand(receivedMessage){
             break;
         case "setconfig":
             if (adminGet){
-                configSet(receivedMessage, arguments)
+                configSet(receivedMessage, rawArguments)
             }
             else{
                 nonAdminAccess(receivedMessage, primaryCommand)
@@ -524,37 +524,49 @@ async function setEndSeason(receivedMessage, args){
         const errorEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
         .setAuthor("Please enter an end date")
-        .setDescription("Please type in the format: MM/DD/YY\n\
+        .setDescription("Please type in the format: MM/DD/YYYY\n\
         Type !help setendseason for more information")
         generalChannel.send(errorEmbed)
         return
     }
-    if (args[0].length > 8){
+    if (args[0].length > 10){
         const errorEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
         .setAuthor("You have entered a non-valid date")
-        .setDescription("Please type in the format: \nMM/DD/YY")
+        .setDescription("Please type in the format: \nMM/DD/YYYY")
         generalChannel.send(errorEmbed)
         return
     }
 
-    var date = new Date(args)
-    if (date instanceof Date && !isNaN(date.valueOf())) {
-       let returnArr = await seasonObj.setEndDate(receivedMessage, date)
-       if (returnArr[0] == "Success"){
-            date = date.toLocaleString("en-US", {timeZone: "America/New_York"});
-            const successEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorGreen)
-            .setAuthor("You have successfully set the end date for the current Season named: " + returnArr[1])
-            .setTitle("End time has been set to: " + date)
-            generalChannel.send(successEmbed)
-       }
+    if (args[0].length == 10){
+        var date = new Date(args)
+        const currentDate = new Date()
+        if (date instanceof Date && !isNaN(date.valueOf())) {
+            if ((currentDate >= date)){
+                const errorEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorRed)
+                .setAuthor("You have entered a date from the past")
+                .setDescription("You have used a date from the past, please set the end of the season to a date in the future\n\
+                Type in the format: \nMM/DD/YYYY")
+                generalChannel.send(errorEmbed)
+                return
+            }
+            let returnArr = await seasonObj.setEndDate(receivedMessage, date)
+            if (returnArr[0] == "Success"){
+                    date = date.toLocaleString("en-US", {timeZone: "America/New_York"});
+                    const successEmbed = new Discord.MessageEmbed()
+                    .setColor(messageColorGreen)
+                    .setAuthor("You have successfully set the end date for the current Season named: " + returnArr[1])
+                    .setTitle("End time has been set to: " + date)
+                    generalChannel.send(successEmbed)
+            }
+        }
     }
     else{
         const errorEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
         .setAuthor("You have entered a non-valid date")
-        .setDescription("Please type in the format: \nMM/DD/YY")
+        .setDescription("Please type in the format: \nMM/DD/YYYY")
         generalChannel.send(errorEmbed)
     }
 }
@@ -971,7 +983,8 @@ async function deckStats(receivedMessage, args){
         deckStatsEmbed
         .setColor(messageColorBlue)
         .setTitle("Deck Stats")
-        .setDescription("For user: "+ returnArr[1]+ ". For Season Name: " + returnArr[4])
+        .setDescription("For user: "+ returnArr[1]+ "\n\
+        For Season Name: " + returnArr[4])
         .setFooter("Looking for detailed deck breakdown? Try !profile @user to see exactly what decks this user plays.")
         .addFields(
             { name: 'Wins', value: returnArr[2], inline: true},
@@ -1423,12 +1436,12 @@ async function profile(receivedMessage, args){
         .addFields(
             { name: 'User', value: returnArr[2], inline: true },
             { name: 'Current Deck', value: returnArr[4], inline: true },
-            { name: 'Current Rating', value: returnArr[3], inline: true },
+            { name: 'Current Rating', value: 1000, inline: true },
         )
         generalChannel.send(profileEmbed)
         const matchesEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
-        .setDescription("This user has no logged matches")
+        .setDescription("This user has no logged matches this season")
         generalChannel.send(matchesEmbed)
     }
     else if (returnArr[0] == "Profile Look Up"){
@@ -1778,7 +1791,7 @@ async function matchInfo(receivedMessage, args) {
             .setColor(messageColorRed)
             .setAuthor("Incorrect input")
             .setDescription("Use the format: !info <Match ID>")
-            .setFooter("Check !help info for more")
+            .setFooter("Check !help info for more information")
         generalChannel.send(errorMsg)
         return
     }

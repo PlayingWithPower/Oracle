@@ -641,6 +641,7 @@ module.exports = {
             })
     
         }
+        //Update Deck Cancelled
         else if((embeds.length > 4 && embeds[4] == "update" && reaction.emoji.name === '👎' && user.id != "717073766030508072")){
             const editedWarningEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
