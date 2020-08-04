@@ -530,7 +530,7 @@ async function setEndSeason(receivedMessage, args){
     if (date instanceof Date && !isNaN(date.valueOf())) {
        let returnArr = await seasonObj.setEndDate(receivedMessage, date)
        if (returnArr[0] == "Success"){
-            date = date.toLocaleString("en-US", {timeZone: "America/New_York"});
+            date = date.toLocaleString("en-US", {timeZone: "America/Chicago"});
             const successEmbed = new Discord.MessageEmbed()
             .setColor(messageColorGreen)
             .setAuthor("You have successfully set the end date for the current Season named: " + returnArr[1])
@@ -1563,7 +1563,9 @@ async function startMatch(receivedMessage, args){
      let registerPromiseArray = mentionValues.map(GameHelper.checkRegister);
      
      Promise.all(registerPromiseArray).then(results => {
+         console.log(results)
         for (var i = 0; i < results.length; i++){
+            console.log(results)
             if (results[i] == 1){
                 const errorMsg = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
