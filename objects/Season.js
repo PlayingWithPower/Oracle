@@ -149,7 +149,7 @@ module.exports = {
             return new Promise((resolve, reject)=>{
                 var resolveArr = new Array()
                 season.find(seasonQuery, function(err,seasonRes){
-                    if (seasonRes){
+                    if (seasonRes.length > 0){
                         resolveArr.push(seasonRes)
                         user.find(userQuery, function(err,userRes){
                             if (userRes){
