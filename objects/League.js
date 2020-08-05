@@ -29,11 +29,11 @@ module.exports = {
     register(receivedMessage) {
         let currentSeason = SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         let findQuery = {
-            _mentionValue: "<@!" + receivedMessage.author.id+ ">",
+            _mentionValue: receivedMessage.author.id,
             _server: receivedMessage.guild.id,
         }
         let toSave = {
-            _mentionValue: "<@!" + receivedMessage.author.id+ ">",
+            _mentionValue: receivedMessage.author.id,
             _server: receivedMessage.guild.id,
             _name : receivedMessage.author.username, 
             _currentDeck: "None", 

@@ -159,7 +159,7 @@ module.exports = {
     findUserDeck(id, receivedMessage){
         const user = require('../Schema/Users')
         return new Promise((resolve, reject) => {
-            findQuery = {_mentionValue: id, _server:receivedMessage.guild.id}
+            findQuery = {_mentionValue: id, _server: receivedMessage.guild.id}
             user.findOne(findQuery, function(err, res) {
                 if (res) {
                     resolve(res._currentDeck)

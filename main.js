@@ -84,7 +84,7 @@ client.on('message', (receivedMessage) =>{
  * TODO: 
  */
 client.on('messageReactionAdd', (reaction, user) => {
-    if (reaction.message.author.id == "717073766030508072"){
+    if (reaction.message.author.id == config.botID){
         ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
     }
 })
@@ -649,7 +649,7 @@ async function endSeason(receivedMessage, args){
         .setColor(messageColorBlue)
         .setAuthor("WARNING: You are attempting to end the current season named: " + currentSeason._season_name)
         .setTitle("Are you sure you want to end the current season?")
-        .setDescription("When a season ends: leaderboards are reset, player's personal ratings are reset and rewards are distributed\n\
+        .setDescription("<@!" + receivedMessage.author.id+">"+" When a season ends: leaderboards are reset, player's personal ratings are reset and rewards are distributed\n\
         Use !pending to see pending matches")
         .setFooter("React thumbs up to end the current season, react thumbs down to cancel")
         if (returnArr.length > 0){
@@ -919,7 +919,7 @@ async function removeDeck(receivedMessage, args){
         .setAuthor("WARNING")
         .setTitle('Deck ID: ' + promiseReturn[0]._id)
         .setURL(promiseReturn[0]._link)
-        .setDescription("Are you sure you want to delete: **" + promiseReturn[0]._name + "** from your server's list of decks?")
+        .setDescription("<@!" + receivedMessage.author.id+">"+ " Are you sure you want to delete: **" + promiseReturn[0]._name + "** from your server's list of decks?")
         generalChannel.send(addingDeckEmbed)
         .then(function (message, callback){
             message.react("👍")
@@ -966,7 +966,7 @@ async function deckStats(receivedMessage, args){
             .setTitle("People who've played this deck in the time frame provided.")
         for (i = 0; i < returnArr[5].length; i++){
             usersList.addFields(
-                {name: " \u200b", value: returnArr[5][i], inline: true}
+                {name: " \u200b", value: "<@!"+returnArr[5][i]+">", inline: true}
             )
         }
         generalChannel.send(deckStatsEmbed)
@@ -977,7 +977,7 @@ async function deckStats(receivedMessage, args){
         deckStatsEmbed
         .setColor(messageColorBlue)
         .setTitle("Deck Stats")
-        .setDescription("For user: "+ returnArr[1]+ "\n\
+        .setDescription("For user: "+ "<@!"+returnArr[1]+">"+ "\n\
         For Season Name: " + returnArr[4])
         .setFooter("Looking for detailed deck breakdown? Try !profile @user to see exactly what decks this user plays.")
         .addFields(
@@ -987,7 +987,7 @@ async function deckStats(receivedMessage, args){
             { name: 'Winrate', value: Math.round((returnArr[2]/(returnArr[2]+returnArr[3]))*100) + "%"}, 
         ) 
         if (returnArr[4] == "all"){
-            deckStatsEmbed.setDescription("For user: "+ returnArr[1]+ ". Across all seasons")
+            deckStatsEmbed.setDescription("For user: "+ "<@!"+returnArr[1]+">"+ ". Across all seasons")
         }
         generalChannel.send(deckStatsEmbed)
         
@@ -1089,16 +1089,16 @@ function getUserAvatarUrl(user) {
     return "https://cdn.discordapp.com/avatars/" + user.id + "/" + user.avatar + ".png"
 }
 function getUserFromMention(mention) {
-	if (!mention) return;
+    if (!mention) return;
+    return client.users.fetch(mention)
 
-	if (mention.startsWith('<@') && mention.endsWith('>')) {
-		mention = mention.slice(2, -1);
+	// if (mention.startsWith('<@') && mention.endsWith('>')) {
+	// 	mention = mention.slice(2, -1);
 
-		if (mention.startsWith('!')) {
-			mention = mention.slice(1);
-		}
-		return client.users.fetch(mention)
-	}
+	// 	if (mention.startsWith('!')) {
+	// 		mention = mention.slice(1);
+    //     }
+	// }
 }
 /**
  * recent()
@@ -1145,7 +1145,7 @@ async function recent(receivedMessage, args) {
         }
     }
     else if (args.length == 2) {
-        if ((args[0].charAt(0) != "<" || args[0].charAt(1) != "@" || args[0].charAt(2) != "!") && args[0].toLowerCase() != "server" || args[1].toLowerCase() != "more") {
+        if ((args[0].charAt(0) != "<" || args[0].charAt(1) != "@") && args[0].toLowerCase() != "server" || args[1].toLowerCase() != "more") {
             const errorEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed)
             .setAuthor("Improper Input")
@@ -1217,7 +1217,8 @@ async function recent(receivedMessage, args) {
     matches_arr.forEach(async(match) => {
         var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
 
-        const bot = await getUserFromMention('<@!717073766030508072>')
+        //const bot = await getUserFromMention(config.botID)
+        //console.log(match)
         const winner = await getUserFromMention(match[4])
         const loser1 = await getUserFromMention(match[5])
         const loser2 = await getUserFromMention(match[6])
@@ -1379,7 +1380,7 @@ async function addDeck(receivedMessage, args){
             const awaitReactionEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorBlue)
                 .setAuthor("Trying to save a new deck named: " + promiseReturn[0])
-                .setDescription("Please confirm the information below. \nUpvote to confirm \nDownvote to cancel")
+                .setDescription("<@!" + receivedMessage.author.id+">"+" Please confirm the information below. \nUpvote to confirm \nDownvote to cancel")
                 .addFields(
                     { name: "Deckname", value: promiseReturn[0], inline:true},
                     { name: "Commander", value: promiseReturn[1], inline:true},
@@ -1420,7 +1421,7 @@ async function profile(receivedMessage, args){
     if (returnArr == "Can't find user"){
         const errorUserEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
-        .setDescription("Cannot find specified user: " + args[0])
+        .setDescription("Cannot find specified user: " + "<@!"+args[0]+">")
         .setFooter("User is not registered for this league. Make sure you are using Discord Mentions and the user is registered. Type !help profile for more information")
         generalChannel.send(errorUserEmbed)
     }
@@ -1428,7 +1429,7 @@ async function profile(receivedMessage, args){
         const profileEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
         .addFields(
-            { name: 'User', value: returnArr[2], inline: true },
+            { name: 'User', value: "<@!"+returnArr[2]+">", inline: true },
             { name: 'Current Deck', value: returnArr[4], inline: true },
             { name: 'Current Rating', value: 1000, inline: true },
         )
@@ -1451,7 +1452,7 @@ async function profile(receivedMessage, args){
         .setColor(messageColorBlue)
         .setFooter("Showing information about the current season. Season name: " + returnArr[2] +". \nNote: 'Overall winrate' includes the games that are under the server's set threshold")
         .addFields(
-            { name: 'User', value: returnArr[3], inline: true },
+            { name: 'User', value: "<@!"+returnArr[3]+">", inline: true },
             { name: 'Current Deck', value: returnArr[5], inline: true },
             { name: 'Current Rating', value: elo, inline: true },
             { name: 'Favorite Deck', value: favDeck, inline: true },
@@ -1495,7 +1496,7 @@ async function startMatch(receivedMessage, args){
 
     let currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
     let generalChannel = client.channels.cache.get(receivedMessage.channel.id)
-    let sanitizedString = "<@!"+receivedMessage.author.id+">"
+    let sanitizedString = receivedMessage.author.id
     const UserIDs = new Array()
 
     //Generates random 4 char string for id
@@ -1543,10 +1544,13 @@ async function startMatch(receivedMessage, args){
     // Check if User who sent the message is registered
     var someNotRegistered = false
     var mentionValues = new Array()
+    var cleanedArg0 = args[0].replace(/[<@!>]/g, '');
+    var cleanedArg1 = args[1].replace(/[<@!>]/g, '');
+    var cleanedArg2 = args[2].replace(/[<@!>]/g, '');
     mentionValues.push([sanitizedString, receivedMessage],
-        [args[0], receivedMessage],
-        [args[1], receivedMessage],
-        [args[2], receivedMessage])
+        [cleanedArg0, receivedMessage],
+        [cleanedArg1, receivedMessage],
+        [cleanedArg2, receivedMessage])
      let registerPromiseArray = mentionValues.map(GameHelper.checkRegister);
      
      Promise.all(registerPromiseArray).then(results => {
@@ -1555,7 +1559,7 @@ async function startMatch(receivedMessage, args){
                 const errorMsg = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
                 .setAuthor("Unregistered User")
-                .setDescription(mentionValues[i][0] + " isn't registered, type !register")
+                .setDescription("<@!"+mentionValues[i][0]+">" + " isn't registered, type !register")
                 .setFooter("Make sure to use the Discord Mention feature when using this command. Check !help log for more information")
                 generalChannel.send(errorMsg)
                 someNotRegistered = true
@@ -1585,6 +1589,7 @@ async function startMatch(receivedMessage, args){
                 // Check if Users tagged are registered
                 let ConfirmedUsers = 0
                 args.forEach(loser =>{
+                            loser = loser.replace(/[<@!>]/g, '');
                             UserIDs.push(loser)
                             ConfirmedUsers++
                             if (ConfirmedUsers == 3){
@@ -1612,8 +1617,8 @@ async function startMatch(receivedMessage, args){
                                                     const userUpvoteEmbed = new Discord.MessageEmbed()
                                                         .setAuthor("Game ID: " + id)
                                                         .setColor(messageColorBlue)
-                                                        .setDescription(res._mentionValue + " used **" + res._currentDeck + "** \n **Upvote** to confirm \n **Downvote** to contest")
-                                                    generalChannel.send(res._mentionValue, userUpvoteEmbed)
+                                                        .setDescription("<@!" + res._mentionValue +">" + " used **" + res._currentDeck + "** \n **Upvote** to confirm \n **Downvote** to contest")
+                                                    generalChannel.send("<@!"+res._mentionValue+">", userUpvoteEmbed)
                                                         .then(function (message, callback){
                                                         const filter = (reaction, user) => {
                                                             return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
@@ -1639,7 +1644,7 @@ async function startMatch(receivedMessage, args){
  */
 async function remindMatch(receivedMessage, args) {
     var generalChannel = getChannelID(receivedMessage)
-    let playerID = "<@!"+receivedMessage.author.id+">"
+    let playerID = receivedMessage.author.id
 
     //Catch Bad Input
     if (args.length != 0) {
@@ -1681,7 +1686,7 @@ async function remindMatch(receivedMessage, args) {
  */
 async function deleteMatch(receivedMessage, args) {
     var generalChannel = getChannelID(receivedMessage)
-    let sanitizedString = "<@!"+receivedMessage.author.id+">"
+    let sanitizedString = receivedMessage.author.id
     const confirmMsgEmbed = new Discord.MessageEmbed()
 
     //Catch bad input
@@ -1714,7 +1719,7 @@ async function deleteMatch(receivedMessage, args) {
             .setColor(messageColorBlue)
             .setAuthor("You are attempting to permanently delete a match")
             .setTitle("Match ID: "+ args[0])
-            .setDescription(sanitizedString + " This is a finished match \n **Upvote** to confirm \n **Downvote** to cancel")
+            .setDescription("<@!"+sanitizedString+">" + " This is a finished match \n **Upvote** to confirm \n **Downvote** to cancel")
         generalChannel.send(confirmMsgEmbed)
         .then(function (message, callback){
             message.react("👍")

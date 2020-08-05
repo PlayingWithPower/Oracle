@@ -49,20 +49,13 @@ module.exports = {
         try{
             args = args.join(' ')
             .toLowerCase()
-            .split(' ')
-            .map(function(word) {
-                // console.log("First capital letter: "+word[0]);
-                // console.log("remain letters: "+ word.substr(1));
-                return word[0].toUpperCase() + word.substr(1);
-            })
-            .join(' ');
         }
         catch{
             args = ""
         }
         const deck = require('../Schema/Deck')
 
-        let deckQuery = {_name: args, _server: receivedMessage.guild.id}
+        let deckQuery = {_alias: args, _server: receivedMessage.guild.id}
         return new Promise((resolve, reject) =>{
             deck.findOne(deckQuery, function(err, res){
                 if (res){
@@ -254,7 +247,7 @@ module.exports = {
             })
         }
 
-        else if (args[0].slice(0,3) == "<@!"){
+        else if (args[0].slice(0,2) == "<@"){
             return new Promise((resolve, reject) => {
 
                 args = args.join(' ')
@@ -272,10 +265,10 @@ module.exports = {
                     conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED",  
                     $or: 
                         [
-                        {_player1: splitArgs[0]}, 
-                        {_player2: splitArgs[0]},
-                        {_player3: splitArgs[0]},
-                        {_player4: splitArgs[0]},
+                        {_player1: splitArgs[0].replace(/[<@!>]/g, '')}, 
+                        {_player2: splitArgs[0].replace(/[<@!>]/g, '')},
+                        {_player3: splitArgs[0].replace(/[<@!>]/g, '')},
+                        {_player4: splitArgs[0].replace(/[<@!>]/g, '')},
                         ]
                     }
                 }
@@ -283,10 +276,10 @@ module.exports = {
                     conditionalQuery = {_server: receivedMessage.guild.id, _Status: "FINISHED", 
                     $or: 
                         [
-                        {_player1: splitArgs[0]}, 
-                        {_player2: splitArgs[0]},
-                        {_player3: splitArgs[0]},
-                        {_player4: splitArgs[0]},
+                        {_player1: splitArgs[0].replace(/[<@!>]/g, '')}, 
+                        {_player2: splitArgs[0].replace(/[<@!>]/g, '')},
+                        {_player3: splitArgs[0].replace(/[<@!>]/g, '')},
+                        {_player4: splitArgs[0].replace(/[<@!>]/g, '')},
                         ]
                     }
                     currentSeason = "all"
@@ -295,10 +288,10 @@ module.exports = {
                     conditionalQuery = {_server: receivedMessage.guild.id, _season: splitArgs[1], _Status: "FINISHED", 
                     $or: 
                         [
-                        {_player1: splitArgs[0]}, 
-                        {_player2: splitArgs[0]},
-                        {_player3: splitArgs[0]},
-                        {_player4: splitArgs[0]},
+                        {_player1: splitArgs[0].replace(/[<@!>]/g, '')}, 
+                        {_player2: splitArgs[0].replace(/[<@!>]/g, '')},
+                        {_player3: splitArgs[0].replace(/[<@!>]/g, '')},
+                        {_player4: splitArgs[0].replace(/[<@!>]/g, '')},
                         ]
                     }
                     currentSeason = splitArgs[1]
@@ -310,22 +303,23 @@ module.exports = {
                     passingResult = res;
                 }).then(function(passingResult){
                     if (passingResult != ""){
+                        player = splitArgs[0].replace(/[<@!>]/g, '')
                         passingResult.forEach((entry)=>{   
-                            if (entry._player1 == splitArgs[0]){
+                            if (entry._player1 == player){
                                 wins = wins + 1
                             }
-                            else if (entry._player2 == splitArgs[0]){
+                            else if (entry._player2 == player){
                                 losses = losses + 1
                             }
-                            else if (entry._player3 == splitArgs[0]){
+                            else if (entry._player3 == player){
                                 losses = losses + 1
                             }
-                            else if (entry._player4 == splitArgs[0]){
+                            else if (entry._player4 == player){
                                 losses = losses + 1
                             }
                         })
                         let passedArray = new Array()
-                        passedArray.push("User Lookup",splitArgs[0],wins,losses, currentSeason)
+                        passedArray.push("User Lookup",splitArgs[0].replace(/[<@!>]/g, ''),wins,losses, currentSeason)
                         resolve(passedArray)
                     }else{
                         resolve("Can't find deck")
@@ -789,7 +783,7 @@ module.exports = {
             }
             let aliasSave = {
                 _name: decks[2],
-                _server: guild.id
+                _server: guild
             }
             deck.find(deckSave, function(err, findRes){
                 if (findRes.length != 0){return }

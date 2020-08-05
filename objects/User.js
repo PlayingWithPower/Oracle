@@ -10,6 +10,7 @@ const User = require('../Schema/Users')
 const Matches = require('../Schema/Games')
 const DeckHelper = require('../Helpers/DeckHelper')
 const SeasonHelper = require('../Helpers/SeasonHelper')
+const { lookup } = require('dns')
 
 module.exports = {
 
@@ -24,10 +25,10 @@ module.exports = {
         return new Promise((resolve, reject)=>{
             if (typeof args[0] === 'undefined'){
                 args[0] = "Not Defined"
-                lookUpID = "<@!" + receivedMessage.author.id + ">"
+                lookUpID = receivedMessage.author.id
             }
             else{
-                lookUpID = args[0]
+                lookUpID = args[0].replace(/[<@!>]/g, '')
             }
             var conditionalQuery
             var passingResult
@@ -36,24 +37,24 @@ module.exports = {
             
             //Query
             if (args[0] == "Not Defined"){
-                personLookedUp = "<@!"+receivedMessage.author.id+">"
+                personLookedUp = receivedMessage.author.id
                 conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or: 
                     [
-                    {_player1: "<@!"+receivedMessage.author.id+">"}, 
-                    {_player2: "<@!"+receivedMessage.author.id+">"},
-                    {_player3: "<@!"+receivedMessage.author.id+">"},
-                    {_player4: "<@!"+receivedMessage.author.id+">"},
+                    {_player1: receivedMessage.author.id}, 
+                    {_player2: receivedMessage.author.id},
+                    {_player3: receivedMessage.author.id},
+                    {_player4: receivedMessage.author.id},
                     ]
                 }
             }
             else{
-                personLookedUp = args[0]
+                personLookedUp = args[0].replace(/[<@!>]/g, '')
                 conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or: 
                     [
-                    {_player1: args[0]}, 
-                    {_player2: args[0]},
-                    {_player3: args[0]},
-                    {_player4: args[0]},
+                    {_player1: args[0].replace(/[<@!>]/g, '')}, 
+                    {_player2: args[0].replace(/[<@!>]/g, '')},
+                    {_player3: args[0].replace(/[<@!>]/g, '')},
+                    {_player4: args[0].replace(/[<@!>]/g, '')},
                     ]
                 }
             }
@@ -162,10 +163,10 @@ module.exports = {
         const seasonObj = await SeasonHelper.getCurrentSeason(message.guild.id)
         var seasonName = seasonObj._season_name
         if (user == null) {
-            id = "<@!"+message.author.id+">"
+            id = message.author.id
         }
         else {
-            id = user
+            id = user.replace(/[<@!>]/g, '')
         }
         return new Promise((resolve, reject) => {
             if (server == null) {
@@ -208,50 +209,6 @@ module.exports = {
         })
 
     },
-    /**
-     * Adds a deck to your deck collection
-     * TODO: Output spits out like "kess storm" instead of "Kess Storm"... small but if someone has time
-     */ 
-    addToCollection(receivedMessage, args, callback){
-        const user = require('../Schema/Users')
-        const deck = require('../Schema/Deck')
-
-        var sanitizedString = ""
-        var cleanedArg = ""
-        args.forEach(arg => {
-            sanitizedString = sanitizedString + " " + arg
-        });
-        cleanedArg = sanitizedString.slice(1)
-
-        let findQuery = {_id: "<@!"+receivedMessage.author.id+">"}
-        let updateQuery = {$addToSet: {_deck: [{'_id': 0,'Deck': cleanedArg, "Wins":0, "Losses":0}]}}
-        let aliasCheckQuery = {_alias: cleanedArg}
-
-        deck.findOne(aliasCheckQuery, function(err, res){
-            if (res){
-                user.findOne(findQuery, function(err, res){
-                    if (res) {
-                        user.updateOne(findQuery,updateQuery, function(err, res){
-                            if (res) {
-                                callback("Successfully added " + "**"+cleanedArg+"**"
-                                + " to " + "**"+receivedMessage.author.username+"**" + "'s profile")
-                            }
-                            else {
-                                callback("Error. Unable to update collection. Please try again.")
-                            }
-                        })
-                    }
-                    else {
-                        callback("User not found. Try registering first !register")
-                    }
-                })
-            }
-            else{
-                callback("Alias not registered. Try !listdecks to see available decks")
-            }
-        })
-    },
-    
     /** 
      * Lists your deck collection
     */
@@ -273,7 +230,7 @@ module.exports = {
         const callBackArray = new Array()
 
         let findQuery = {
-            _mentionValue: "<@!"+receivedMessage.author.id+">",
+            _mentionValue: receivedMessage.author.id,
             _server: receivedMessage.guild.id
         }
         user.findOne(findQuery, function(err, res){
@@ -319,7 +276,7 @@ module.exports = {
                 let cleanedArg = DeckHelper.toUpper(args.join(' '))
                 let userQuery = {
                     _server: receivedMessage.guild.id,
-                    _mentionValue: "<@!"+receivedMessage.author.id+">"
+                    _mentionValue: receivedMessage.author.id
                 }
                 let updateSave = { $set: {_currentDeck: cleanedArg}}
                 User.updateOne(userQuery, updateSave, function(err, res){
@@ -340,7 +297,7 @@ module.exports = {
                 }
                 let userQuery = {
                     _server: receivedMessage.guild.id,
-                    _mentionValue: "<@!"+receivedMessage.author.id+">"
+                    _mentionValue: receivedMessage.author.id
                 }
                 let updateSave = { $set: {_currentDeck: cleanedArg}}
                 Deck.find(deckQuery, function(err,deckRes){
@@ -363,204 +320,3 @@ module.exports = {
         })
     }   
 }
-
-
-
-// const user = require('../Schema/Users')
-//         const deck = require('../Schema/Deck')
-//         const alias = require('../Schema/Alias')
-
-//         //Cleaning arguments and testing if they exist
-//         let argsWithCommas = args.toString()
-//         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
-//         let argsLowerCase = argsWithSpaces.toLowerCase()
-//         let splitArgs = argsLowerCase.split(" | ")
-
-//         //Cleaning up deckname
-//         let deckname
-//         let deckNameFormatted
-//         try {
-//             deckname = splitArgs[0]
-//             deckNameFormatted = deckname.toLowerCase().split(' ').map(function(word) {
-//                 return word[0].toUpperCase() + word.substr(1);
-//             }).join(' ');
-//         }catch{
-//             deckname = ""
-//             deckNameFormatted = ""
-//         }
-        
-//         //Cleaning up aliasname
-//         let aliasName
-//         let aliasNameFormatted
-//         try {
-//             aliasName = splitArgs[1]
-
-//             aliasNameFormatted = aliasName.toLowerCase().split(' ').map(function(word) {
-//                 return word[0].toUpperCase() + word.substr(1);
-//             }).join(' ');
-//         }catch{
-//             aliasName = ""
-//             aliasNameFormatted = ""
-//         }
-
-//         //Queries
-
-//         let aliasFindQuery = {_name: aliasNameFormatted, _server: receivedMessage.guild.id}
-//         let singleArgAliasFindQuery = {_name: deckNameFormatted, _server: receivedMessage.guild.id}
-
-//         let findingUserQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">", _server: receivedMessage.guild.id}
-//         let idQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">", _server: receivedMessage.guild.id}
-
-//         let addToSet = {_currentDeck: aliasNameFormatted, $addToSet: {_deck: [{'_id': 0,'Deck': deckNameFormatted, "Alias": aliasNameFormatted, "Wins":0, "Losses":0}]}}
-//         let singleArgAddToSett = {_currentDeck: deckNameFormatted, $addToSet: {_deck: [{'_id': 1,'Deck': deckNameFormatted, "Alias": deckNameFormatted, "Wins":0, "Losses":0}]}}
-
-//         let updateCurrent = {_currentDeck: aliasNameFormatted}
-//         let singleArgUpdateCurrent = {_currentDeck: deckNameFormatted}
-
-//         let dupQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">", _server: receivedMessage.guild.id, _deck: {$elemMatch:{Alias:aliasNameFormatted}}}
-//         let singleArgDupQuery = {_mentionValue: "<@!"+receivedMessage.author.id+">", _server: receivedMessage.guild.id, _deck: {$elemMatch:{Alias:deckNameFormatted}}}
-
-//         if (splitArgs.length == 1){
-//             user.findOne(findingUserQuery, function(err, userResult){
-//                 if (userResult){
-//                     if (splitArgs[0] == "rogue"){
-//                         callback("5")
-//                     }else{
-//                         alias.findOne(singleArgAliasFindQuery, function(err, aliasSearchRes){
-//                             if (aliasSearchRes){
-//                                 user.findOne(singleArgDupQuery, function(err, checkDupResult){
-//                                     if (checkDupResult){
-//                                         user.updateOne(idQuery, singleArgUpdateCurrent, function(err, addingResult){
-//                                             if (addingResult){
-//                                                 let callBackArray = new Array();
-//                                                 callBackArray.push("4")
-//                                                 callBackArray.push(deckNameFormatted)
-//                                                 callback(callBackArray)
-//                                             }else{
-//                                                 callback("3")
-//                                             }
-//                                         }) 
-//                                     }
-//                                     else{
-//                                         user.updateOne(idQuery, singleArgAddToSett, function(err, addingResult){
-//                                             if (addingResult){
-//                                                 let callBackArray = new Array();
-//                                                 callBackArray.push("4")
-//                                                 callBackArray.push(deckNameFormatted)
-//                                                 callback(callBackArray)
-//                                             }else{
-//                                                 callback("3")
-//                                             }
-//                                         }) 
-//                                     }
-//                                 })
-//                             }
-//                             else{
-//                                 let callBackArray = new Array();
-//                                 callBackArray.push("2")
-//                                 callBackArray.push(deckNameFormatted)
-//                                 callback(callBackArray)
-//                             }
-//                         })
-//                     }
-//                 }else{
-//                     callback("1")
-//                 }
-//             })
-//         }
-//         else if (splitArgs[1] == undefined || splitArgs.length > 2){
-//             callback("Error. Try again with the format !use <DeckName> | <Alias>. Ex: !use Godo | Godo.")
-//         }
-//         else{
-//             user.findOne(findingUserQuery, function(err, userResult){
-//                 if (userResult){
-//                     alias.findOne(aliasFindQuery, function(err, aliasSearchRes){
-//                         if (aliasSearchRes){
-//                             user.findOne(dupQuery, function(err, checkDupResult){
-//                                 if (splitArgs[1] == "rogue"){
-//                                     user.updateOne(idQuery, addToSet, function(err, addingResult){
-//                                         if (addingResult){
-//                                             let callBackArray = new Array();
-//                                             callBackArray.push("4")
-//                                             callBackArray.push(aliasNameFormatted)
-//                                             callback(callBackArray)
-//                                         }else{
-//                                             callback("3")
-//                                         }
-//                                     }) 
-//                                 }
-//                                 else if (checkDupResult){
-//                                     user.updateOne(idQuery, updateCurrent, function(err, addingResult){
-//                                         if (addingResult){
-//                                             let callBackArray = new Array();
-//                                             callBackArray.push("4")
-//                                             callBackArray.push(aliasNameFormatted)
-//                                             callback(callBackArray)
-//                                         }else{
-//                                             callback("3")
-//                                         }
-//                                     }) 
-//                                 }
-//                                 else{
-//                                     let callBackArray = new Array();
-//                                             callBackArray.push("5")
-//                                             callBackArray.push(aliasNameFormatted)
-//                                             callback(callBackArray)
-//                                 }
-//                             })
-                             
-//                         }
-//                         else{
-//                             let callBackArray = new Array();
-//                             callBackArray.push("2")
-//                             callBackArray.push(aliasNameFormatted)
-//                             callback(callBackArray)
-//                         }
-//                     })
-                    
-//                 }else{
-//                     callback("1")
-//                 }
-//             })
-            
-//         }
-//     }
-
-
-// if (callback == "1"){
-//     useEmbed
-//     .setColor(messageColorRed) //red
-//     .setDescription(receivedMessage.author.username + " is not registered. Register with !register")
-//     generalChannel.send(useEmbed)
-// }
-// else if (callback[0] == "2"){
-//     useEmbed
-//     .setColor(messageColorRed)
-//     .setDescription("**"+callback[1]+"**" + " is not a registered alias. \n Try !decks and choose an alias or !use <deckname> | Rogue ")
-//     generalChannel.send(useEmbed)
-// }
-// else if (callback == "3"){
-//     useEmbed
-//     .setColor(messageColorRed)
-//     .setDescription("Error setting deck. Please try again.")
-//     generalChannel.send(useEmbed)
-// }
-// else if (callback[0] == "4"){
-//     useEmbed
-//     .setColor(messageColorGreen) //green
-//     .setDescription("Successfully set " + "**"+callback[1]+"**"+ " as the Current Deck for " + "<@!" + receivedMessage.author.id + ">")
-//     generalChannel.send(useEmbed)
-// }
-// else if (callback == "5"){
-//     useEmbed
-//     .setColor(messageColorRed) 
-//     .setDescription("Please provide a deck name to differentiate between your 'Rogue' decks. Try !use <deckname> | Rogue")
-//     generalChannel.send(useEmbed)
-// }
-// else if (callback[0] == "5"){
-//     useEmbed
-//     .setColor(messageColorRed) 
-//     .setDescription("You are attempting to use a registered alias: " + "**" + callback[1] + "**" + ". Please try !use <deckname> | Rogue if your list deviates greatly from the primer. Otherwise, try !use " + "**" + callback[1]+"**")
-//     generalChannel.send(useEmbed)
-// }
-// });
