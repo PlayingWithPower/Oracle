@@ -176,9 +176,15 @@ module.exports = {
             else{
                 exampleEmbed.setDescription("You've entered a non-valid command. Type !help to see a list of commands")
             }
-            
+        const serverEmbed = new Discord.MessageEmbed()
+        .setAuthor("Message sent to your inbox!")
+        .setColor(messageColorGreen)
+        .setDescription("I have Direct Messaged you information!")
 
-        receivedMessage.channel.send(exampleEmbed);
+        receivedMessage.author.send(exampleEmbed).then(msg =>{
+            receivedMessage.channel.send(serverEmbed)
+        })
+
     },
 
     /**
@@ -208,8 +214,11 @@ module.exports = {
         const adminEmbed = new Discord.MessageEmbed()
         .setAuthor("Admin Commands")
         .setColor(messageColorBlue)
-        var embedArray = new Array()
-        embedArray.push(deckEmbed, gameEmbed, leagueEmbed, seasonEmbed, userEmbed, adminEmbed)
+
+        const serverEmbed = new Discord.MessageEmbed()
+        .setAuthor("Messages sent to your inbox!")
+        .setColor(messageColorGreen)
+        .setDescription("I have Direct Messaged you the help commands. Please type !help <Command> for more information about a specific command")
 
         for(var keyVal in adminDictionary){
             adminEmbed.addField('!' + keyVal, adminDictionary[keyVal]);   
@@ -230,9 +239,21 @@ module.exports = {
             userEmbed.addField('!' + keyVal, userDictionary[keyVal]);
         }
 
-        embedArray.forEach((embed)=>{
-            receivedMessage.channel.send(embed)
-        })
+        receivedMessage.author.send(deckEmbed)
+            .then(msg => { receivedMessage.author.send(gameEmbed)
+                .then(msg => { receivedMessage.author.send(leagueEmbed) 
+                    .then(msg => { receivedMessage.author.send(seasonEmbed) 
+                        .then(msg => { receivedMessage.author.send(userEmbed).then(async msg => { 
+                            let adminGet = await ConfigHelper.checkAdminPrivs(receivedMessage)
+                                if (adminGet){
+                                    receivedMessage.author.send(adminEmbed) 
+                                }
+                                receivedMessage.channel.send(serverEmbed)
+                            })
+                        })
+                    })
+                })
+            })
         
     }
 }

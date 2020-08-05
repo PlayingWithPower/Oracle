@@ -763,7 +763,7 @@ async function top(receivedMessage, args){
             else{
                 resultsMsg
                 .addFields(
-                    { name: "Username", value: sortedResults[i][0],inline: true},
+                    { name: "Username", value: "<@!"+sortedResults[i][0]+">",inline: true},
                     { name: "Winrate", value: sortedResults[i][1] + "%", inline: true},
                     { name: "Elo", value: sortedResults[i][2] , inline: true},
                 )
@@ -1002,8 +1002,11 @@ async function deckStats(receivedMessage, args){
             .setDescription("Data across all seasons")
         }         
         var nameVar = ""
-        
-        returnArr[1].forEach((deck)=>{
+        let sortedArray = returnArr[1].sort(function(a, b) {
+            return parseFloat(b[1]+b[2]) - parseFloat(a[1]+a[2]);
+        });
+        console.log(sortedArray)
+        sortedArray.forEach((deck)=>{
             nameVar += deck[0] + "\n"
             if (deck[1] + deck[2] < threshold){ }
             else{
@@ -1283,14 +1286,14 @@ async function listDecks(receivedMessage, args){
     threeColorArr.sort()
     fourColorArr.sort()
     fiveColorArr.sort()
-    generalChannel.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
-    generalChannel.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
-    generalChannel.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
-    generalChannel.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
-    generalChannel.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
+    receivedMessage.author.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
+    receivedMessage.author.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
+    receivedMessage.author.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
+    receivedMessage.author.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
+    receivedMessage.author.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
     const helperEmbed = new Discord.MessageEmbed()
     .setColor(messageColorGreen)
-    .setTitle("Don't see what you're looking for here?")
+    .setTitle("I have Direct Messaged you this server's Decks. Don't see what you're looking for?")
     .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
     Try '!use <deckname> | Rogue' to be able to use **any deck**.")
     .setFooter("Remember to type !startseason or no decks will appear in this list.")
