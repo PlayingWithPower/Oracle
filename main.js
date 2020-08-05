@@ -76,6 +76,21 @@ client.on('message', (receivedMessage) =>{
     if (receivedMessage.content.startsWith(botListeningPrefix)){
         processCommand(receivedMessage)
     }
+    if (receivedMessage.content.indexOf("https://www.spelltable.com/game/") >= 0){
+        let index = receivedMessage.content.indexOf("https://www.spelltable.com/game/")
+        let urlSpectate = receivedMessage.content.slice(index+32)
+        let urlPlayer = "https://www.spelltable.com/game/" + urlSpectate
+        urlSpectate = urlSpectate + "?spectate"
+        const spellTableEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorBlue)
+        .setAuthor("Looks like you're trying to play a game on Spelltable!")
+        .addFields(
+            {name: "Playing in this game?", value: urlPlayer},
+            {name: "Spectating this game?", value: "https://www.spelltable.com/game/"+urlSpectate}
+        )
+       
+        receivedMessage.channel.send(spellTableEmbed)
+    }
     else{
         let currentChannel =  client.channels.cache.get()
     }
@@ -1005,7 +1020,6 @@ async function deckStats(receivedMessage, args){
         let sortedArray = returnArr[1].sort(function(a, b) {
             return parseFloat(b[1]+b[2]) - parseFloat(a[1]+a[2]);
         });
-        console.log(sortedArray)
         sortedArray.forEach((deck)=>{
             nameVar += deck[0] + "\n"
             if (deck[1] + deck[2] < threshold){ }
