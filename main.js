@@ -3,7 +3,6 @@
 
 // Bot Configuration
 const config = require('./etc/env.js');
-
 const Discord = require('discord.js')
 const client = new Discord.Client()
 
@@ -30,10 +29,8 @@ const messageColorRed = "#af0000"
 const messageColorGreen = "#5fff00"
 const messageColorBlue = "#0099ff"
 
-const Module = require('./mongoFunctions')
-const generalID = require('./constants')
+//MongoDB Connection
 const moongoose = require('mongoose');
-const Season = require('./objects/Season');
 
 client.login(config.discordKey)
 
@@ -75,9 +72,6 @@ client.on("guildCreate", (guild) => {
 client.on('message', (receivedMessage) =>{
     if (receivedMessage.author == client.user){
         return 
-    }
-    if (receivedMessage.mentions.users == client.user){
-        let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     }
     if (receivedMessage.content.startsWith(botListeningPrefix)){
         processCommand(receivedMessage)
@@ -1490,50 +1484,6 @@ async function profile(receivedMessage, args){
     }  
 }
 /**
- * logLosers()
- * @param {*} receivedMessage 
- * @param {*} args 
- */
-// async function logLosers(receivedMessage, args){
-//     var callBackArray = new Array();
-//     //var lostEloArray = new Array();
-//     let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-
-//     Module.logLosers(args, function(callback,err){
-//         callback.forEach(item => {
-//             callBackArray.push(item)
-//         });
-//         generalChannel.send(">>> " + callback[0] + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
-//         .then(function (message, callback){
-//             const filter = (reaction, user) => {
-//                 return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
-//             };   
-
-//             message.react("👍")
-//             message.react("👎")
-//             // @TODO: 
-//             // Look into time of awaitReactions (configurable?)
-//             // Log points only after upvotes are seen. Right now we are logging THEN checking upvotes
-//             message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
-//                 .then(collected => {
-//                     const reaction = collected.first();
-
-//                     if (reaction.emoji.name === '👍') {
-//                         receivedMessage.reply("received confirmation for logging");
-//                     }
-//                     else {
-//                         receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
-//                         return
-//                     }
-//                 })
-//         })
-//         callback.shift()
-        
-//     })
-   
-// }
-
-/**
  * startMatch()
  * @param {*} receivedMessage 
  * @param {*} args 
@@ -1825,137 +1775,6 @@ async function matchInfo(receivedMessage, args) {
         }
 }
 /**
- * logMatch()
- * @param {*} receivedMessage 
- * @param {*} args 
- */
-function logMatch(receivedMessage, args){
-    const user = require('./Schema/Users')
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    let arg
-    callbackArr = new Array()
-    cbArr = new Array()
-
-
-    if (args.length < 3 || args.length > 3) {
-        generalChannel.send(">>> **Error**: Submit only the 3 players who lost in the pod")
-        return
-    }
-
-    args.forEach(loser =>{
-        let findQuery = {_id: loser.toString()}
-        console.log(findQuery)
-        user.findOne(findQuery, function(err, res){
-            if (res){
-                generalChannel.send(">>> " + res._id + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
-                    .then(function (message, callback){
-                    const filter = (reaction, user) => {
-                        return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
-                    };   
-
-                    message.react("👍")
-                    message.react("👎")
-
-                    message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
-                        .then(collected => {
-                        const reaction = collected.first();
-
-                        if (reaction.emoji.name === '👍') {
-                            console.log(reaction.author)
-                            generalChannel.send(loser + " received confirmation for logging");
-                            arg = res._id.toString()
-                            gameObj.logLoser(arg, function(cb, err){
-                                cbArr.push(cb)
-                                if (cb == "Error: FAIL"){
-                                    callbackArr.push("Error: FAIL " + " " + loser)
-                                }
-                                else if (cb == "Error: NO-REGISTER"){
-                                    callbackArr.push("Error: NO-REGISTER " + " " + loser)
-                                }
-                                else {
-                                    callbackArr.push("LOSS: " + loser + ":" + " Current Points: " + cb)
-                                    if (callbackArr.length == 4){
-                                        callbackArr.forEach(cb => {
-                                                generalChannel.send(">>> " + cb)
-                                            });
-                                        }
-                                }
-                            })
-                        }
-                        else {
-                            receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
-                            return
-                        }
-                    }).catch(collected => {
-                        return
-                    })
-                })
-            }
-            else {
-                callbackArr.push("USER NOT FOUND ", + " " + loser)
-            }
-        })
-    });
-    arg = receivedMessage.author.id.toString()
-    gameObj.logWinner(arg, function(cb, err){
-        cbArr.push(cb)
-        if (cb == "Error: FAIL"){
-            callbackArr.push("Error: FAIL " + " " + receivedMessage.author.id)
-        }
-        else if (cb == "Error: NO-REGISTER"){
-            callbackArr.push("Error: NO-REGISTER " + " " + receivedMessage.author.id)
-        }
-        else {
-            let sanitizedString = "<@!"+receivedMessage.author.id+">"
-            generalChannel.send(">>> " + sanitizedString + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
-            .then(function (message, callback){
-                const filter = (reaction, user) => {
-                    return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
-                };   
-
-                message.react("👍")
-                message.react("👎")
-                // @TODO: 
-                // Look into time of awaitReactions (configurable?)
-                // Log points only after upvotes are seen. Right now we are logging THEN checking upvotes
-                message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
-                    .then(collected => {
-                        const reaction = collected.first();
-
-                        if (reaction.emoji.name === '👍') {
-                            generalChannel.send(sanitizedString + " received confirmation for logging");
-                            callbackArr.push("WIN: " + sanitizedString + ":" + " Current Points: " + cb)
-                            if (callbackArr.length == 4){
-                                callbackArr.forEach(cb => {
-                                        generalChannel.send(">>> " + cb)
-                                    });
-                            }
-                        }
-                        else {
-                            receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
-                            return
-                        }
-                    })
-            })
-        }
-    })
-}
-/**
- * users()
- * @param {*} receivedMessage 
- * @param {*} args 
- */
-function users(receivedMessage, args){
-    /* @TODO
-    This function can be useful for other aspects of the project, it should be converted to a general count function. ATM it only 
-    counts the number of documents in the user collection, but it can be expanded to a lot more.
-    */
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.listAll(receivedMessage, function(callback, err){
-        generalChannel.send(">>> There are " + callback + " registered users in this league.")
-    })
-}
-/**
  * register()
  * @param {*} receivedMessage 
  * @param {*} args 
@@ -1992,9 +1811,7 @@ async function register(receivedMessage){
  * @param {*} arguments 
  */
 function helpCommand(receivedMessage, arguments){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
     if (arguments.length == 0){
-
         // Call FunctionHelper to with our message.
         FunctionHelper.showEmbedHelpForAllCommands(receivedMessage)
     } else{

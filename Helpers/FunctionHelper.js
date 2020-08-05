@@ -56,6 +56,9 @@ adminDictionary =
 
 exampleDictionary =
 {
+    help: "Use help to find out information about other commands. Help will provide information about use cases, proper syntax and overall functionality\n\n\
+    Generic usage: !help <Command Name>\n\
+    Example usage: !help deletematch",
     deletematch: "Use this function to force delete a match. This is an Admin-Only command that should be used in conjunction with !pending or !disputed and should be used with discretion.\
     Admins should use this command when they feel a game was wrongfully submitted. This can be for a variety of reasons including: players disputing matches, cheating, or many other reasons.\n\n\
     Use !pending to find a list of matches that haven't been accepted. Use !disputed to find a list of matches that have been disputed.\n\n\
@@ -63,7 +66,7 @@ exampleDictionary =
     acceptmatch: "Use this function to force accept a match. This is an Admin-Only command that should be used in conjunction with !pending or !disputed.\
     Use this function to accept matches that are in a pending or disputed state. This will force the matches to be recognized and counted towards deckstats, ratings, and other aspects of the bot.\n\n\
     Use !pending to find a list of matches that haven't been accepted. Use !disputed to find a list of matches that have been disputed.\n\n\
-    Example usage: !accept <Match ID>.",
+    Example usage: !acceptmatch <Match ID>.",
     add: "Use this function to add a new deck to your server's list of decks. This is an Admin-Only command that will allow users to have more options when setting their deck.\
     This function is meant to make this bot adaptive for all servers and metas. An initial seed of decks is provided to each server and will be curated in conjuction to the CEDH Database.\
     Add as many or as few decks as you want. We recommend adding a deck to your server once more than a few people play it. Users can track stats on their custom lists with the !use <Deck Name> | Rogue functionality,\
@@ -164,9 +167,16 @@ module.exports = {
         .setColor(messageColorBlue)
             exampleEmbed
             .setAuthor("Displaying information about the command: !" + [arguments])
-            .addFields(
-                { name: "Command Details", value: exampleDictionary[arguments] },
-            )
+            if (exampleDictionary[arguments] != undefined){
+                exampleEmbed
+                .addFields(
+                    { name: "Command Details", value: exampleDictionary[arguments] },
+                )
+            }
+            else{
+                exampleEmbed.setDescription("You've entered a non-valid command. Type !help to see a list of commands")
+            }
+            
 
         receivedMessage.channel.send(exampleEmbed);
     },
