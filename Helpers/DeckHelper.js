@@ -158,7 +158,7 @@ module.exports = {
             izzet: "u, r",
             golgari: "b, g",
             boros: "r, w",
-            simic: "g, b",
+            simic: "u, b",
 
             bant: "w, u, g",
             esper: "w, u, b",

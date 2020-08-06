@@ -1346,8 +1346,7 @@ async function addDeck(receivedMessage, args){
     
     let argsWithCommas = args.toString()
     let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
-    let argsLowerCase = argsWithSpaces.toLowerCase()
-    let splitArgs = argsLowerCase.split(" | ")
+    let splitArgs = argsWithSpaces.split(" | ")
 
     const errorEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed)
@@ -1357,7 +1356,7 @@ async function addDeck(receivedMessage, args){
     if (splitArgs.length == 9){
         let deckNick = splitArgs[0]
         let commanderName = splitArgs[1]
-        let colorIdentity = splitArgs[2]
+        let colorIdentity = splitArgs[2].toLowerCase()
         let deckLink = splitArgs[3]
         let author = splitArgs[4]
         let deckDescription = splitArgs[5]
@@ -1616,7 +1615,7 @@ async function startMatch(receivedMessage, args){
                     const someMsg = new Discord.MessageEmbed()
                     .setColor(messageColorRed)
                     .setAuthor("Deck not set")
-                    .setDescription(mentionValues[i][0] + " Looks like we don’t know what deck you’re using\n\
+                    .setDescription("<@"+mentionValues[i][0]+">" + " Looks like we don’t know what deck you’re using\n\
                     Please tell us what deck you’re using by typing: !use <Deck Name>\n\
                     To get a list of decks, type: !decks")
                     generalChannel.send(someMsg)
