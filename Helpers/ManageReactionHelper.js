@@ -1,6 +1,6 @@
 const Discord = require('discord.js')
 const client = new Discord.Client()
-const BotID = "740594105821822986"
+const config = require('../etc/env')
 
 //Colors
 const messageColorRed = "#af0000"
@@ -44,9 +44,8 @@ module.exports = {
             embeds = embeds.author.name.toString().split(' ')
         }
         let sanitizedString = user.id
-        
         // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
-        if (reaction.message.author.id != BotID) {
+        if (reaction.message.author.id != config.clientID) {
             return
         }
         grabMentionValue = upperLevelEmbeds.description.toString().split(' ')[0].replace(/[<@!>]/g, '')
@@ -54,7 +53,7 @@ module.exports = {
             return
         }
         // Game Block
-        if (embeds.length > 1 && embeds[0] == "Game" && embeds[1] == "ID:" && reaction.emoji.name === '👍' && user.id != BotID) {
+        if (embeds.length > 1 && embeds[0] == "Game" && embeds[1] == "ID:" && reaction.emoji.name === '👍' && user.id != config.clientID) {
             grabMatchID =  embeds[2]
             gameObj.confirmMatch(grabMatchID, sanitizedString).then(function() {
                     gameObj.checkMatch(grabMatchID).then(function(next) {
@@ -88,7 +87,7 @@ module.exports = {
                 })
         }
         
-        else if (embeds.length > 1 && embeds[0] == "Game" && embeds[1] == "ID:" && reaction.emoji.name === '👎' && user.id != BotID){
+        else if (embeds.length > 1 && embeds[0] == "Game" && embeds[1] == "ID:" && reaction.emoji.name === '👎' && user.id != config.clientID){
             grabMatchID =  embeds[2]
             if (sanitizedString !=  grabMentionValue){
                 //console.log("not the right user")
@@ -109,12 +108,13 @@ module.exports = {
         }
         //end of game block
         //Confirm Delete Match Block
-        else if ((embeds.length > 1 && embeds[5] == "delete" && reaction.emoji.name === '👍' && user.id != BotID)) {
+        else if ((embeds.length > 1 && embeds[5] == "delete" && reaction.emoji.name === '👍' && user.id != config.clientID)) {
+            grabMatchID = upperLevelEmbeds.title.toString().split(' ')
             gameObj.confirmedDeleteMatch(grabMatchID[2], reaction.message).then((message) => {  
                 const successEmbed = new Discord.MessageEmbed()
                     .setColor(messageColorGreen)
                     .setAuthor("Successfully deleted")
-                    .setDescription("<@!"+grabMentionValue[0]+">" + " Match ID:" + grabMatchID[2] + " was deleted")
+                    .setDescription("<@!"+grabMentionValue+">" + " Match ID:" + grabMatchID[2] + " was deleted")
                 reaction.message.edit(successEmbed)
             }).catch((message) => {
                 const errorEmbed = new Discord.MessageEmbed()
@@ -124,18 +124,18 @@ module.exports = {
                 reaction.message.edit(errorEmbed)
             })
         }
-        else if ((embeds.length > 1 && embeds[5] == "delete" && reaction.emoji.name === '👎' && user.id != BotID)) {
+        else if ((embeds.length > 1 && embeds[5] == "delete" && reaction.emoji.name === '👎' && user.id != config.clientID)) {
             grabMatchID = upperLevelEmbeds.title.toString().split(' ')
             const errorEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
                 .setAuthor("Delete Cancelled")
-                .setDescription("<@!"+grabMentionValue[0]+">" + " you have **cancelled** deleteting Match ID: **" + grabMatchID[2]+"**")
+                .setDescription("<@!"+grabMentionValue+">" + " you have **cancelled** deleteting Match ID: **" + grabMatchID[2]+"**")
             reaction.message.edit(errorEmbed);
         }
         //End of Confirm Delete Match Block
         
         //Start of Remove Deck Reacts
-        else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != BotID)){
+        else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👍' && user.id != config.clientID)){
         let removeDeckResult = await deckObj.removeDeck(reaction.message.embeds[0].title)
 
         if (removeDeckResult.deletedCount >= 1 ){
@@ -153,7 +153,7 @@ module.exports = {
         
         }
         
-        else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != BotID)){
+        else if((embeds.length == 1 && embeds == "WARNING" && reaction.emoji.name === '👎' && user.id != config.clientID)){
             const editedWarningEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed) //red
                 .setTitle("Delete Deck Cancelled")
@@ -163,7 +163,7 @@ module.exports = {
 
         //Start of Update Deck Reacts
         //Commander
-        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '1️⃣' && user.id != BotID)){
+        else if((embeds.length > 1 && embeds[0] == "You" && reaction.emoji.name === '1️⃣' && user.id != config.clientID)){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
             
@@ -214,7 +214,7 @@ module.exports = {
     
         }
         //Colors
-        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '2️⃣' && user.id != BotID)){
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '2️⃣' && user.id != config.clientID)){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
 
@@ -276,7 +276,7 @@ module.exports = {
     
         }
         //Deck Link
-        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '3️⃣' && user.id != BotID)){
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '3️⃣' && user.id != config.clientID)){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
 
@@ -335,7 +335,7 @@ module.exports = {
     
         }
         //Author
-        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '4️⃣' && user.id != BotID)){
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '4️⃣' && user.id != config.clientID)){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
 
@@ -387,7 +387,7 @@ module.exports = {
             })
         }
         //Deck Description
-        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '5️⃣' && user.id != BotID)){
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '5️⃣' && user.id != config.clientID)){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
 
@@ -449,7 +449,7 @@ module.exports = {
             })
         }
         //Deck Type
-        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '6️⃣' && user.id != BotID)){
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '6️⃣' && user.id != config.clientID)){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
 
@@ -509,7 +509,7 @@ module.exports = {
             })
         }
         //Primer
-        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '7️⃣' && user.id != BotID)){
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '7️⃣' && user.id != config.clientID)){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
 
@@ -570,7 +570,7 @@ module.exports = {
             })
         }
         //Discord Link
-        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '8️⃣' && user.id != BotID)){
+        else if((embeds.length > 4 && embeds[0] == "You" && reaction.emoji.name === '8️⃣' && user.id != config.clientID)){
             let channel = reaction.message.channel
             let deckID = upperLevelEmbeds.title.slice(9)
 
@@ -629,7 +629,7 @@ module.exports = {
     
         }
         //Update Deck Cancelled
-        else if((embeds.length > 4 && embeds[4] == "update" && reaction.emoji.name === '👎' && user.id != BotID)){
+        else if((embeds.length > 4 && embeds[4] == "update" && reaction.emoji.name === '👎' && user.id != config.clientID)){
             const editedWarningEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
                 .setTitle("Update Deck Cancelled")
@@ -638,7 +638,7 @@ module.exports = {
         //End of Update Deck Block
         
         //Start of Add Deck Block
-        else if ((embeds.length > 4 && embeds[0] == "Trying"&& reaction.emoji.name === '👍' && user.id != BotID)){
+        else if ((embeds.length > 4 && embeds[0] == "Trying"&& reaction.emoji.name === '👍' && user.id != config.clientID)){
             let promiseReturn = await DeckHelper.addDeckHelper(reaction.message, upperLevelEmbeds.fields)
             if (promiseReturn == ""){
                 const editedWarningEmbed = new Discord.MessageEmbed()
@@ -653,7 +653,7 @@ module.exports = {
             reaction.message.edit(editedSuccessEmbed)
             }
         }
-        else if ((embeds.length > 4 && embeds[0] == "Trying"&& reaction.emoji.name === '👎' && user.id != BotID)){
+        else if ((embeds.length > 4 && embeds[0] == "Trying"&& reaction.emoji.name === '👎' && user.id != config.clientID)){
             const editedWarningEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
                 .setTitle("Add Deck Cancelled")
@@ -661,7 +661,7 @@ module.exports = {
         }
         //End of Add Deck Block
         //Start of End Season Block
-        else if ((embeds.length > 4 && embeds[0] == "WARNING:"&& reaction.emoji.name === '👍' && user.id != BotID)){
+        else if ((embeds.length > 4 && embeds[0] == "WARNING:"&& reaction.emoji.name === '👍' && user.id != config.clientID)){
             let returnArr = await seasonObj.endSeason(reaction.message)
             const successEditedEmbed = new Discord.MessageEmbed()
             if (returnArr[0] == "Success"){
@@ -676,7 +676,7 @@ module.exports = {
                 reaction.message.edit(successEditedEmbed);
             }
         }
-        else if ((embeds.length > 4 && embeds[0] == "WARNING:"&& reaction.emoji.name === '👎' && user.id != BotID)){
+        else if ((embeds.length > 4 && embeds[0] == "WARNING:"&& reaction.emoji.name === '👎' && user.id != config.clientID)){
             const editedWarningEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
                 .setTitle("End Season Cancelled")

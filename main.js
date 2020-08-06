@@ -29,9 +29,6 @@ const messageColorRed = "#af0000"
 const messageColorGreen = "#5fff00"
 const messageColorBlue = "#0099ff"
 
-//Local Discord Bot
-const BotID = "740594105821822986"
-
 //MongoDB Connection
 const moongoose = require('mongoose');
 
@@ -91,7 +88,6 @@ client.on('message', (receivedMessage) =>{
             {name: "Playing in this game?", value: urlPlayer},
             {name: "Spectating this game?", value: "https://www.spelltable.com/game/"+urlSpectate}
         )
-       
         receivedMessage.channel.send(spellTableEmbed)
     }
     else{
@@ -102,7 +98,7 @@ client.on('message', (receivedMessage) =>{
  * TODO: 
  */
 client.on('messageReactionAdd', (reaction, user) => {
-    if (reaction.message.author.id == BotID){
+    if (reaction.message.author.id == config.clientID){
         ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
     }
 })
@@ -887,7 +883,7 @@ async function updateDeck(receivedMessage, args){
         .setAuthor("You are attempting to update the deck: "+ promiseReturn[0]._name)
         .setTitle('Deck ID: ' + promiseReturn[0]._id)
         .setURL(promiseReturn[0]._link)
-        .setDescription("React with the **1** to update the **Commander**.\
+        .setDescription("<@" + receivedMessage.author.id + ">" +" React with the **1** to update the **Commander**.\
         \nReact with the **2** to update the **Deck Colors**.\
         \nReact with the **3** to update the **Deck Link**.\
         \nReact with the **4** to update the **Author(s)**.\
@@ -1237,7 +1233,7 @@ async function recent(receivedMessage, args) {
     matches_arr.forEach(async(match) => {
         var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
 
-        //const bot = await getUserFromMention(BotID)
+        //const bot = await getUserFromMention(config.clientID)
         //console.log(match)
         const winner = await getUserFromMention(match[4])
         const loser1 = await getUserFromMention(match[5])
@@ -1268,14 +1264,23 @@ async function recent(receivedMessage, args) {
  */
 async function listDecks(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-    let result = await DeckHelper.checkColorDictionary(args[0])
-    if (result != "Not found"){
-        let colorSpecificArray = new Array()
-        let returnArr = await deckObj.listDecks(receivedMessage, result)
-        returnArr.forEach(entry =>{
-            colorSpecificArray.push(entry._name)
-        })
-        receivedMessage.author.send(DeckHelper.createDeckEmbed(colorSpecificArray, args))
+    if (args[0] !== undefined){
+        let result = await DeckHelper.checkColorDictionary(args[0])
+        if (result != "Not found"){
+            let colorSpecificArray = new Array()
+            let returnArr = await deckObj.listDecks(receivedMessage, result)
+            returnArr.forEach(entry =>{
+                colorSpecificArray.push(entry._name)
+            })
+            receivedMessage.author.send(DeckHelper.createDeckEmbed(colorSpecificArray, args)).catch(() => receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"));
+            const helperEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setTitle("I have Direct Messaged you decks! Don't see what you're looking for?")
+            .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
+            Try '!use <deckname> | Rogue' to be able to use **any deck**.")
+            generalChannel.send(helperEmbed)
+            return
+        }
     }
     else{
         let returnArr = await deckObj.listDecks(receivedMessage, "no")
@@ -1311,18 +1316,22 @@ async function listDecks(receivedMessage, args){
         threeColorArr.sort()
         fourColorArr.sort()
         fiveColorArr.sort()
-        receivedMessage.author.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
-        receivedMessage.author.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
-        receivedMessage.author.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
-        receivedMessage.author.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
-        receivedMessage.author.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
-        const helperEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorGreen)
-        .setTitle("I have Direct Messaged you this server's Decks. Don't see what you're looking for?")
-        .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
-        Try '!use <deckname> | Rogue' to be able to use **any deck**.")
-        .setFooter("Remember to type !startseason or no decks will appear in this list.")
-        generalChannel.send(helperEmbed)
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR")).then(msg => {
+            receivedMessage.author.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
+            receivedMessage.author.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
+            receivedMessage.author.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
+            receivedMessage.author.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
+            const helperEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setTitle("I have Direct Messaged you this server's Decks. Don't see what you're looking for?")
+            .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
+            Try '!use <deckname> | Rogue' to be able to use **any deck**.")
+            .setFooter("Remember to type !startseason or no decks will appear in this list.")
+            generalChannel.send(helperEmbed)
+        }).catch(() => 
+        receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"))
+        
+        
     }
 }
 /**
@@ -1397,6 +1406,7 @@ async function addDeck(receivedMessage, args){
                 .setAuthor("Duplicate Entry")
                 .setDescription("A deck with that name already exists. Please try a new name.")
             generalChannel.send(sameNamedEmbed)
+            return
         }
         if (promiseReturn == "Error 2"){
             const sameNamedEmbed = new Discord.MessageEmbed()
@@ -1404,6 +1414,7 @@ async function addDeck(receivedMessage, args){
                 .setAuthor("Too many characters")
                 .setDescription("Your description is too long, there is a 750 character limit. Please try again")
             generalChannel.send(sameNamedEmbed)
+            return
         }
         else{
             const awaitReactionEmbed = new Discord.MessageEmbed()
@@ -1432,6 +1443,7 @@ async function addDeck(receivedMessage, args){
     else{
         errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link")
         generalChannel.send(errorEmbed)
+        return
     }
 }
 /**

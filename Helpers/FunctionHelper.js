@@ -253,7 +253,7 @@ module.exports = {
                         })
                     })
                 })
-            })
+            }).catch(() => receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"));
         
     }
 }
