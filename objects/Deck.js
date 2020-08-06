@@ -12,16 +12,23 @@ module.exports = {
     /**
      * Returns a list of all Deck Aliases registered to the server
      */
-    async listDecks(receivedMessage) {
+    async listDecks(receivedMessage, colorSpecified) {
         const deck = require('../Schema/Deck')
-        const SeasonHelper = require('../Helpers/SeasonHelper')
-        var currentSeason = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
-        var seasonName = currentSeason._season_name
-        return new Promise((resolve, reject) =>{
-            deck.find({_server: receivedMessage.guild.id},function(err, res){
-                resolve(res)
-            }) 
-        })
+        if (colorSpecified == "no"){
+            return new Promise((resolve, reject) =>{
+                deck.find({_server: receivedMessage.guild.id},function(err, res){
+                    resolve(res)
+                }) 
+            })
+        }
+        else{
+            return new Promise((resolve, reject)=>{
+                let deckQuery = {_server: receivedMessage.guild.id, _colors: colorSpecified.toUpperCase()}
+                deck.find(deckQuery, function(err,res){
+                    resolve(res)
+                })
+            })
+        }
         
     },
     /**
@@ -338,7 +345,6 @@ module.exports = {
             let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
             let splitArgs = argsWithSpaces.split(" | ")
             splitArgs[0] = DeckHelper.toUpper(splitArgs[0])
-            
             if (splitArgs[1] == undefined){
                 query = {
                     _season: currentSeason,
@@ -354,6 +360,7 @@ module.exports = {
                 }
             }
             else{
+
                 query = {
                     _season: splitArgs[1], 
                     _Status: "FINISHED", 

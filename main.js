@@ -29,6 +29,9 @@ const messageColorRed = "#af0000"
 const messageColorGreen = "#5fff00"
 const messageColorBlue = "#0099ff"
 
+//Local Discord Bot
+const BotID = "740594105821822986"
+
 //MongoDB Connection
 const moongoose = require('mongoose');
 
@@ -99,7 +102,7 @@ client.on('message', (receivedMessage) =>{
  * TODO: 
  */
 client.on('messageReactionAdd', (reaction, user) => {
-    if (reaction.message.author.id == config.botID){
+    if (reaction.message.author.id == BotID){
         ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
     }
 })
@@ -1234,7 +1237,7 @@ async function recent(receivedMessage, args) {
     matches_arr.forEach(async(match) => {
         var convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"})
 
-        //const bot = await getUserFromMention(config.botID)
+        //const bot = await getUserFromMention(BotID)
         //console.log(match)
         const winner = await getUserFromMention(match[4])
         const loser1 = await getUserFromMention(match[5])
@@ -1265,53 +1268,62 @@ async function recent(receivedMessage, args) {
  */
 async function listDecks(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-    let returnArr = await deckObj.listDecks(receivedMessage)
+    let result = await DeckHelper.checkColorDictionary(args[0])
+    if (result != "Not found"){
+        let colorSpecificArray = new Array()
+        let returnArr = await deckObj.listDecks(receivedMessage, result)
+        returnArr.forEach(entry =>{
+            colorSpecificArray.push(entry._name)
+        })
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(colorSpecificArray, args))
+    }
+    else{
+        let returnArr = await deckObj.listDecks(receivedMessage, "no")
+        let oneColorArr = new Array();
+        let twoColorArr = new Array();
+        let threeColorArr = new Array();
+        let fourColorArr = new Array();
+        let fiveColorArr = new Array();
+        let combinedArr = new Array();
 
-    let oneColorArr = new Array();
-    let twoColorArr = new Array();
-    let threeColorArr = new Array();
-    let fourColorArr = new Array();
-    let fiveColorArr = new Array();
-
-    let combinedArr = new Array();
-
-    returnArr.forEach(entry =>{
-        var newStr = entry._colors.replace(/,/g, '');
-        newStr = newStr.replace(/ /g, '');
-        
-        if (newStr.length == 1){
-            oneColorArr.push(entry._name + " - " + entry._colors)
-        }
-        else if (newStr.length == 2){
-            twoColorArr.push(entry._name + " - " + entry._colors)
-        }
-        else if (newStr.length == 3){
-            threeColorArr.push(entry._name + " - " + entry._colors)
-        }
-        else if (newStr.length == 4){
-            fourColorArr.push(entry._name + " - " + entry._colors)
-        }
-        else{
-            fiveColorArr.push(entry._name + " - " + entry._colors)
-        }
-    })
-    oneColorArr.sort()
-    twoColorArr.sort()
-    threeColorArr.sort()
-    fourColorArr.sort()
-    fiveColorArr.sort()
-    receivedMessage.author.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
-    receivedMessage.author.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
-    receivedMessage.author.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
-    receivedMessage.author.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
-    receivedMessage.author.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
-    const helperEmbed = new Discord.MessageEmbed()
-    .setColor(messageColorGreen)
-    .setTitle("I have Direct Messaged you this server's Decks. Don't see what you're looking for?")
-    .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
-    Try '!use <deckname> | Rogue' to be able to use **any deck**.")
-    .setFooter("Remember to type !startseason or no decks will appear in this list.")
-    generalChannel.send(helperEmbed)
+        returnArr.forEach(entry =>{
+            var newStr = entry._colors.replace(/,/g, '');
+            newStr = newStr.replace(/ /g, '');
+            
+            if (newStr.length == 1){
+                oneColorArr.push(entry._name + " - " + entry._colors)
+            }
+            else if (newStr.length == 2){
+                twoColorArr.push(entry._name + " - " + entry._colors)
+            }
+            else if (newStr.length == 3){
+                threeColorArr.push(entry._name + " - " + entry._colors)
+            }
+            else if (newStr.length == 4){
+                fourColorArr.push(entry._name + " - " + entry._colors)
+            }
+            else{
+                fiveColorArr.push(entry._name + " - " + entry._colors)
+            }
+        })
+        oneColorArr.sort()
+        twoColorArr.sort()
+        threeColorArr.sort()
+        fourColorArr.sort()
+        fiveColorArr.sort()
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR"))
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
+        const helperEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorGreen)
+        .setTitle("I have Direct Messaged you this server's Decks. Don't see what you're looking for?")
+        .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
+        Try '!use <deckname> | Rogue' to be able to use **any deck**.")
+        .setFooter("Remember to type !startseason or no decks will appear in this list.")
+        generalChannel.send(helperEmbed)
+    }
 }
 /**
  * addDeck()
@@ -1716,7 +1728,6 @@ async function deleteMatch(receivedMessage, args) {
         generalChannel.send(errorMsg)
         return
     }
-
     const response = await gameObj.deleteMatch(args[0], receivedMessage).catch((message) => {
         const errorMsg = new Discord.MessageEmbed()
                 .setColor('#af0000')

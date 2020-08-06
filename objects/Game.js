@@ -269,7 +269,6 @@ module.exports = {
         return new Promise((resolve, reject) => {
             const games = require('../Schema/Games')
             server = receivedMessage.guild.id
-
             let findQuery = {_match_id: id, _server: server, _season: currentSeasonName}
             games.findOne(findQuery, function(err, res) {
                 if (res) {

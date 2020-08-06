@@ -1,4 +1,5 @@
 const Discord = require('discord.js')
+const { resolve } = require('path')
 
 //Colors
 const messageColorRed = "#af0000"
@@ -139,4 +140,54 @@ module.exports = {
             })
         })
     },
+    async checkColorDictionary(input){
+        colorDictionary = {
+            white: "w",
+            blue: "u",
+            black: "b",
+            red: "r",
+            green: "g",
+
+            azorious: "w, u",
+            dimir: "u, b",
+            rakdos: "b, r",
+            gruul: "r, g",
+            selesnya: "g, w",
+
+            orzhov: "w, b",
+            izzet: "u, r",
+            golgari: "b, g",
+            boros: "r, w",
+            simic: "g, b",
+
+            bant: "w, u, g",
+            esper: "w, u, b",
+            grixis: "u, b, r",
+            jund: "b, r, g",
+            naya: "w, r, g",
+
+            abzan: "w, b, g",
+            jeskai: "w, b, r",
+            sultai: "u, b, g",
+            mardu: "w, b, r",
+            temur: "u, r, g",
+
+            sansgreen: "w, u, b, r",
+            sanswhite: "u, b, r, g",
+            sansblue: "w, b, r, g",
+            sansblack: "w, u, r, g",
+            sansred: "w, u, b, g",
+        }
+        if (colorDictionary.hasOwnProperty(input.toLowerCase())) {
+            return new Promise((resolve, reject)=>{
+                resolve(colorDictionary[input.toLowerCase()])
+            })
+            
+        }
+        else{
+            return new Promise((resolve, reject)=>{
+                resolve("Not found")
+            })
+        }
+    }
 }
