@@ -361,16 +361,16 @@ async function getDisputed(receivedMessage){
             .setColor(messageColorBlue)
             .setAuthor("Match ID: " + pendingMatch._match_id)
             .addFields(
-                {name: "Player 1", value: pendingMatch._player1, inline: true},
+                {name: "Player 1", value: "<@"+pendingMatch._player1+">", inline: true},
                 {name: "Piloting", value: pendingMatch._player1Deck, inline: true},
                 {name: "\u200b", value: " \u200b"},
-                {name: "Player 2", value: pendingMatch._player2, inline: true},
+                {name: "Player 2", value: "<@"+pendingMatch._player2+">", inline: true},
                 {name: "Piloting", value: pendingMatch._player2Deck, inline: true},
                 {name: "\u200b", value: " \u200b"},
-                {name: "Player 3", value: pendingMatch._player3, inline: true},
+                {name: "Player 3", value: "<@"+pendingMatch._player3+">", inline: true},
                 {name: "Piloting", value: pendingMatch._player3Deck, inline: true},
                 {name: "\u200b", value: " \u200b"},
-                {name: "Player 4", value: pendingMatch._player4, inline: true},
+                {name: "Player 4", value: "<@"+pendingMatch._player4+">", inline: true},
                 {name: "Piloting", value: pendingMatch._player4Deck, inline: true},
             )
             generalChannel.send(matchEmbed)
@@ -404,16 +404,16 @@ async function getPending(receivedMessage){
             .setColor(messageColorBlue)
             .setAuthor("Match ID: " + pendingMatch._match_id)
             .addFields(
-                {name: "Player 1", value: pendingMatch._player1, inline: true},
+                {name: "Player 1", value: "<@"+pendingMatch._player1+">", inline: true},
                 {name: "Piloting", value: pendingMatch._player1Deck, inline: true},
                 {name: "\u200b", value: " \u200b"},
-                {name: "Player 2", value: pendingMatch._player2, inline: true},
+                {name: "Player 2", value: "<@"+pendingMatch._player2+">", inline: true},
                 {name: "Piloting", value: pendingMatch._player2Deck, inline: true},
                 {name: "\u200b", value: " \u200b"},
-                {name: "Player 3", value: pendingMatch._player3, inline: true},
+                {name: "Player 3", value: "<@"+pendingMatch._player3+">", inline: true},
                 {name: "Piloting", value: pendingMatch._player3Deck, inline: true},
                 {name: "\u200b", value: " \u200b"},
-                {name: "Player 4", value: pendingMatch._player4, inline: true},
+                {name: "Player 4", value: "<@"+pendingMatch._player4+">", inline: true},
                 {name: "Piloting", value: pendingMatch._player4Deck, inline: true},
             )
             generalChannel.send(matchEmbed)
