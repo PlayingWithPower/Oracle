@@ -100,8 +100,13 @@ exampleDictionary =
     should be used to check your current configurations for your server. To see more information about what configurations there are and their users, type !help setconfig\n\n\
     Example usage: !getconfig",
 
-    decks: "Use this function to list all decks on this server. This command will organize by color and then alphabetize all decks. Use this function before you set your deck with !use <Deck Name>\n\n\
-    Example usage: !decks",
+    decks: "Use this function to list all decks on this server. This command will organize by color and then alphabetize all decks. You can also search by guild, color and  . Check out the examples below. Use this function before you set your deck with !use <Deck Name>\n\n\
+    Example usage: \n\
+    !decks\n\
+    !decks azorious\n\
+    !decks sansred\n\
+    !decks bant\n\
+    !decks white",
     deckstats: "Use this function to find information about a decks statistics on this server. Add the 'all' modifier to any query to find information across all seasons. This is a versatile command that accepts many inputs. You can look up deck statistics for a server, for a season, for a deck and for a user\n\n\
     Generic usage:\n\
     !deckstats - lists overall deck information for this season in this server\n\
@@ -130,8 +135,10 @@ exampleDictionary =
     register: "Use this function to register yourself for this server's league. Registering is a key step to accessing other portions of the bot. By registering your: matches will be logged, stats will be tracked, other users will be able to look you up and much more\n\n\
     Example usage: !register", 
     top: "Use this function to see the top players on the leaderboard for this server's current season. Players are assigned a point based value based on their number of wins and losses. A win gains you X points, while a loss loses you Y points. The system accounts for an average of 25% winrate.\
-     The default number of games to appear on this list is 10 games. Admins are able to configure this value using !setconfig. Find more information about configurations with !help setconfig\n\n\
-    Example usage: !top",
+    You can also search for top by season! Adding the name of a season after !top gives you results from the past. The default number of games to appear on this list is 10 games. Admins are able to configure this value using !setconfig. Find more information about configurations with !help setconfig\n\n\
+    Example usage: \n\
+    !top\n\
+    !top <Season Name>",
     seasoninfo: "Use this function to see information about the specified season. This command defaults to the current season when provided no arguments. Information provided includes: Season Name, Season Start Date, Season End Date, etc.\n\n\
     Generic usage: !seasoninfo or !seasoninfo <Season Name>. Season names **are case sensitive**\n\
     Example usage: \n\

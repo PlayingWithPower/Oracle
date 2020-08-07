@@ -1278,61 +1278,58 @@ async function listDecks(receivedMessage, args){
             .setTitle("I have Direct Messaged you decks! Don't see what you're looking for?")
             .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
             Try '!use <deckname> | Rogue' to be able to use **any deck**.")
+            .setFooter("Looking for a specific color combination? Check !help decks to learn what I search by.")
             generalChannel.send(helperEmbed)
             return
         }
     }
-    else{
-        let returnArr = await deckObj.listDecks(receivedMessage, "no")
-        let oneColorArr = new Array();
-        let twoColorArr = new Array();
-        let threeColorArr = new Array();
-        let fourColorArr = new Array();
-        let fiveColorArr = new Array();
-        let combinedArr = new Array();
+    let returnArr = await deckObj.listDecks(receivedMessage, "no")
+    let oneColorArr = new Array();
+    let twoColorArr = new Array();
+    let threeColorArr = new Array();
+    let fourColorArr = new Array();
+    let fiveColorArr = new Array();
+    let combinedArr = new Array();
 
-        returnArr.forEach(entry =>{
-            var newStr = entry._colors.replace(/,/g, '');
-            newStr = newStr.replace(/ /g, '');
-            
-            if (newStr.length == 1){
-                oneColorArr.push(entry._name + " - " + entry._colors)
-            }
-            else if (newStr.length == 2){
-                twoColorArr.push(entry._name + " - " + entry._colors)
-            }
-            else if (newStr.length == 3){
-                threeColorArr.push(entry._name + " - " + entry._colors)
-            }
-            else if (newStr.length == 4){
-                fourColorArr.push(entry._name + " - " + entry._colors)
-            }
-            else{
-                fiveColorArr.push(entry._name + " - " + entry._colors)
-            }
-        })
-        oneColorArr.sort()
-        twoColorArr.sort()
-        threeColorArr.sort()
-        fourColorArr.sort()
-        fiveColorArr.sort()
-        receivedMessage.author.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR")).then(msg => {
-            receivedMessage.author.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
-            receivedMessage.author.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
-            receivedMessage.author.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
-            receivedMessage.author.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
-            const helperEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorGreen)
-            .setTitle("I have Direct Messaged you this server's Decks. Don't see what you're looking for?")
-            .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
-            Try '!use <deckname> | Rogue' to be able to use **any deck**.")
-            .setFooter("Remember to type !startseason or no decks will appear in this list.")
-            generalChannel.send(helperEmbed)
-        }).catch(() => 
-        receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"))
+    returnArr.forEach(entry =>{
+        var newStr = entry._colors.replace(/,/g, '');
+        newStr = newStr.replace(/ /g, '');
         
-        
-    }
+        if (newStr.length == 1){
+            oneColorArr.push(entry._name + " - " + entry._colors)
+        }
+        else if (newStr.length == 2){
+            twoColorArr.push(entry._name + " - " + entry._colors)
+        }
+        else if (newStr.length == 3){
+            threeColorArr.push(entry._name + " - " + entry._colors)
+        }
+        else if (newStr.length == 4){
+            fourColorArr.push(entry._name + " - " + entry._colors)
+        }
+        else{
+            fiveColorArr.push(entry._name + " - " + entry._colors)
+        }
+    })
+    oneColorArr.sort()
+    twoColorArr.sort()
+    threeColorArr.sort()
+    fourColorArr.sort()
+    fiveColorArr.sort()
+    receivedMessage.author.send(DeckHelper.createDeckEmbed(oneColorArr, "ONE COLOR")).then(msg => {
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(twoColorArr, "TWO COLOR"))
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(threeColorArr, "THREE COLOR"))
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(fourColorArr, "FOUR COLOR"))
+        receivedMessage.author.send(DeckHelper.createDeckEmbed(fiveColorArr, "FIVE COLOR"))
+        const helperEmbed = new Discord.MessageEmbed()
+        .setColor(messageColorGreen)
+        .setTitle("I have Direct Messaged you this server's Decks. Don't see what you're looking for?")
+        .setDescription("Using 'Rogue' when logging matches will encompass decks not on this list. \
+        Try '!use <deckname> | Rogue' to be able to use **any deck**.")
+        .setFooter("Looking for a specific color combination? Check !help decks to learn what I search by.")
+        generalChannel.send(helperEmbed)
+    }).catch(() => 
+    receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"))
 }
 /**
  * addDeck()
