@@ -225,7 +225,8 @@ module.exports = {
         const serverEmbed = new Discord.MessageEmbed()
         .setAuthor("Messages sent to your inbox!")
         .setColor(messageColorGreen)
-        .setDescription("I have Direct Messaged you the help commands. Please type !help <Command> for more information about a specific command")
+        .setDescription("I have Direct Messaged you the help commands. Please type !help <Command> for more information about a specific command\n\n\
+        **Completely lost in what's happening?** Type !tutorial to learn about this bot and its uses")
 
         for(var keyVal in adminDictionary){
             adminEmbed.addField('!' + keyVal, adminDictionary[keyVal]);   
