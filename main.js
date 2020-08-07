@@ -67,7 +67,7 @@ client.on("guildCreate", (guild) => {
         }
     }
     })
-    tutorial(defaultChannel)
+    setup(defaultChannel)
 });
 client.on('message', (receivedMessage) =>{
     if (receivedMessage.author == client.user){
@@ -255,8 +255,12 @@ async function processCommand(receivedMessage){
                 nonAdminAccess(receivedMessage, primaryCommand)
             }
             break;
+        case "setup":
+            setup(getChannelID(receivedMessage))
+            break;
         case "tutorial":
-            tutorial(getChannelID(receivedMessage))
+            tutorial(receivedMessage)
+            break;
         case "credits":
             credits(receivedMessage, arguments)
             break;
@@ -268,14 +272,38 @@ async function processCommand(receivedMessage){
             receivedMessage.channel.send(UnknownCommandEmbed)
     }
 }
-async function tutorial(channel){
+function tutorial(receivedMessage){
+    const tutorialEmbed = new Discord.MessageEmbed()
+    .setAuthor("Welcome to my tutorial!")
+    .setTitle("Super lost? Check out our Discord")
+    .setURL("https://discord.gg/UCMMMbk")
+    .setDescription("This command helps newcomers get their bearings with Oracle bot and gain a basic understanding of how it works.\n\n\
+    At its core, Oracle Bot is a Magic the Gathering statistics and information bot, aimed at the CEDH community, but can easily be used\
+    for EDH. A few basic steps must be taken for every user trying to use this bot. If you've gotten this far, congrats! You've learned to use\
+    Discord Bot Commands. A general guideline of steps to take follows")
+    .setColor(messageColorGreen)
+    .addFields(
+        {name: "Stuck?", value: "Use out **!help <Command Name>** or **!help** to find more information about a command"},
+        {name: "Step 1", value: "**Register** yourself for this server. You should receieved a congratulatory message back from the bot\nType **!register**"},
+        {name: "Step 2", value: "**Set** what deck you are using. The bot holds information about the deck you're using\n\
+        To find information about what decks are available, type **!decks** \n\
+        Once you find a deck you want to use, type **!use <Deck Name Here>**"},
+        {name: "Step 3: You're done!", value: "You have successfully given the bot the information it needs! From here, there are many roads you can take\n\n\
+        Check out analytics on the server with commands like !deckstats, !profile and !top\n\
+        Check out specific decks and their information with commands like !deckinfo and !decks\n\
+        Log matches and climb the leaderboard with !log\n\n\
+        With all of these commands, please type !help <Command Name Here> to learn more. Thank you for joining the community!"},
+    )
+    receivedMessage.channel.send(tutorialEmbed)
+}
+async function setup(channel){
     const welcomeEmbed = new Discord.MessageEmbed()
     .setAuthor("Thank you for inviting me to your server! I am Oracle Bot and am used to track Magic The Gathering statistics and information")
     .setTitle("Want to contribute to this bot? Click here for the GitHub")
     .setURL("https://github.com/PlayingWithPower/DiscordBot")
     .setDescription("This command will help you walk through how to properly set up the bot\n\
     There are a few key steps for an Admin to perform before games can be logged, decks can be tracked and users can register\n\
-    Type !tutorial at any time to find this command again")
+    Type !setup at any time to find this command again")
     .setColor(messageColorGreen)
     .addFields(
         {name: "Stuck?", value: "Use out !help <Command Name> or !help to find more information about a command"},
