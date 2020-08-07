@@ -71,6 +71,7 @@ module.exports = {
         let argsWithCommas = args.toString()
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let splitArgs = argsWithSpaces.split(" | ")
+        splitArgs[0] = splitArgs[0].toLowerCase()
         
         return new Promise((resolve, reject)=>{
             var conditionalQuery

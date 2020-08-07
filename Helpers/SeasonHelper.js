@@ -58,6 +58,7 @@ module.exports = {
                 let getWinnersQuery = {
                     _server: server, 
                     _season: season,
+                    _Status: "FINISHED",
                     $or: 
                     [{_player1: personLookedUp}, 
                     {_player2: personLookedUp},

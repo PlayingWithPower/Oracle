@@ -773,7 +773,7 @@ async function top(receivedMessage, args){
              .setAuthor("Displaying Top Players for the season name: " + args.join(' '))
         for (var i = 0; i < sortedResults.length; i++){
             if (sortedResults[i][3] < threshold){ }
-            if (i > 10){break}
+            else if (i > 10){ }
             else{
                 resultsMsg
                 .addFields(
