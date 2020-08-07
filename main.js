@@ -624,6 +624,7 @@ async function seasonInfo(receivedMessage, args){
             .addFields(
                 {name: "Season Start", value: returnArr[0]._season_start, inline: true},
                 {name: "Season End", value: returnArr[0]._season_end, inline: true},
+                {name: "Total Matches Played", value: returnArr[2], inline: true},
             )
             generalChannel.send(seasonInfo)
         }
@@ -637,8 +638,7 @@ async function seasonInfo(receivedMessage, args){
                 .setAuthor("Displaying Season Info about the Season named: " + season._season_name)
                 .addFields(
                     {name: "Season Start", value: season._season_start, inline: true},
-                    {name: "Season End", value: season._season_end, inline: true},
-                    {name: "Total Matches Played", value: returnArr[2], inline: true},
+                    {name: "Season End", value: season._season_end, inline: true}, 
                 )
                 generalChannel.send(seasonInfo)
             })
