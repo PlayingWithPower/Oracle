@@ -1499,7 +1499,10 @@ async function profile(receivedMessage, args){
         const decksEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
         .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig")
-        returnArr[1].forEach((deck) =>{
+        let sortedArray = returnArr[1].sort(function(a, b) {
+            return parseFloat(b[1]+b[2]) - parseFloat(a[1]+a[2]);
+        });
+        sortedArray.forEach((deck) =>{
             overallWins = overallWins + deck[1]
             overallLosses = overallLosses + deck[2]
             if (deck[1] + deck[2] < threshold){ }
