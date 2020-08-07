@@ -270,11 +270,11 @@ async function processCommand(receivedMessage){
 }
 async function tutorial(channel){
     const welcomeEmbed = new Discord.MessageEmbed()
-    .setAuthor("Thank you for inviting me to your server! I am ____ Bot and am used to track Magic The Gathering statistics and information")
+    .setAuthor("Thank you for inviting me to your server! I am Oracle Bot and am used to track Magic The Gathering statistics and information")
     .setTitle("Want to contribute to this bot? Click here for the GitHub")
     .setURL("https://github.com/PlayingWithPower/DiscordBot")
     .setDescription("This command will help you walk through how to properly set up the bot\n\
-    There are a few key steps for an Admin to preform before games can be logged, decks can be tracked and users can register\n\
+    There are a few key steps for an Admin to perform before games can be logged, decks can be tracked and users can register\n\
     Type !tutorial at any time to find this command again")
     .setColor(messageColorGreen)
     .addFields(
@@ -582,7 +582,7 @@ async function seasonInfo(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     if (args[0] === undefined){
         let returnArr = await seasonObj.getInfo(receivedMessage, "Current")
-        if (returnArr == "No Current"){
+        if (returnArr[0] == "No Current"){
             const noSeasonEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed)
             .setAuthor("There is no on-going season")
@@ -592,10 +592,10 @@ async function seasonInfo(receivedMessage, args){
         else{
             const seasonInfo = new Discord.MessageEmbed()
             .setColor(messageColorGreen)
-            .setAuthor("Displaying Season Info about the Season named: " + returnArr._season_name)
+            .setAuthor("Displaying Season Info about the Season named: " + returnArr[0]._season_name)
             .addFields(
-                {name: "Season Start", value: returnArr._season_start, inline: true},
-                {name: "Season End", value: returnArr._season_end, inline: true},
+                {name: "Season Start", value: returnArr[0]._season_start, inline: true},
+                {name: "Season End", value: returnArr[0]._season_end, inline: true},
             )
             generalChannel.send(seasonInfo)
         }
@@ -610,6 +610,7 @@ async function seasonInfo(receivedMessage, args){
                 .addFields(
                     {name: "Season Start", value: season._season_start, inline: true},
                     {name: "Season End", value: season._season_end, inline: true},
+                    {name: "Total Matches Played", value: returnArr[2], inline: true},
                 )
                 generalChannel.send(seasonInfo)
             })
@@ -624,7 +625,6 @@ async function seasonInfo(receivedMessage, args){
     }
     else{
         let returnArr = await seasonObj.getInfo(receivedMessage, args.join(' '))
-        console.log(returnArr)
         if (returnArr == "Can't Find Season"){
             const cantFindEmbed = new Discord.MessageEmbed()
             .setColor(messageColorRed)

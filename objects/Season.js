@@ -129,8 +129,28 @@ module.exports = {
     async getInfo(receivedMessage, args) {
         if (args == "Current"){
             let seasonReturn = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id) 
+            var userQuery = {_server: receivedMessage.guild.id}
+            var matchQuery = {_server: receivedMessage.guild.id, _season: seasonReturn._season_name, _Status: "FINISHED"}
+            var resolveArr = new Array()
             return new Promise((resolve, reject)=>{
-                resolve(seasonReturn)
+                resolveArr.push(seasonReturn)
+                user.find(userQuery, function(err,userRes){
+                    if (userRes){
+                        resolveArr.push(userRes.length)
+                        match.find(matchQuery, function(err,matchRes){
+                            if (matchRes){
+                                resolveArr.push(matchRes.length)
+                                resolve(resolveArr)
+                            }
+                            else{
+                                resolve("Can't Find Season")
+                            }
+                        })
+                    }
+                    else{
+                        resolve("Can't Find Season")
+                    }
+                })
             })
         }
         
