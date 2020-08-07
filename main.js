@@ -1814,7 +1814,8 @@ async function matchInfo(receivedMessage, args) {
         else if (response == "FAIL"){
             const errorMsg = new Discord.MessageEmbed()
                 .setColor(messageColorRed)
-                .setDescription("**Error**: Match not found")
+                .setAuthor("Match not found")
+                .setDescription("Cannot find the specified match. Please re-enter the MatchID")
             generalChannel.send(errorMsg)
         }
 }
