@@ -148,7 +148,7 @@ module.exports = {
             red: "r",
             green: "g",
 
-            azorious: "w, u",
+            azorius: "w, u",
             dimir: "u, b",
             rakdos: "b, r",
             gruul: "r, g",
