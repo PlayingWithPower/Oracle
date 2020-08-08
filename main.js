@@ -477,7 +477,11 @@ async function configSet(receivedMessage, args){
         .setAuthor("Incorrect Input")
         .setDescription("Please retry entering your config. I understand the format: \n\
         !setconfig <Type> | <Value>\n\
-        The types of configurations are: 'Player Threshold (A number)', 'Deck Threshold (A number)', 'Timeout (Minutes, less than 60)' and 'Admin' (A list of Discord Roles seperated by commas)\n\
+        The types of configurations are:\n\
+        'Player Threshold (A **number**)', \n\
+        'Deck Threshold (A **number**)', \n\
+        'Timeout (**Minutes**, less than 60)' \n\
+        'Admin' (A list of **Discord Roles** seperated by commas)\n\n\
         Confused on what these mean? Try !help setconfig")
         .setFooter("A default set of configuration values are set for every server. Updating these configs is to fine tune your experience")
         generalChannel.send(errorEmbed)
