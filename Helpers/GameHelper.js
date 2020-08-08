@@ -1,6 +1,5 @@
 const User = require('../Schema/Users')
 const Matches = require('../Schema/Games')
-const { match } = require('assert')
 
 module.exports = {
     async checkRegister(mentionValue, receivedMessage){

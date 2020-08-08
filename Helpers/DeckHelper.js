@@ -1,5 +1,6 @@
 const Discord = require('discord.js')
 const { resolve } = require('path')
+const { Module } = require('module')
 
 //Colors
 const messageColorRed = "#af0000"
@@ -189,5 +190,20 @@ module.exports = {
                 resolve("Not found")
             })
         }
+    },
+    async commanderChecker(input, receivedMessage){
+        const deck = require('../Schema/Deck')
+        return new Promise((resolve, reject)=>{
+            input = module.exports.toUpper(input)
+            let inputRegEx = new RegExp(input);
+            let deckQuery = {
+                "_commander": inputRegEx
+            }
+            console.log(deckQuery)
+            deck.find(deckQuery, function(err,res){
+                if (err){console.log(err)}
+                //console.log(res)
+            })
+        })
     }
 }

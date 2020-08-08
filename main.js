@@ -1290,10 +1290,10 @@ async function recent(receivedMessage, args) {
 async function listDecks(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
     if (args[0] !== undefined){
-        let result = await DeckHelper.checkColorDictionary(args[0])
-        if (result != "Not found"){
+        let colorRes = await DeckHelper.checkColorDictionary(args[0])
+        if (colorRes != "Not found"){
             let colorSpecificArray = new Array()
-            let returnArr = await deckObj.listDecks(receivedMessage, result)
+            let returnArr = await deckObj.listDecks(receivedMessage, colorRes)
             returnArr.forEach(entry =>{
                 colorSpecificArray.push(entry._name)
             })
@@ -1307,6 +1307,10 @@ async function listDecks(receivedMessage, args){
             generalChannel.send(helperEmbed)
             return
         }
+        let commanderRes = await DeckHelper.commanderChecker(args.join(' '), receivedMessage)
+        if (commanderRes != "Not found"){
+
+        } 
     }
     let returnArr = await deckObj.listDecks(receivedMessage, "no")
     let oneColorArr = new Array();
