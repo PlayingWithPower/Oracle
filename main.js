@@ -38,15 +38,7 @@ moongoose.connect(config.mongoConnectionUrl, { useNewUrlParser: true, useUnified
 
 client.on('ready', (on) =>{
     console.log("Debug log: Successfully connected as " + client.user.tag)
-    client.user.setPresence({
-        game: { 
-            name: 'my code',
-            type: 'WATCHING'
-        },
-        status: 'online'
-    })
-    
-    
+    client.user.setPresence({ activity: { name: 'with !help' }, status: 'online' })
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.id)
@@ -63,7 +55,7 @@ client.on("guildCreate", (guild) => {
     guild.channels.cache.forEach((channel) => {
     if(channel.type == "text" && defaultChannel == "") {
         if(channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
-        defaultChannel = channel;
+            defaultChannel = channel;
         }
     }
     })
@@ -1465,7 +1457,8 @@ async function addDeck(receivedMessage, args){
         }
     }
     else{
-        errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link")
+        errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n\n\
+        It looks like you have the incorrect number of inputs. I recommend copy and pasting the line above and filling out your information")
         generalChannel.send(errorEmbed)
         return
     }

@@ -100,7 +100,7 @@ exampleDictionary =
     should be used to check your current configurations for your server. To see more information about what configurations there are and their users, type !help setconfig\n\n\
     Example usage: !getconfig",
 
-    decks: "Use this function to list all decks on this server. This command will organize by color and then alphabetize all decks. You can also search by guild, color, wedges and with 'sans'. Check out the examples below. Use this function before you set your deck with !use <Deck Name>\n\n\
+    decks: "Use this function to list all decks on this server. This command will organize by color and then alphabetize all decks. You can also search by 1, 2, 3 or 4-color pairings. Check out the examples below. Use this function before you set your deck with !use <Deck Name>\n\n\
     Example usage: \n\
     !decks\n\
     !decks azorious\n\
