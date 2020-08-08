@@ -1153,7 +1153,6 @@ async function recent(receivedMessage, args) {
     let more = false
     let allServer = false
 
-    // checking block of DOOM
     if (args.length == 0) {
         var matches_arr = await userObj.recent(receivedMessage)
     }
@@ -1167,8 +1166,9 @@ async function recent(receivedMessage, args) {
                 .setColor(messageColorRed)
                 .setAuthor("Improper Input")
                 .setTitle("You're attempting to check a recent match log")
-                .setDescription("Type !recent **@[user]** when searching other users recent matches or \"server\" to see server matches\n\
-                Type \"more\" after the command to load more results\n\
+                .setDescription("Type !recent **@user** when searching other users recent matches or 'server' to see server matches\n\
+                Type \"more\" after the command to load more results\n\n\
+                It looks like you're having trouble with !recent @user. Make sure to mention the user and type nothing after \n\n\
                 Check !help recent for more information on proper usage")
             generalChannel.send(errorEmbed)
             return
@@ -1186,8 +1186,9 @@ async function recent(receivedMessage, args) {
             .setColor(messageColorRed)
             .setAuthor("Improper Input")
             .setTitle("You're attempting to check a recent match log")
-            .setDescription("Type !recent **@[user]** when searching other users recent matches or \"server\" to see server matches\n\
-            Type \"more\" after the command to load more results\n\
+            .setDescription("Type !recent **@user** when searching other users recent matches or 'server' to see server matches\n\
+            Type \"more\" after the command to load more results\n\n\
+            It looks lke you're having trouble with !recent @user more or !recent @user server. Make sure to mention the user and only write 'server' or 'more' after\n\n\
             Check !help recent for more information on proper usage")
             generalChannel.send(errorEmbed)
             return
@@ -1206,7 +1207,7 @@ async function recent(receivedMessage, args) {
                 .setColor(messageColorRed)
                 .setAuthor("Improper Input")
                 .setTitle("You're attempting to check a recent match log")
-                .setDescription("Type !recent **@[user]** when searching other users recent matches or \"server\" to see server matches\n\
+                .setDescription("Type !recent **@user** when searching other users recent matches or 'server' to see server matches\n\
                 Type \"more\" after the command to load more results\n\
                 Check !help recent for more information on proper usage")
             generalChannel.send(errorEmbed)
