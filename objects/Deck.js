@@ -61,23 +61,37 @@ module.exports = {
             args = ""
         }
         const deck = require('../Schema/Deck')
+        var promiseRes = new Array()
 
         let deckQuery = {_alias: args, _server: receivedMessage.guild.id}
         return new Promise((resolve, reject) =>{
             deck.findOne(deckQuery, function(err, res){
                 if (res){
-                    resolve(res)
+                    promiseRes.push("First")
+                    promiseRes.push(res)
+                    resolve(promiseRes)
                 }
                 else{
-                    resolve("Error 1")
+                    deck.find(
+                        {_server: receivedMessage.guild.id,
+                            '$text':{'$search': args}
+                        }, 
+                        function(err,res){
+                            if (res){
+                                promiseRes.push("Second")
+                                promiseRes.push(res)
+                                resolve(promiseRes)
+                            }
+                            else{
+                                resolve("Error 1")
+                            }
+                    })
                 }
             })
         })
     },
     /**
      * Returns stats about a deck alias
-     * TODO: !deckstats <deckname> should return the current season by default. ATM 
-     *  it returns the same as !deckstats <deckname> | all
      */
     async deckStats(receivedMessage, args){
         const matches = require('../Schema/Games')

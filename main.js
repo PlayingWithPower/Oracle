@@ -167,7 +167,7 @@ async function processCommand(receivedMessage){
             deckStats(receivedMessage, rawArguments);
             break;
         case "deckinfo":
-            deckinfo(receivedMessage, arguments);
+            deckinfo(receivedMessage, arguments, rawArguments);
             break;
         case "add":
             if (adminGet){
@@ -823,7 +823,7 @@ async function top(receivedMessage, args){
     
 }
 
-async function deckinfo(receivedMessage, args){
+async function deckinfo(receivedMessage, args, rawArgs){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await deckObj.deckInfo(receivedMessage, args)
     if (args.length == 0){
@@ -840,29 +840,45 @@ async function deckinfo(receivedMessage, args){
         generalChannel.send(errorEmbed)
     }
     else{
-        let fixedColors = returnArr._colors.replace(/,/g, ' ');
-        if ((returnArr._link == "No Link Provided")||(returnArr._link == "")){
-            returnArr._link = " "
+        if (returnArr[0] == "First"){
+            let fixedColors = returnArr[1]._colors.replace(/,/g, ' ');
+            if ((returnArr[1]._link == "No Link Provided")||(returnArr[1]._link == "")){
+                returnArr[1]._link = " "
+            }
+            if ((returnArr[1]._discordLink == "")){
+                returnArr[1]._discordLink = "No Link Provided"
+            }
+            const resultEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorGreen)
+                .setDescription("Deck Information about **"+ returnArr[1]._name + "**")
+                .setTitle("Deck Link")
+                .setURL(returnArr[1]._link)
+                .addFields(
+                    { name: 'Commander', value: returnArr[1]._commander},
+                    { name: 'Color', value: fixedColors},
+                    { name: 'Authors', value: returnArr[1]._author},
+                    { name: 'Description', value: returnArr[1]._description},
+                    { name: 'Discord Link', value: returnArr[1]._discordLink},
+                    { name: 'Deck Type', value: returnArr[1]._deckType},
+                    { name: 'Has Primer?', value: DeckHelper.toUpper(returnArr[1]._hasPrimer.toString())},
+                )
+    
+            generalChannel.send(resultEmbed)
         }
-        if ((returnArr._discordLink == "")){
-            returnArr._discordLink = "No Link Provided"
+        else{
+            const closeToResEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorBlue)
+                .setDescription("You typed: '" + rawArgs.join(' ') + "' I didn't quite understand that. Did you mean to type any of the following?\
+                The !deckinfo command searches by deck name. Type !help deckinfo for more information")
+                .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)")
+                for (var key in returnArr[1]) {
+                    closeToResEmbed
+                    .addFields(
+                        {name: returnArr[1][key]._name, value: returnArr[1][key]._commander}
+                    )
+                }
+            generalChannel.send(closeToResEmbed)
         }
-        const resultEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorGreen)
-            .setDescription("Deck Information about **"+ returnArr._name + "**")
-            .setTitle("Deck Link")
-            .setURL(returnArr._link)
-            .addFields(
-                { name: 'Commander', value: returnArr._commander},
-                { name: 'Color', value: fixedColors},
-                { name: 'Authors', value: returnArr._author},
-                { name: 'Description', value: returnArr._description},
-                { name: 'Discord Link', value: returnArr._discordLink},
-                { name: 'Deck Type', value: returnArr._deckType},
-                { name: 'Has Primer?', value: DeckHelper.toUpper(returnArr._hasPrimer.toString())},
-            )
-
-        generalChannel.send(resultEmbed)
     }
 }
 
