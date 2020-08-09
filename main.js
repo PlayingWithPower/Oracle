@@ -1309,7 +1309,29 @@ async function listDecks(receivedMessage, args){
         }
         let commanderRes = await DeckHelper.commanderChecker(args.join(' '), receivedMessage)
         if (commanderRes != "Not found"){
-
+            if (commanderRes.length == 0){
+                const noResEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorRed)
+                .setAuthor("No results found on this server")
+                .setDescription("We could not find any information on the key word(s): '" + args.join(' ') + "' for this server.\n\
+                Please refine your search and try again.")
+                .setFooter("Searching for partners? Type either name or search for both by separating them with a '/'. Ex: !decks tymna / thrasios")
+                generalChannel.send(noResEmbed)
+                return
+            }
+                const newEmbed = new Discord.MessageEmbed()
+                    .setColor(messageColorBlue)
+                    .setDescription("Displaying decks searching with the key word(s): '" + args.join(' ') + "'\n\
+                    Displaying: " + commanderRes.length + " results")
+                    .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)")
+                for (var key in commanderRes) {
+                    newEmbed
+                    .addFields(
+                        {name: commanderRes[key]._name, value: commanderRes[key]._commander}
+                    )
+                }
+                generalChannel.send(newEmbed)
+                return
         } 
     }
     let returnArr = await deckObj.listDecks(receivedMessage, "no")

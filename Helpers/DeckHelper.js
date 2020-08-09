@@ -196,13 +196,14 @@ module.exports = {
         return new Promise((resolve, reject)=>{
             input = module.exports.toUpper(input)
             let inputRegEx = new RegExp(input);
-            let deckQuery = {
-                "_commander": inputRegEx
-            }
-            console.log(deckQuery)
-            deck.find(deckQuery, function(err,res){
-                if (err){console.log(err)}
-                //console.log(res)
+            deck.collection.createIndex( { _commander: "text" } )
+            deck.find(
+                {_server: receivedMessage.guild.id,
+                    '$text':{'$search': input}
+                }, 
+                function(err,res){
+                    if (err){console.log(err)}
+                    resolve(res)
             })
         })
     }
