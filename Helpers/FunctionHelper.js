@@ -100,13 +100,14 @@ exampleDictionary =
     should be used to check your current configurations for your server. To see more information about what configurations there are and their users, type !help setconfig\n\n\
     Example usage: !getconfig",
 
-    decks: "Use this function to list all decks on this server. This command will organize by color and then alphabetize all decks. You can also search by 1, 2, 3 or 4-color pairings. Check out the examples below. Use this function before you set your deck with !use <Deck Name>\n\n\
+    decks: "Use this function to list all decks on this server. This command will organize by color and then alphabetize all decks.\
+    You can also search by 1, 2, 3 or 4-color pairings. Lastly, you can search the list of decks by commander. Use this function before you set your deck with !use <Deck Name>\n\n\
     Example usage: \n\
     !decks\n\
-    !decks azorious\n\
     !decks sansred\n\
     !decks bant\n\
-    !decks white",
+    !decks tymna \n\
+    !decks thrasios / kraum",
     deckstats: "Use this function to find information about a decks statistics on this server. Add the 'all' modifier to any query to find information across all seasons. This is a versatile command that accepts many inputs. You can look up deck statistics for a server, for a season, for a deck and for a user\n\n\
     Generic usage:\n\
     !deckstats - lists overall deck information for this season in this server\n\
