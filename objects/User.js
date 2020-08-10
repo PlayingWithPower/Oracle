@@ -312,7 +312,18 @@ module.exports = {
                         })
                     }
                     else{
-                        resolve("Not a registered deck")
+                       Deck.find(
+                           {_server: receivedMessage.guild.id,
+                            '$text':{'$search': args.join(' ')}
+                        },
+                        function(err,res){
+                            if (res.length > 0){
+                                resolve(res)
+                            }
+                            else{
+                                resolve("Not a registered deck")
+                            }
+                        })
                     }
                 })
             }

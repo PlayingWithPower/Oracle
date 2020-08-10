@@ -46,11 +46,9 @@ client.on('ready', (on) =>{
     //         console.log(` - ${channel.name} ${channel.type} ${channel.id}`)
     //     })
     // })
-    // client.user.setUsername("PWP Bot"); 
 })
 client.on("guildCreate", (guild) => {
     deckObj.setUpPopulate(guild.id)
-    //let channel = client.channels.get(guild.systemChannelID || channelID);
     let defaultChannel = "";
     guild.channels.cache.forEach((channel) => {
     if(channel.type == "text" && defaultChannel == "") {
@@ -158,7 +156,7 @@ async function processCommand(receivedMessage){
             getDisputed(receivedMessage)
             break;
         case "use":
-            use(receivedMessage, arguments)
+            use(receivedMessage, arguments, rawArguments)
             break;
         case "decks":
             listDecks(receivedMessage, arguments)
@@ -866,6 +864,13 @@ async function deckinfo(receivedMessage, args, rawArgs){
             generalChannel.send(resultEmbed)
         }
         else{
+            if (returnArr[1].length == 0){
+                const noRes = new Discord.MessageEmbed()
+                .setColor(messageColorRed)
+                .setDescription("You typed: '" + rawArgs.join(' ') + "' I didn't find any results for that query. Try changing your wording and searching again")
+                generalChannel.send(noRes)
+                return
+            }
             const closeToResEmbed = new Discord.MessageEmbed()
                 .setColor(messageColorBlue)
                 .setDescription("You typed: '" + rawArgs.join(' ') + "' I didn't quite understand that. Did you mean to type any of the following?\
@@ -1086,7 +1091,7 @@ async function deckStats(receivedMessage, args){
         Proper format: !deckstats | <Season Name>")
         generalChannel.send(errorMsg)
     }
-    else{
+    else if (returnArr == "Can't find deck"){
         deckStatsEmbed
         .setColor(messageColorRed) //red
         .setDescription("No games have been logged with that name in that season. \n\
@@ -1097,13 +1102,27 @@ async function deckStats(receivedMessage, args){
          !deckstats @user to find information about a user's deckstats.")
         generalChannel.send(deckStatsEmbed)
     }
+    else{
+        const closeToResEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorBlue)
+            .setDescription("You typed: '" + args.join(' ') + "' I didn't quite understand the deck you inputted. Did you mean to type any of the following?\
+            The !deckstats command will give suggestions when it doesn't understand exactly what you typed")
+            .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)")
+            for (var key in returnArr) {
+                closeToResEmbed
+                .addFields(
+                    {name: returnArr[key]._name, value: returnArr[key]._commander}
+                )
+            }
+        generalChannel.send(closeToResEmbed)
+    }
 }
 /**
  * use()
  * @param {*} receivedMessage 
  * @param {*} args 
  */
-async function use(receivedMessage, args){
+async function use(receivedMessage, args, rawArgs){
     let generalChannel = getChannelID(receivedMessage)
     let returnArr = await userObj.useDeck(receivedMessage, args)
     if (returnArr == "Success"){
@@ -1117,7 +1136,7 @@ async function use(receivedMessage, args){
     else if (returnArr == "Not a registered deck"){
         const notRegisteredEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
-        .setAuthor("Not a registered deck")
+        .setAuthor("No suggestions on your input could be made. Please try again")
         .setDescription("Type !decks to see a list of available decks")
         generalChannel.send(notRegisteredEmbed)
     }
@@ -1135,6 +1154,20 @@ async function use(receivedMessage, args){
         .setDescription("Type !use <Deck Name> or !use <Deck Name> | Rogue")
         .setFooter("Type !help or !decks to learn more about 'Rogue'")
         generalChannel.send(badInputEmbed)
+    }
+    else{
+        const closeToResEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorBlue)
+            .setDescription("You typed: '" + rawArgs.join(' ') + "' I didn't quite understand that. Did you mean to type any of the following?\
+            The !use command will give suggestions when it doesn't understand exactly what you typed")
+            .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)")
+            for (var key in returnArr) {
+                closeToResEmbed
+                .addFields(
+                    {name: returnArr[key]._name, value: returnArr[key]._commander}
+                )
+            }
+        generalChannel.send(closeToResEmbed)
     }
 }
 /**

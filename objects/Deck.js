@@ -188,7 +188,18 @@ module.exports = {
                         resolve(passedArray)
                     }
                     else{
-                        resolve("Can't find deck")
+                        Deck.find(
+                            {_server: receivedMessage.guild.id,
+                             '$text':{'$search': args}
+                         },
+                         function(err,res){
+                             if (res.length > 0){
+                                resolve(res)
+                             }
+                             else{
+                                resolve("Can't find deck")
+                             }
+                         })
                     }
                 })
             })
@@ -420,7 +431,18 @@ module.exports = {
                         resolve(passedArray)
                     }
                     else{
-                        resolve("Can't find deck")
+                        Deck.find(
+                            {_server: receivedMessage.guild.id,
+                             '$text':{'$search': args}
+                         },
+                         function(err,res){
+                             if (res.length > 0){
+                                resolve(res)
+                             }
+                             else{
+                                resolve("Can't find deck")
+                             }
+                         })
                     }
                 })
             })
