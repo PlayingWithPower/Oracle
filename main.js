@@ -799,7 +799,7 @@ async function top(receivedMessage, args){
             else{
                 resultsMsg
                 .addFields(
-                    { name: "Username", value: "<@!"+sortedResults[i][0]+">",inline: true},
+                    { name: "Username", value: "<@"+sortedResults[i][0]+">",inline: true},
                     { name: "Winrate", value: sortedResults[i][1] + "%", inline: true},
                     { name: "Elo", value: sortedResults[i][2] , inline: true},
                 )
@@ -1567,7 +1567,7 @@ async function profile(receivedMessage, args){
         const profileEmbed = new Discord.MessageEmbed()
         .setColor(messageColorBlue)
         .addFields(
-            { name: 'User', value: "<@!"+returnArr[2]+">", inline: true },
+            { name: 'User', value: "<@"+returnArr[2]+">", inline: true },
             { name: 'Current Deck', value: returnArr[4], inline: true },
             { name: 'Current Rating', value: 1000, inline: true },
         )
@@ -1590,7 +1590,7 @@ async function profile(receivedMessage, args){
         .setColor(messageColorBlue)
         .setFooter("Showing information about the current season. Season name: " + returnArr[2] +". \nNote: 'Overall winrate' includes the games that are under the server's set threshold")
         .addFields(
-            { name: 'User', value: "<@!"+returnArr[3]+">", inline: true },
+            { name: 'User', value: "<@"+returnArr[3]+">", inline: true },
             { name: 'Current Deck', value: returnArr[5], inline: true },
             { name: 'Current Rating', value: elo, inline: true },
             { name: 'Favorite Deck', value: favDeck, inline: true },
