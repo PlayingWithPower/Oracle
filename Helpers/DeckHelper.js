@@ -29,9 +29,14 @@ module.exports = {
             )
         }
         else{
-            someEmbed.addFields(
-                { name: " \u200b", value: colorArr}
-            )
+            var holder = new String()
+            colorArr.forEach(entry => {
+                holder = holder + entry + " \n"
+            })
+            // someEmbed.addFields(
+            //     { name: " \u200b", value: colorArr}
+            // )
+            someEmbed.setDescription(holder)
             // for(i = 0; i < colorArr.length; i++){
             //     someEmbed.addFields(
             //         { name: " \u200b",value: colorArr[i], inline: true},

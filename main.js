@@ -793,11 +793,14 @@ async function top(receivedMessage, args){
         resultsMsg
              .setColor(messageColorBlue)
              .setAuthor("Displaying Top Players for the season name: " + args.join(' '))
+        var holder = new String();
         for (var i = 0; i < sortedResults.length; i++){
             if (sortedResults[i][3] < threshold){ }
             else if (i > 7){ }
             else{
+                //holder = holder + "<@"+sortedResults[i][0]+">\n" + sortedResults[i][1] + "%" + sortedResults[i][2] + "\n"
                 resultsMsg
+                // .setDescription(holder)
                 .addFields(
                     { name: "Username", value: "<@"+sortedResults[i][0]+">",inline: true},
                     { name: "Winrate", value: sortedResults[i][1] + "%", inline: true},
@@ -1105,7 +1108,7 @@ async function deckStats(receivedMessage, args){
     else{
         const closeToResEmbed = new Discord.MessageEmbed()
             .setColor(messageColorBlue)
-            .setDescription("You typed: '" + args.join(' ') + "' I didn't quite understand the deck you inputted. Did you mean to type any of the following?\
+            .setDescription("You typed: '" + args.join(' ') + "' I didn't quite understand the deck you inputted. Did you mean to type any of the following?\n\
             The !deckstats command will give suggestions when it doesn't understand exactly what you typed")
             .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)")
             for (var key in returnArr) {
@@ -1366,13 +1369,13 @@ async function listDecks(receivedMessage, args){
                 Please refine your search and try again.")
                 .setFooter("Searching for partners? Type either name or search for both by separating them with a '/'. Ex: !decks tymna / thrasios")
                 generalChannel.send(noResEmbed)
-                return
             }
+            else{
                 const newEmbed = new Discord.MessageEmbed()
-                    .setColor(messageColorBlue)
-                    .setDescription("Displaying decks searching with the key word(s): '" + args.join(' ') + "'\n\
-                    Displaying: " + commanderRes.length + " results")
-                    .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)")
+                .setColor(messageColorBlue)
+                .setDescription("Displaying decks searching with the key word(s): '" + args.join(' ') + "'\n\
+                Displaying: " + commanderRes.length + " results")
+                .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)")
                 for (var key in commanderRes) {
                     newEmbed
                     .addFields(
@@ -1380,7 +1383,7 @@ async function listDecks(receivedMessage, args){
                     )
                 }
                 generalChannel.send(newEmbed)
-                return
+            }
         } 
     }
     let returnArr = await deckObj.listDecks(receivedMessage, "no")
@@ -1440,7 +1443,11 @@ async function listDecks(receivedMessage, args){
  */
 async function addDeck(receivedMessage, args){
     let generalChannel = getChannelID(receivedMessage)
-    
+    let nicknameArr = args.slice(0,args.indexOf("|"))
+    let deckNickname = ""
+    nicknameArr.forEach((entry) =>{
+        deckNickname = deckNickname + entry + " "
+    })
     let argsWithCommas = args.toString()
     let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
     let splitArgs = argsWithSpaces.split(" | ")
@@ -1451,7 +1458,7 @@ async function addDeck(receivedMessage, args){
             .setFooter("If you don't have a Deck or Discord Link, type 'no link' in those slots")
 
     if (splitArgs.length == 9){
-        let deckNick = splitArgs[0]
+        deckNick = deckNickname
         let commanderName = splitArgs[1]
         let colorIdentity = splitArgs[2].toLowerCase()
         let deckLink = splitArgs[3]
@@ -1460,7 +1467,6 @@ async function addDeck(receivedMessage, args){
         let deckType = splitArgs[6]
         let hasPrimer = splitArgs[7]
         let discordLink = splitArgs[8]
-
         commanderName = commanderName.replace(/  /g, ', ')
 
         if((hasPrimer.toLowerCase() != "yes") && (hasPrimer.toLowerCase() !="no")){

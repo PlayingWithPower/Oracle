@@ -743,7 +743,11 @@ module.exports = {
         let hasPrimer = newDeckArr[7]
         let discordLink = newDeckArr[8]
 
-        deckNick = DeckHelper.toUpper(deckNick)
+        try{
+            deckNick = DeckHelper.toUpper(deckNick)
+        }catch{
+            
+        }
         colorIdentity = colorIdentity.toUpperCase()
         colorIdentity = colorIdentity.split('').join(', ')
         commanderName = DeckHelper.toUpper(commanderName)
