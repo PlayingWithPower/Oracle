@@ -209,17 +209,6 @@ module.exports = {
         })
 
     },
-    /** 
-     * Lists your deck collection
-    */
-    listCollection(receivedMessage, args, callback){
-        const user = require('../Schema/Users')
-        let query = {_name: receivedMessage.author.id}
-        user.findOne(query, function(err, res){
-            callback(res)
-        })
-    },
-    
     /**
      * Returns currently registered Deck name
      */
@@ -312,6 +301,12 @@ module.exports = {
                         })
                     }
                     else{
+                        // Deck.collection.createIndex(
+                        //     {
+                        //       _name: "text",
+                        //       _commander: "text"
+                        //     }
+                        //   )
                        Deck.find(
                            {_server: receivedMessage.guild.id,
                             '$text':{'$search': args.join(' ')}
