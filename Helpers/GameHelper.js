@@ -1,5 +1,6 @@
 const User = require('../Schema/Users')
 const Matches = require('../Schema/Games')
+const Deck = require('../Schema/Deck')
 
 module.exports = {
     async checkRegister(mentionValue, receivedMessage){
@@ -22,10 +23,19 @@ module.exports = {
         return new Promise((resolve, reject)=>{
             var found = 0
             var notFound = 1
+            var invalidDeckSet = 2
             let findQuery = {_mentionValue: mentionValue[0], _server: mentionValue[1].guild.id}
             User.findOne(findQuery, function(err, res){
                 if (res._currentDeck != "None") {
-                    resolve(found)
+                    let deckQuery = {_server: mentionValue[1].guild.id, _name: res._currentDeck}
+                    Deck.find(deckQuery, function (err,res){
+                            if (res.length > 0){
+                                resolve(found)
+                            }
+                            else{
+                                resolve(invalidDeckSet)
+                            }
+                        })
                     }
                 else{
                     resolve(notFound)

@@ -1728,6 +1728,16 @@ async function startMatch(receivedMessage, args){
                     generalChannel.send(someMsg)
                     someDeckNotSet = true
                 }
+                if (results[i] == 2){
+                    const someMsg = new Discord.MessageEmbed()
+                    .setColor(messageColorRed)
+                    .setAuthor("Deck now Invalid")
+                    .setDescription("<@"+mentionValues[i][0]+">" + " Looks like you're using a deck that was deleted from the server\n\
+                    Please set a new deck by typing: !use <Deck Name>\n\
+                    To get a list of decks, type: !decks")
+                    generalChannel.send(someMsg)
+                    someDeckNotSet = true
+                }
             }
         }).then(()=>{
             if (someDeckNotSet){ return }
