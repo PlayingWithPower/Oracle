@@ -1120,50 +1120,59 @@ async function deckStats(receivedMessage, args){
  */
 async function use(receivedMessage, args, rawArgs){
     let generalChannel = getChannelID(receivedMessage)
-    let returnArr = await userObj.useDeck(receivedMessage, args)
-    if (returnArr == "Success"){
-        const successEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorGreen)
-        .setAuthor("Success")
-        .setDescription("Successfully set <@!" + receivedMessage.author.id + ">'s deck to: " + DeckHelper.toUpper(args.join(' ')))
-        .setFooter("You’ve now set your deck for this server\nStart logging games with the !log command\nType !help log for more information")
-        generalChannel.send(successEmbed)
-    }
-    else if (returnArr == "Not a registered deck"){
-        const notRegisteredEmbed = new Discord.MessageEmbed()
+    if (args.length == 0){
+        const noLengthEmbed = new Discord.MessageEmbed()
         .setColor(messageColorRed)
-        .setAuthor("No suggestions on your input could be made. Please try again")
-        .setDescription("Type !decks to see a list of available decks")
-        generalChannel.send(notRegisteredEmbed)
-    }
-    else if (returnArr == "Can't find user"){
-        const noUserEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorRed)
-        .setAuthor("You are not registered")
-        .setDescription("Make sure to type !register before trying to use a deck")
-        generalChannel.send(noUserEmbed)
-    }
-    else if (returnArr == "Too many args"){
-        const badInputEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorRed)
-        .setAuthor("Improper input")
-        .setDescription("Type !use <Deck Name> or !use <Deck Name> | Rogue")
-        .setFooter("Type !help or !decks to learn more about 'Rogue'")
-        generalChannel.send(badInputEmbed)
+        .setDescription("You have entered no arguments to this command. Please type !use <Deck Name> to set your deck\n\
+        Type !help use for more information")
+        generalChannel.send(noLengthEmbed)
     }
     else{
-        const closeToResEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorBlue)
-            .setDescription("You typed: '" + rawArgs.join(' ') + "' I didn't quite understand that. Did you mean to type any of the following?\
-            The !use command will give suggestions when it doesn't understand exactly what you typed")
-            .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)")
-            for (var key in returnArr) {
-                closeToResEmbed
-                .addFields(
-                    {name: returnArr[key]._name, value: returnArr[key]._commander}
-                )
-            }
-        generalChannel.send(closeToResEmbed)
+        let returnArr = await userObj.useDeck(receivedMessage, args)
+        if (returnArr == "Success"){
+            const successEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorGreen)
+            .setAuthor("Success")
+            .setDescription("Successfully set <@!" + receivedMessage.author.id + ">'s deck to: " + DeckHelper.toUpper(args.join(' ')))
+            .setFooter("You’ve now set your deck for this server\nStart logging games with the !log command\nType !help log for more information")
+            generalChannel.send(successEmbed)
+        }
+        else if (returnArr == "Not a registered deck"){
+            const notRegisteredEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("No suggestions on your input could be made. Please try again")
+            .setDescription("Type !decks to see a list of available decks")
+            generalChannel.send(notRegisteredEmbed)
+        }
+        else if (returnArr == "Can't find user"){
+            const noUserEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("You are not registered")
+            .setDescription("Make sure to type !register before trying to use a deck")
+            generalChannel.send(noUserEmbed)
+        }
+        else if (returnArr == "Too many args"){
+            const badInputEmbed = new Discord.MessageEmbed()
+            .setColor(messageColorRed)
+            .setAuthor("Improper input")
+            .setDescription("Type !use <Deck Name> or !use <Deck Name> | Rogue")
+            .setFooter("Type !help or !decks to learn more about 'Rogue'")
+            generalChannel.send(badInputEmbed)
+        }
+        else{
+            const closeToResEmbed = new Discord.MessageEmbed()
+                .setColor(messageColorBlue)
+                .setDescription("You typed: '" + rawArgs.join(' ') + "' I didn't quite understand that. Did you mean to type any of the following?\
+                The !use command will give suggestions when it doesn't understand exactly what you typed")
+                .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)")
+                for (var key in returnArr) {
+                    closeToResEmbed
+                    .addFields(
+                        {name: returnArr[key]._name, value: returnArr[key]._commander}
+                    )
+                }
+            generalChannel.send(closeToResEmbed)
+        }
     }
 }
 /**
