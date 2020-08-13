@@ -300,12 +300,12 @@ module.exports = {
                         })
                     }
                     else{
-                        Deck.collection.createIndex(
-                            {
-                              _name: "text",
-                              _commander: "text"
-                            }
-                          )
+                        // Deck.collection.createIndex(
+                        //     {
+                        //       _name: "text",
+                        //       _commander: "text"
+                        //     }
+                        //   )
                        Deck.find(
                            {_server: receivedMessage.guild.id,
                             '$text':{'$search': args.join(' ')}
