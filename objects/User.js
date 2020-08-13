@@ -322,7 +322,6 @@ module.exports = {
                     }
                 })
             }
-
         })
     }   
 }
