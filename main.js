@@ -31,9 +31,7 @@ const messageColorBlue = "#0099ff"
 
 //MongoDB Connection
 const moongoose = require('mongoose');
-
 client.login(config.discordKey)
-
 moongoose.connect(config.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 
 client.on('ready', (on) =>{
@@ -80,13 +78,7 @@ client.on('message', (receivedMessage) =>{
         )
         receivedMessage.channel.send(spellTableEmbed)
     }
-    else{
-        let currentChannel =  client.channels.cache.get()
-    }
 })
-/**
- * TODO: 
- */
 client.on('messageReactionAdd', (reaction, user) => {
     if (reaction.message.author.id == config.clientID){
         ManageReactHelper.manageReaction(reaction, user, client.channels.cache.get(reaction.message.channel.id))
@@ -1040,7 +1032,8 @@ async function deckStats(receivedMessage, args){
         .setColor(messageColorBlue)
         .setTitle("Deck Stats")
         .setDescription("For user: "+ "<@!"+returnArr[1]+">"+ "\n\
-        For Season Name: " + returnArr[4])
+        For Season Name: " + returnArr[4] + "\n\
+        Looking for more info? Add ' | <Season Name> ' or ' | all ' to your query to find more information")
         .setFooter("Looking for detailed deck breakdown? Try !profile @user to see exactly what decks this user plays.")
         .addFields(
             { name: 'Wins', value: returnArr[2], inline: true},

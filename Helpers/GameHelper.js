@@ -27,15 +27,20 @@ module.exports = {
             let findQuery = {_mentionValue: mentionValue[0], _server: mentionValue[1].guild.id}
             User.findOne(findQuery, function(err, res){
                 if (res._currentDeck != "None") {
-                    let deckQuery = {_server: mentionValue[1].guild.id, _name: res._currentDeck}
-                    Deck.find(deckQuery, function (err,res){
-                            if (res.length > 0){
-                                resolve(found)
-                            }
-                            else{
-                                resolve(invalidDeckSet)
-                            }
-                        })
+                    if (res._currentDeck.slice(-8) == " | Rogue"){
+                        resolve(found)
+                    }
+                    else{
+                        let deckQuery = {_server: mentionValue[1].guild.id, _name: res._currentDeck}
+                        Deck.find(deckQuery, function (err,res){
+                                if (res.length > 0){
+                                    resolve(found)
+                                }
+                                else{
+                                    resolve(invalidDeckSet)
+                                }
+                            })
+                        }
                     }
                 else{
                     resolve(notFound)

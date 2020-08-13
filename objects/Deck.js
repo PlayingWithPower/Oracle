@@ -745,9 +745,7 @@ module.exports = {
 
         try{
             deckNick = DeckHelper.toUpper(deckNick)
-        }catch{
-            
-        }
+        }catch{ }
         colorIdentity = colorIdentity.toUpperCase()
         colorIdentity = colorIdentity.split('').join(', ')
         commanderName = DeckHelper.toUpper(commanderName)
