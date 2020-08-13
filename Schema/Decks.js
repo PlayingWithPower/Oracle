@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-var deck = new mongoose.Schema({
+var decks = new mongoose.Schema({
     _link: String,
     _name: String,
     _alias: String,
@@ -14,4 +14,4 @@ var deck = new mongoose.Schema({
     _deckType: String,
     _hasPrimer: Boolean
 });
-module.exports = mongoose.model('Decks', deck);
+module.exports = mongoose.model('Decks', decks);

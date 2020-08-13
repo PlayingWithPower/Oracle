@@ -1,6 +1,6 @@
 const User = require('../Schema/Users')
 const Matches = require('../Schema/Games')
-const Deck = require('../Schema/Deck')
+const Deck = require('../Schema/Decks')
 
 module.exports = {
     async checkRegister(mentionValue, receivedMessage){

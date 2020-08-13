@@ -1,4 +1,4 @@
-const Deck = require('../Schema/Deck')
+const Deck = require('../Schema/Decks')
 const DeckHelper = require('../Helpers/DeckHelper')
 const SeasonHelper = require('../Helpers/SeasonHelper')
 
@@ -13,7 +13,7 @@ module.exports = {
      * Returns a list of all Deck Aliases registered to the server
      */
     async listDecks(receivedMessage, colorSpecified) {
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         if (colorSpecified == "no"){
             return new Promise((resolve, reject) =>{
                 deck.find({_server: receivedMessage.guild.id},function(err, res){
@@ -60,7 +60,7 @@ module.exports = {
         catch{
             args = ""
         }
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         var promiseRes = new Array()
 
         let deckQuery = {_alias: args, _server: receivedMessage.guild.id}
@@ -453,7 +453,7 @@ module.exports = {
      * Updates the Primer of a Deck
      */
     updatePrimer(newPrimerMessage, oldID){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         const DeckHelper = require('../Helpers/DeckHelper')
         let promiseArr = new Array();
         let deckQuery = {_id: oldID}
@@ -490,7 +490,7 @@ module.exports = {
      * Updates the Type of a Deck
      */
     updateType(newAuthorMessage, oldID){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         const DeckHelper = require('../Helpers/DeckHelper')
         let promiseArr = new Array();
         let deckQuery = {_id: oldID}
@@ -521,7 +521,7 @@ module.exports = {
      * Updates the author of a Deck
      */
     updateAuthor(newAuthorMessage, oldID){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
 
         let promiseArr = new Array();
         let deckQuery = {_id: oldID}
@@ -554,7 +554,7 @@ module.exports = {
      * Updates the description of a Deck
      */
     updateDescription(newDescriptionMessage, oldID){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
 
         let promiseArr = new Array();
         let deckQuery = {_id: oldID}
@@ -583,7 +583,7 @@ module.exports = {
      * Updates the color of a Deck
      */
     updateColors(newColorMessage, oldID){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
 
         let promiseArr = new Array();
         let deckQuery = {_id: oldID}
@@ -627,7 +627,7 @@ module.exports = {
      * Updates the Commander of a Deck
      */
     updateCommander(newNameMessage, oldID){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         const DeckHelper = require('../Helpers/DeckHelper')
 
         let promiseArr = new Array();
@@ -661,7 +661,7 @@ module.exports = {
      * Updates the URL of a deck
      */
     updateDeckList(newURLMessage, oldNameID){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
 
         let checkingArr = new Array();
 
@@ -695,7 +695,7 @@ module.exports = {
      * Updates the URL of a deck
      */
     updateDiscordLink(newURLMessage, oldNameID){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
 
         let checkingArr = new Array();
 
@@ -729,7 +729,7 @@ module.exports = {
      * Adds a new User deck to the server.
      */
     addDeck(receivedMessage, newDeckArr) {
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         const alias = require('../Schema/Alias')
         const DeckHelper = require('../Helpers/DeckHelper')
         let deckNick = newDeckArr[0]
@@ -786,7 +786,7 @@ module.exports = {
      * Takes located deck and deletes it
     */
     removeDeck(args){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         argsFiltered = args.slice(9)
 
         let deckQuery = {_id: argsFiltered}
@@ -803,7 +803,7 @@ module.exports = {
     },
     setUpPopulate(guild){
         const data = require('../data/decklists.json');
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         const alias = require('../Schema/Alias')
         data.forEach(decks =>{
             if (decks[0] == "Y"){

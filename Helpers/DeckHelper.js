@@ -63,7 +63,7 @@ module.exports = {
      * Helper Function to the two below updateDeckName() and updateDeckList()
      */
     findDeckToUpdate(receivedMessage, args){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         args = args.join(' ')
         let lowerArgs = args.toString().toLowerCase()
         let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
@@ -82,7 +82,7 @@ module.exports = {
      * Locates the deck to remove. Then waits for user reaction
      */
     findDeckToRemove(receivedMessage, args){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         args = args.join(' ')
         let lowerArgs = args.toString().toLowerCase()
         let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
@@ -98,7 +98,7 @@ module.exports = {
         })
     },
     addDeckHelper(message, args){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         const alias = require('../Schema/Alias')
         let primerBool
         if (args[7].value == "False"){
@@ -197,7 +197,7 @@ module.exports = {
         }
     },
     async commanderChecker(input, receivedMessage){
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         return new Promise((resolve, reject)=>{
             input = module.exports.toUpper(input)
             deck.find(

@@ -5,12 +5,11 @@
  */
 
 const Alias = require('../Schema/Alias')
-const Deck = require('../Schema/Deck')
+const Deck = require('../Schema/Decks')
 const User = require('../Schema/Users')
 const Matches = require('../Schema/Games')
 const DeckHelper = require('../Helpers/DeckHelper')
 const SeasonHelper = require('../Helpers/SeasonHelper')
-const { lookup } = require('dns')
 
 module.exports = {
 
@@ -214,7 +213,7 @@ module.exports = {
      */
     currentDeck(receivedMessage, args, callback) {
         const user = require('../Schema/Users')
-        const deck = require('../Schema/Deck')
+        const deck = require('../Schema/Decks')
         const alias = require('../Schema/Alias')
         const callBackArray = new Array()
 
@@ -301,12 +300,12 @@ module.exports = {
                         })
                     }
                     else{
-                        // Deck.collection.createIndex(
-                        //     {
-                        //       _name: "text",
-                        //       _commander: "text"
-                        //     }
-                        //   )
+                        Deck.collection.createIndex(
+                            {
+                              _name: "text",
+                              _commander: "text"
+                            }
+                          )
                        Deck.find(
                            {_server: receivedMessage.guild.id,
                             '$text':{'$search': args.join(' ')}

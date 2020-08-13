@@ -495,7 +495,7 @@ module.exports = {
         return new Promise((resolve, reject)=>{
             matches.findOne(findQuery, function(err, res){
                 if (res){
-                    if (res._Status == "STARTED"){
+                    if (res._Status === "STARTED" || res._Status === "CLOSED"){
                         let toUpdate = {$set:{_Status: "FINISHED"}}
                         matches.updateOne(findQuery, toUpdate, function(err,res){
                             if (res){ resolve("Success")}
@@ -511,5 +511,6 @@ module.exports = {
             })
         })
         
-    }
+    },
+
 }
