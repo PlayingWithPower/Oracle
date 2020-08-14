@@ -46,39 +46,39 @@ module.exports = {
         channel.send(welcomeEmbed);
     },
     async forceAccept(receivedMessage, args){
-        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage)
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
 
-        if (args.length == 1){
-            let returnArr= await bootstrap.gameObj.forceAccept(args, receivedMessage.guild.id)
-            if (returnArr == "Success"){
+        if (args.length === 1){
+            let returnArr= await bootstrap.GameObj.forceAccept(args, receivedMessage.guild.id);
+            if (returnArr === "Success"){
                 const successEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorGreen)
                     .setAuthor("Match accepted")
                     .setDescription("The match you have entered is now accepted\n\
-            Use !pending to find other pending matches")
+            Use !pending to find other pending matches");
                 generalChannel.send(successEmbed)
             }
-            else if (returnArr == "Error"){
+            else if (returnArr === "Error"){
                 const invalidInputEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Unable to update match")
-                    .setDescription("Please try again")
+                    .setDescription("Please try again");
                 generalChannel.send(invalidInputEmbed)
             }
-            else if (returnArr == "Match is already accepted"){
+            else if (returnArr === "Match is already accepted"){
                 const invalidInputEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Match already accepted")
                     .setDescription("The match you have entered is already accepted\n\
-            Use !delete <Match ID> to delete a match")
+            Use !delete <Match ID> to delete a match");
                 generalChannel.send(invalidInputEmbed)
             }
-            else if (returnArr == "Can't find match"){
+            else if (returnArr === "Can't find match"){
                 const invalidInputEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Can't find match")
                     .setDescription("You have entered an invalid match ID\n\
-            Check !help acceptmatch for more information")
+            Check !help acceptmatch for more information");
                 generalChannel.send(invalidInputEmbed)
             }
         }
@@ -87,32 +87,32 @@ module.exports = {
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Incorrect Input")
                 .setDescription("Please type !acceptmatch <Match ID>\n\
-        Check !help acceptmatch for more information")
+        Check !help acceptmatch for more information");
             generalChannel.send(invalidInputEmbed)
         }
 
     },
     async getDisputed(receivedMessage){
-        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage)
-        let returnArr = await bootstrap.gameObj.getPending(receivedMessage.guild.id, "Disputed")
-        if (returnArr == "No Pending"){
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        let returnArr = await bootstrap.GameObj.getPending(receivedMessage.guild.id, "Disputed");
+        if (returnArr === "No Pending"){
             const noPendingEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
-                .setAuthor("There are no disputed matches")
+                .setAuthor("There are no disputed matches");
             generalChannel.send(noPendingEmbed)
         }
-        else if(returnArr == "No Matches"){
+        else if(returnArr === "No Matches"){
             const noMatchesEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("No matches have been logged this season")
-                .setDescription("Log matches with !log @loser1 @loser2 @loser3")
+                .setDescription("Log matches with !log @loser1 @loser2 @loser3");
             generalChannel.send(noMatchesEmbed)
         }
         else{
             const overallEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
-                .setAuthor("Displaying Disputed Matches")
-            generalChannel.send(overallEmbed)
+                .setAuthor("Displaying Disputed Matches");
+            generalChannel.send(overallEmbed);
             returnArr.forEach((pendingMatch)=>{
                 const matchEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorBlue)
@@ -129,33 +129,33 @@ module.exports = {
                         {name: "\u200b", value: " \u200b"},
                         {name: "Player 4", value: "<@"+pendingMatch._player4+">", inline: true},
                         {name: "Piloting", value: pendingMatch._player4Deck, inline: true},
-                    )
+                    );
                 generalChannel.send(matchEmbed)
             })
         }
     },
     async getPending(receivedMessage){
-        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage)
-        let returnArr = await bootstrap.gameObj.getPending(receivedMessage.guild.id)
-        if (returnArr == "No Pending"){
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        let returnArr = await bootstrap.GameObj.getPending(receivedMessage.guild.id);
+        if (returnArr === "No Pending"){
             const noPendingEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
-                .setAuthor("There are no pending matches")
+                .setAuthor("There are no pending matches");
             generalChannel.send(noPendingEmbed)
         }
-        else if(returnArr == "No Matches"){
+        else if(returnArr === "No Matches"){
             const noMatchesEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("No matches have been logged this season")
-                .setDescription("Log matches with !log @loser1 @loser2 @loser3")
+                .setDescription("Log matches with !log @loser1 @loser2 @loser3");
             generalChannel.send(noMatchesEmbed)
         }
         else{
             const overallEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
                 .setAuthor("Displaying Pending Matches")
-                .setFooter("'Player 1' is the logged winner of each pending match")
-            generalChannel.send(overallEmbed)
+                .setFooter("'Player 1' is the logged winner of each pending match");
+            generalChannel.send(overallEmbed);
             returnArr.forEach((pendingMatch)=>{
                 const matchEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorBlue)
@@ -172,17 +172,17 @@ module.exports = {
                         {name: "\u200b", value: " \u200b"},
                         {name: "Player 4", value: "<@"+pendingMatch._player4+">", inline: true},
                         {name: "Piloting", value: pendingMatch._player4Deck, inline: true},
-                    )
+                    );
                 generalChannel.send(matchEmbed)
             })
         }
     },
     async configGet(receivedMessage){
-        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage)
-        let returnArr = await bootstrap.leagueObj.configGet(receivedMessage.guild.id)
-        if (returnArr != "No configs"){
-            var adminPrivs = returnArr._admin
-            if (returnArr._admin == ""){
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        let returnArr = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id);
+        if (returnArr !== "No configs"){
+            let adminPrivs = returnArr._admin;
+            if (returnArr._admin === ""){
                 adminPrivs = "\u200b"
             }
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
@@ -194,21 +194,21 @@ module.exports = {
                     {name: "Timeout (in minutes)", value: returnArr._timeout},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
-                .setFooter("Want to edit these values? Use !setconfig")
+                .setFooter("Want to edit these values? Use !setconfig");
             generalChannel.send(updatedEmbed)
         }
         else{
             const noConfigEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("No current information about your configurations")
-                .setDescription("Configurations are automatically generated when I join your server.")
+                .setDescription("Configurations are automatically generated when I join your server.");
             generalChannel.send(noConfigEmbed)
         }
     },
     async configSet(receivedMessage, args){
-        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage)
-        let returnArr = await bootstrap.leagueObj.configSet(receivedMessage, args)
-        if (returnArr == "Invalid Input"){
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        let returnArr = await bootstrap.LeagueObj.configSet(receivedMessage, args);
+        if (returnArr === "Invalid Input"){
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Incorrect Input")
@@ -220,113 +220,113 @@ module.exports = {
         'Timeout (**Minutes**, less than 60)' \n\
         'Admin' (A list of **Discord Roles** seperated by commas)\n\n\
         Confused on what these mean? Try !help setconfig")
-                .setFooter("A default set of configuration values are set for every server. Updating these configs is to fine tune your experience")
+                .setFooter("A default set of configuration values are set for every server. Updating these configs is to fine tune your experience");
             generalChannel.send(errorEmbed)
         }
-        else if (returnArr == "Error"){
+        else if (returnArr === "Error"){
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Error")
-                .setDescription("An Error has occurred, please try again")
+                .setDescription("An Error has occurred, please try again");
             generalChannel.send(errorEmbed)
         }
-        else if (returnArr[0] == "Updated"){
-            var commandType = returnArr[1]
-            commandType = bootstrap.DeckHelper.toUpper(commandType)
+        else if (returnArr[0] === "Updated"){
+            let commandType = returnArr[1]
+            commandType = bootstrap.DeckHelper.toUpper(commandType);
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
                 .setAuthor("Succesfully updated your configs")
                 .setDescription("You have updated the configuration:\n\
-         **" + commandType + "** to **" + returnArr[2] + "**")
+         **" + commandType + "** to **" + returnArr[2] + "**");
             generalChannel.send(updatedEmbed)
         }
-        else if (returnArr[0] == "New Save"){
-            var commandType = returnArr[1]
-            commandType = bootstrap.DeckHelper.toUpper(commandType)
+        else if (returnArr[0] === "New Save"){
+            let commandType = returnArr[1]
+            commandType = bootstrap.DeckHelper.toUpper(commandType);
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
                 .setAuthor("Created a new set of configs for this rver")
                 .setDescription("You have set the configuration:\n\
          **" + commandType + "** to **" + returnArr[2] + "**\n\
-         Your other configurations have been given default values. Check those with !getconfig")
+         Your other configurations have been given default values. Check those with !getconfig");
             generalChannel.send(updatedEmbed)
         }
     },
     async setSeasonName(receivedMessage, args){
-        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage)
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         if (args[0] === undefined){
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Please enter a new name")
                 .setDescription("Example: !setnewseason <My New Season Name>")
-                .setFooter("I will listen for case sensitivity")
+                .setFooter("I will listen for case sensitivity");
             generalChannel.send(errorEmbed)
         }
         else{
-            let returnArr = await bootstrap.seasonObj.setSeasonName(receivedMessage, args)
-            if (returnArr == "Name in use"){
+            let returnArr = await bootstrap.SeasonObj.setSeasonName(receivedMessage, args);
+            if (returnArr === "Name in use"){
                 const errorUserEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
                     .setDescription(args.join(' ')+" has already been used for a season or is currently being used for this season")
-                    .setFooter("To see all season names try !seasoninfo all")
+                    .setFooter("To see all season names try !seasoninfo all");
                 generalChannel.send(errorUserEmbed)
             }
-            else if (returnArr == "No Current"){
+            else if (returnArr === "No Current"){
                 const errorEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("There is no on-going Season")
-                    .setDescription("Please start a new season using !startseason")
+                    .setDescription("Please start a new season using !startseason");
                 generalChannel.send(errorEmbed)
             }
             else{
                 const successEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorGreen)
                     .setAuthor("Successfully updated season name!")
-                    .setDescription("Updated current season from: **" + returnArr[1] +"** to: **"+returnArr[2]+"**")
+                    .setDescription("Updated current season from: **" + returnArr[1] +"** to: **"+returnArr[2]+"**");
                 generalChannel.send(successEmbed)
             }
         }
     },
     async setEndSeason(receivedMessage, args){
-        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage)
-        if (args.length == 0){
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        if (args.length === 0){
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Please enter an end date")
                 .setDescription("Please type in the format: MM/DD/YYYY\n\
-        Type !help setendseason for more information")
-            generalChannel.send(errorEmbed)
+        Type !help setendseason for more information");
+            generalChannel.send(errorEmbed);
             return
         }
         if (args[0].length > 10){
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("You have entered a non-valid date")
-                .setDescription("Please type in the format: \nMM/DD/YYYY")
-            generalChannel.send(errorEmbed)
+                .setDescription("Please type in the format: \nMM/DD/YYYY");
+            generalChannel.send(errorEmbed);
             return
         }
 
-        if (args[0].length == 10){
-            let date = new Date(args)
-            const currentDate = new Date()
+        if (args[0].length === 10){
+            let date = new Date(args);
+            const currentDate = new Date();
             if (date instanceof Date && !isNaN(date.valueOf())) {
                 if ((currentDate >= date)){
                     const errorEmbed = new bootstrap.Discord.MessageEmbed()
                         .setColor(bootstrap.messageColorRed)
                         .setAuthor("You have entered a date from the past")
                         .setDescription("You have used a date from the past, please set the end of the season to a date in the future\n\
-                Type in the format: \nMM/DD/YYYY")
-                    generalChannel.send(errorEmbed)
+                Type in the format: \nMM/DD/YYYY");
+                    generalChannel.send(errorEmbed);
                     return
                 }
-                let returnArr = await bootstrap.seasonObj.setEndDate(receivedMessage, date)
-                if (returnArr[0] == "Success"){
+                let returnArr = await bootstrap.SeasonObj.setEndDate(receivedMessage, date);
+                if (returnArr[0] === "Success"){
                     date = date.toLocaleString("en-US", {timeZone: "America/New_York"});
                     const successEmbed = new bootstrap.Discord.MessageEmbed()
                         .setColor(bootstrap.messageColorGreen)
                         .setAuthor("You have successfully set the end date for the current Season named: " + returnArr[1])
-                        .setTitle("End time has been set to: " + date)
+                        .setTitle("End time has been set to: " + date);
                     generalChannel.send(successEmbed)
                 }
             }
@@ -335,15 +335,15 @@ module.exports = {
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("You have entered a non-valid date")
-                .setDescription("Please type in the format: \nMM/DD/YYYY")
+                .setDescription("Please type in the format: \nMM/DD/YYYY");
             generalChannel.send(errorEmbed)
         }
     },
     async seasonInfo(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         if (args[0] === undefined){
-            let returnArr = await bootstrap.seasonObj.getInfo(receivedMessage, "Current");
-            if (returnArr[0] == "No Current"){
+            let returnArr = await bootstrap.SeasonObj.getInfo(receivedMessage, "Current");
+            if (returnArr[0] === "No Current"){
                 const noSeasonEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("There is no on-going season")
@@ -362,9 +362,9 @@ module.exports = {
                 generalChannel.send(seasonInfo)
             }
         }
-        else if (args[0] == "all"){
-            let returnArr = await bootstrap.seasonObj.getInfo(receivedMessage, "all");
-            if (returnArr[0] != ""){
+        else if (args[0] === "all"){
+            let returnArr = await bootstrap.SeasonObj.getInfo(receivedMessage, "all");
+            if (returnArr[0] !== ""){
                 returnArr[0].forEach((season)=>{
                     const seasonInfo = new bootstrap.Discord.MessageEmbed()
                         .setColor(bootstrap.messageColorGreen)
@@ -385,8 +385,8 @@ module.exports = {
             }
         }
         else{
-            let returnArr = await bootstrap.seasonObj.getInfo(receivedMessage, args.join(' '));
-            if (returnArr == "Can't Find Season"){
+            let returnArr = await bootstrap.SeasonObj.getInfo(receivedMessage, args.join(' '));
+            if (returnArr === "Can't Find Season"){
                 const cantFindEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Cannot Find Specified Season: " + args.join(' ').toString())
@@ -418,7 +418,7 @@ module.exports = {
             generalChannel.send(confirmEndSeason)
         }
         else{
-            let returnArr = await bootstrap.gameObj.getPending(receivedMessage.guild.id);
+            let returnArr = await bootstrap.GameObj.getPending(receivedMessage.guild.id);
             let leftPending;
             confirmEndSeason
                 .setColor(bootstrap.messageColorBlue)
@@ -449,7 +449,7 @@ module.exports = {
     },
     async startSeason(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
-        let returnArr = await bootstrap.seasonObj.startSeason(receivedMessage);
+        let returnArr = await bootstrap.SeasonObj.startSeason(receivedMessage);
 
         if (returnArr[0] === "Season Ongoing"){
             const ongoingEmbed = new bootstrap.Discord.MessageEmbed()
@@ -494,7 +494,7 @@ module.exports = {
     },
     async top(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
-        let returnArr = await bootstrap.seasonObj.leaderBoard(receivedMessage);
+        let returnArr = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
         let mentionValues = [];
         let lookUpUsers;
         if (args.length === 0){
@@ -566,7 +566,7 @@ module.exports = {
     },
     async deckinfo(receivedMessage, args, rawArgs){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
-        let returnArr = await bootstrap.deckObj.deckInfo(receivedMessage, args);
+        let returnArr = await bootstrap.DeckObj.deckInfo(receivedMessage, args);
         if (args.length === 0){
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
@@ -726,7 +726,7 @@ module.exports = {
         let threshold = 5;
         if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._deck_threshold }
 
-        let returnArr = await bootstrap.deckObj.deckStats(receivedMessage, args);
+        let returnArr = await bootstrap.DeckObj.deckStats(receivedMessage, args);
         if (returnArr[0] === "Deck Lookup"){
             let deckName = returnArr[1].split(" | ");
             let seasonName;
@@ -855,7 +855,7 @@ module.exports = {
             generalChannel.send(noLengthEmbed)
         }
         else{
-            let returnArr = await bootstrap.userObj.useDeck(receivedMessage, args);
+            let returnArr = await bootstrap.UserObj.useDeck(receivedMessage, args);
             if (returnArr === "Success"){
                 const successEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorGreen)
@@ -915,12 +915,12 @@ module.exports = {
         let matches_arr;
 
         if (args.length === 0) {
-            matches_arr = await bootstrap.userObj.recent(receivedMessage)
+            matches_arr = await bootstrap.UserObj.recent(receivedMessage)
         }
         else if (args.length === 1) {
             if (args[0].toLowerCase() === "more") {
                 more = true;
-                matches_arr = await bootstrap.userObj.recent(receivedMessage)
+                matches_arr = await bootstrap.UserObj.recent(receivedMessage)
             }
             else if ((args[0].charAt(0) !== "<" || args[0].charAt(1) !== "@" || args[0].charAt(2) !== "!") && args[0].toLowerCase() !== "server") {
                 const errorEmbed = new bootstrap.Discord.MessageEmbed()
@@ -935,10 +935,10 @@ module.exports = {
                 return
             }
             else if (args[0].toLowerCase() === "server") {
-                matches_arr = await bootstrap.userObj.recent(receivedMessage, null, true)
+                matches_arr = await bootstrap.UserObj.recent(receivedMessage, null, true)
             }
             else {
-                matches_arr = await bootstrap.userObj.recent(receivedMessage, args[0])
+                matches_arr = await bootstrap.UserObj.recent(receivedMessage, args[0])
             }
         }
         else if (args.length === 2) {
@@ -956,11 +956,11 @@ module.exports = {
             }
             else if (args[0].toLowerCase() === "server") {
                 more = true;
-                matches_arr = await bootstrap.userObj.recent(receivedMessage, null, true)
+                matches_arr = await bootstrap.UserObj.recent(receivedMessage, null, true)
             }
             else {
                 more = true;
-                matches_arr = await bootstrap.userObj.recent(receivedMessage, args[0])
+                matches_arr = await bootstrap.UserObj.recent(receivedMessage, args[0])
             }
         }
         else {
@@ -1015,7 +1015,7 @@ module.exports = {
         matches_arr.forEach(async(match) => {
             let convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"});
 
-            //const bot = await getUserFromMention(config.clientID)
+            //const bot = await getUserFromMention(Config.clientID)
             //console.log(match)
             const winner = await bootstrap.LeagueHelper.getUserFromMention(match[4]);
             const loser1 = await bootstrap.LeagueHelper.getUserFromMention(match[5]);
@@ -1040,7 +1040,7 @@ module.exports = {
     async startMatch(receivedMessage, args){
 
         let currentSeason = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
-        let generalChannel = bootstrap.client.channels.cache.get(receivedMessage.channel.id);
+        let generalChannel = bootstrap.Client.channels.cache.get(receivedMessage.channel.id);
         let sanitizedString = receivedMessage.author.id;
         const UserIDs = [];
 
@@ -1079,7 +1079,7 @@ module.exports = {
         // Make sure every user in message (and message sender) are different users [Block out if testing]
         // var tempArr = args
         // tempArr.push(sanitizedString)
-        // if (gameObj.hasDuplicates(tempArr)){
+        // if (GameObj.hasDuplicates(tempArr)){
         //     const errorMsg = new Discord.MessageEmbed()
         //             .setColor('#af0000')
         //             .setDescription("**Error**: You can't log a match with duplicate players")
@@ -1156,7 +1156,7 @@ module.exports = {
                                 generalChannel.send(errorMsg);
                             }
                             else{
-                                bootstrap.gameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, receivedMessage, function(cb, err){
+                                bootstrap.GameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, receivedMessage, function(cb, err){
                                     if (cb === "FAILURE"){
                                         const errorMsg = new bootstrap.Discord.MessageEmbed()
                                             .setColor('#af0000')
@@ -1202,7 +1202,7 @@ module.exports = {
             let colorRes = await bootstrap.DeckHelper.checkColorDictionary(args[0]);
             if (colorRes !== "Not found"){
                 let colorSpecificArray = [];
-                let returnArr = await bootstrap.deckObj.listDecks(receivedMessage, colorRes);
+                let returnArr = await bootstrap.DeckObj.listDecks(receivedMessage, colorRes);
                 returnArr.forEach(entry =>{
                     colorSpecificArray.push(entry._name)
                 });
@@ -1243,7 +1243,7 @@ module.exports = {
                 }
             }
         }
-        let returnArr = await bootstrap.deckObj.listDecks(receivedMessage, "no");
+        let returnArr = await bootstrap.DeckObj.listDecks(receivedMessage, "no");
         let oneColorArr = [];
         let twoColorArr = [];
         let threeColorArr = [];
@@ -1355,7 +1355,7 @@ module.exports = {
             }
             let newDeckArr = [];
             newDeckArr.push(deckNick, commanderName, colorIdentity, deckLink, author, deckDescription, deckType, hasPrimer, discordLink);
-            let promiseReturn = await bootstrap.deckObj.addDeck(receivedMessage, newDeckArr)
+            let promiseReturn = await bootstrap.DeckObj.addDeck(receivedMessage, newDeckArr)
             if (promiseReturn === "Error 1"){
                 const sameNamedEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
@@ -1403,7 +1403,7 @@ module.exports = {
     },
     async profile(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
-        let returnArr = await bootstrap.userObj.profile(receivedMessage, args);
+        let returnArr = await bootstrap.UserObj.profile(receivedMessage, args);
         let compareDeck = 0;
         let favDeck = "";
         let elo = 1000;
@@ -1479,8 +1479,8 @@ module.exports = {
         }
     },
     async remindMatch(receivedMessage, args) {
-        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage)
-        let playerID = receivedMessage.author.id
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        let playerID = receivedMessage.author.id;
 
         //Catch Bad Input
         if (args.length !== 0) {
@@ -1491,7 +1491,7 @@ module.exports = {
             return
         }
 
-        let response = await gameObj.getRemindInfo(playerID, receivedMessage.guild.id).catch((message) => {
+        let response = await GameObj.getRemindInfo(playerID, receivedMessage.guild.id).catch((message) => {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor('#af0000')
                 .setDescription("**Error**: Unfinished match not found");
@@ -1535,7 +1535,7 @@ module.exports = {
             generalChannel.send(errorMsg);
             return
         }
-        const response = await bootstrap.gameObj.deleteMatch(args[0], receivedMessage).catch((message) => {
+        const response = await bootstrap.GameObj.deleteMatch(args[0], receivedMessage).catch((message) => {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor('#af0000')
                 .setAuthor("Incorrect Match ID")
@@ -1574,7 +1574,7 @@ module.exports = {
             generalChannel.send(errorMsg);
             return
         }
-        const response = await bootstrap.gameObj.matchInfo(args[0], receivedMessage);
+        const response = await bootstrap.GameObj.matchInfo(args[0], receivedMessage);
         if (response !== "FAIL") {
             let convertedToCentralTime = response[0].toLocaleString("en-US", {timeZone: "America/Chicago"});
             const winner = await bootstrap.LeagueHelper.getUserFromMention(response[4]);
@@ -1606,7 +1606,7 @@ module.exports = {
     },
     async register(receivedMessage){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
-        let returnArr = await bootstrap.leagueObj.register(receivedMessage);
+        let returnArr = await bootstrap.LeagueObj.register(receivedMessage);
         const messageEmbed = new bootstrap.Discord.MessageEmbed();
         if (returnArr === "Success"){
             messageEmbed
@@ -1630,7 +1630,7 @@ module.exports = {
         }
     },
     helpCommand(receivedMessage, arguments){
-        if (arguments.length == 0){
+        if (arguments.length === 0){
             // Call FunctionHelper to with our message.
             bootstrap.FunctionHelper.showEmbedHelpForAllCommands(receivedMessage)
         } else{

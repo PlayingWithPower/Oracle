@@ -1,15 +1,16 @@
 // Bot Configuration
-const config = require('./etc/env.js');
+const Env = require('./etc/env.js');
 const Discord = require('discord.js');
-const client = new Discord.Client();
+const Client = new Discord.Client();
+const Mongoose = require('mongoose');
 
 //Objects
-const oracleObj = require('./objects/Oracle');
-const deckObj = require('./objects/Deck');
-const gameObj = require('./objects/Game');
-const leagueObj = require('./objects/League');
-const seasonObj = require('./objects/Season');
-const userObj = require('./objects/User');
+const OracleObj = require('./objects/Oracle');
+const DeckObj = require('./objects/Deck');
+const GameObj = require('./objects/Game');
+const LeagueObj = require('./objects/League');
+const SeasonObj = require('./objects/Season');
+const UserObj = require('./objects/User');
 
 //Schemas
 const User = require('./Schema/Users');
@@ -38,17 +39,18 @@ const messageColorGreen = "#5fff00";
 const messageColorBlue = "#0099ff";
 
 //Bot Config Export
-exports.config = config;
+exports.Env = Env;
 exports.Discord = Discord;
-exports.client = client;
+exports.Client = Client;
+exports.mongoose = Mongoose;
 
 //Objects Export
-exports.oracleObj = oracleObj;
-exports.deckObj = deckObj;
-exports.gameObj = gameObj;
-exports.leagueObj = leagueObj;
-exports.seasonObj = seasonObj;
-exports.userObj = userObj;
+exports.OracleObj = OracleObj;
+exports.DeckObj = DeckObj;
+exports.GameObj = GameObj;
+exports.LeagueObj = LeagueObj;
+exports.SeasonObj = SeasonObj;
+exports.UserObj = UserObj;
 
 //Schema Export
 exports.User = User;
