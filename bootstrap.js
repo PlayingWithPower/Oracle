@@ -38,6 +38,9 @@ const messageColorRed = "#af0000";
 const messageColorGreen = "#5fff00";
 const messageColorBlue = "#0099ff";
 
+//Data
+const Data = require('./data/decklists.json');
+
 //Bot Config Export
 exports.Env = Env;
 exports.Discord = Discord;
@@ -78,3 +81,6 @@ exports.botListeningPrefix = botListeningPrefix;
 exports.messageColorRed = messageColorRed;
 exports.messageColorGreen = messageColorGreen;
 exports.messageColorBlue = messageColorBlue;
+
+//Data Export
+exports.Data = Data

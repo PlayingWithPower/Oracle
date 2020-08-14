@@ -7,6 +7,6 @@ module.exports = {
      * @returns Discord Channel obj to send message to
      */
     getChannelID(receivedMessage) {
-        return bootstrap.client.channels.cache.get(receivedMessage.channel.id)
+        return bootstrap.Client.channels.cache.get(receivedMessage.channel.id)
     }
 }

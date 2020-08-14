@@ -6,7 +6,7 @@ module.exports = {
     },
     getUserFromMention(mention) {
         if (!mention) return;
-        return bootstrap.client.users.fetch(mention)
+        return bootstrap.Client.users.fetch(mention)
         // if (mention.startsWith('<@') && mention.endsWith('>')) {
         // 	mention = mention.slice(2, -1);
 
