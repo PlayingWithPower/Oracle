@@ -1,7 +1,5 @@
-const user = require('../Schema/Users')
-const config = require('../Schema/Config')
-const SeasonHelper = require('../Helpers/SeasonHelper')
-const Season = require('./Season')
+const bootstrap = require('../bootstrap.js');
+
 /**
  * League Object
  *
@@ -15,23 +13,14 @@ const Season = require('./Season')
  *  - Admin (users who have admin privileges on your server)
  */
 module.exports = {
-
-    /**
-     * Summary info for the league
-     */
-    getInfo() {
-        
-    },
-
     /**
      * Register a new user to the league.
      */
     register(receivedMessage) {
-        let currentSeason = SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
         let findQuery = {
             _mentionValue: receivedMessage.author.id,
             _server: receivedMessage.guild.id,
-        }
+        };
         let toSave = {
             _mentionValue: receivedMessage.author.id,
             _server: receivedMessage.guild.id,
@@ -44,14 +33,14 @@ module.exports = {
                 Wins:1, 
                 Losses:1
             }
-        }
+        };
         return new Promise((resolve, reject)=>{
-            user.findOne(findQuery, function(err, res){
+            bootstrap.User.findOne(findQuery, function(err, res){
                 if (res){
                     resolve("Already Registered")
                 }
                 else{
-                   user(toSave).save(function(error, result){
+                    bootstrap.User(toSave).save(function(error, result){
                         if(result){
                             resolve("Success")
                         }
@@ -68,23 +57,23 @@ module.exports = {
      * Sets a configuration
      */
     configSet(receivedMessage, args) {
-        let argsWithCommas = args.toString()
+        let argsWithCommas = args.toString();
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
-        let splitArgs = argsWithSpaces.split(" | ")
-        splitArgs[0] = splitArgs[0].toLowerCase()
+        let splitArgs = argsWithSpaces.split(" | ");
+        splitArgs[0] = splitArgs[0].toLowerCase();
         
         return new Promise((resolve, reject)=>{
-            var conditionalQuery
-            var playerThreshold = 10
-            var deckThreshold = 10
-            var timeout = 60
-            var admin = ""
-            if ((splitArgs[0]!= "player threshold") && (splitArgs[0]!= "deck threshold")
-            &&(splitArgs[0]!= "timeout")&&(splitArgs[0]!= "admin")){
+            let conditionalQuery;
+            let playerThreshold = 10;
+            let deckThreshold = 10;
+            let timeout = 60;
+            let admin = "";
+            if ((splitArgs[0]!== "player threshold") && (splitArgs[0]!== "deck threshold")
+            &&(splitArgs[0]!== "timeout")&&(splitArgs[0]!== "admin")){
                 resolve("Invalid Input")
             }
             else{
-                if ((splitArgs[0]== "player threshold")){
+                if ((splitArgs[0] === "player threshold")){
                     if (parseInt(splitArgs[1])){
                         if (!isNaN(splitArgs[1])){
                             conditionalQuery = {
@@ -92,11 +81,11 @@ module.exports = {
                                 $set:{
                                     _player_threshold: splitArgs[1]
                                 }
-                            }
+                            };
                             playerThreshold = splitArgs[1]
                         }
                     }
-                }else if ((splitArgs[0]== "deck threshold")){ 
+                }else if ((splitArgs[0] === "deck threshold")){
                     if (parseInt(splitArgs[1])){
                         if (!isNaN(splitArgs[1])){
                             conditionalQuery = {
@@ -104,11 +93,11 @@ module.exports = {
                                 $set:{
                                     _deck_threshold: splitArgs[1]
                                 }
-                            }
+                            };
                             deckThreshold = splitArgs[1]
                         }
                     }
-                }else if ((splitArgs[0]== "timeout")){ 
+                }else if ((splitArgs[0] === "timeout")){
                     if (parseInt(splitArgs[1])){
                         if (!isNaN(splitArgs[1])){
                             if (splitArgs[1] > 60){
@@ -119,18 +108,18 @@ module.exports = {
                                     $set:{
                                         _timeout: splitArgs[1]
                                     }
-                                }
+                                };
                                 timeout = splitArgs[1]
                             }   
                         }
                     }
-                }else if ((splitArgs[0]== "admin")){ 
+                }else if ((splitArgs[0] === "admin")){
                     var adminList = splitArgs[1]
                     adminList = adminList.replace(/  /g, ', ')
                     conditionalQuery = {
                         _server: receivedMessage.guild.id,
                         _admin: adminList
-                    }
+                    };
                     admin = adminList
                 }
                 else{
@@ -142,25 +131,25 @@ module.exports = {
                     _deck_threshold: deckThreshold,
                     _timeout: timeout, 
                     _admin: admin, 
-                }
-                config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, function(err,res){
+                };
+                bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, function(err,res){
                     if (res.n > 0){
                         let savedValue = splitArgs[1]
-                        if (splitArgs[0] == "admin"){
+                        if (splitArgs[0] === "admin"){
                             savedValue = adminList
                         }
-                        var resArr = new Array();
+                        let resArr = [];
                         resArr.push("Updated", splitArgs[0], savedValue)
                         resolve(resArr)
                     }
                     else{
-                        config(newSave).save({_server: receivedMessage.guild.id}, function(err,configSaveRes){
+                        bootstrap.Config(newSave).save({_server: receivedMessage.guild.id}, function(err,configSaveRes){
                             if (res){
                                 let savedValue = splitArgs[1]
-                                if (splitArgs[0] == "admin"){
+                                if (splitArgs[0] === "admin"){
                                     savedValue = adminList
                                 }
-                                var resArr = new Array();
+                                let resArr = [];
                                 resArr.push("New Save", splitArgs[0], savedValue)
                                 resolve(resArr)
                             }
@@ -169,7 +158,6 @@ module.exports = {
                             }
                         })
                     }
-                    
                 })
             }
         })
@@ -180,8 +168,8 @@ module.exports = {
      */
     configGet(guild) {
         return new Promise((resolve, reject)=>{
-            let checkForConfig = {_server: guild}
-            config.findOne(checkForConfig, function(err,foundRes){
+            let checkForConfig = {_server: guild};
+            bootstrap.Config.findOne(checkForConfig, function(err,foundRes){
                 if (foundRes){
                     resolve(foundRes)
                 }
@@ -191,28 +179,4 @@ module.exports = {
             })
         })
     },
-    startupConfig(guild){
-        let checkForConfig = {_server: guild}
-        config.findOne(checkForConfig, function(err, foundRes){
-            if (foundRes){
-                //console.log("Been here before")
-            }else{
-                let configSave = {
-                        _server: guild,
-                        _player_threshold: "10",
-                        _deck_threshold: "10",
-                        _timeout: "60",
-                        _admin: ""
-                }
-                config(configSave).save(function(err, res){
-                    if (res){
-                        //console.log("Success")
-                    }
-                    else{
-                        //console.log("Error")
-                    }
-                })
-            }
-        })
-    }
-}
+};

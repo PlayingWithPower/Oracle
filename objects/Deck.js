@@ -433,7 +433,9 @@ module.exports = {
     updatePrimer(newPrimerMessage, oldID){
 
         if((newPrimerMessage.content.toLowerCase() !== "yes") && (newPrimerMessage.content.toLowerCase() !== "no")){
-            resolve("Error 1")
+            return new Promise((resolve, reject)=>{
+                resolve("Error 1")
+            });
         }
         else{
             let newPrimer = newPrimerMessage.content;
@@ -470,7 +472,9 @@ module.exports = {
         let deckQuery = {_id: oldID};
 
         if ((newAuthorMessage.content.toLowerCase() !== "proactive")&& (newAuthorMessage.content.toLowerCase() !== "adaptive")&&(newAuthorMessage.content.toLowerCase() !== "disruptive")){
-            resolve("Error 1")
+            return new Promise((resolve, reject)=>{
+                resolve("Error 1")
+            });
         }
         else{
             let newDeckType = newAuthorMessage.content;
@@ -534,7 +538,9 @@ module.exports = {
 
         return new Promise((resolve, reject)=>{
             if (newDescription.length > 750){
-                resolve("Error 1")
+                return new Promise((resolve, reject)=>{
+                    resolve("Error 1")
+                });
             }
             else{
                 bootstrap.Deck.find(deckQuery, function(err, deckFindRes){
@@ -565,7 +571,9 @@ module.exports = {
             for (let letter of colorIdentity.toLowerCase()) {
                 if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g")){
                     catchBool = false;
-                    resolve("Error 1")
+                    return new Promise((resolve, reject)=>{
+                        resolve("Error 1")
+                    });
                 }
             }
             if (catchBool === true){

@@ -1,38 +1,25 @@
-const Discord = require('discord.js')
-const { resolve } = require('path')
-const { Module } = require('module')
-
-//Colors
-const messageColorRed = "#af0000"
-const messageColorGreen = "#5fff00"
-const messageColorBlue = "#0099ff"
+const bootstrap = require('../bootstrap')
 
 module.exports = {
-    /**
-     * Counts the number of times of a value occurrs
-     */
-    getOccurrence(array, value) {
-        return array.filter((v) => (v === value)).length;
-    },
     /**
      * This is used in !deck to quickly create 5 embeds, one for each color
      * @param {*} colorArr 
      * @param {*} colorNum 
      */
     createDeckEmbed(colorArr, colorNum){
-        const someEmbed = new Discord.MessageEmbed()
-            .setColor(messageColorBlue)
-            .setAuthor(colorNum)
-        if (colorArr.length == 0){
+        const someEmbed = new bootstrap.Discord.MessageEmbed()
+            .setColor(bootstrap.messageColorBlue)
+            .setAuthor(colorNum);
+        if (colorArr.length === 0){
             someEmbed.addFields(
                 { name: " \u200b",value: "No Decks of these color registered", inline: true},
             )
         }
         else{
-            var holder = new String()
+            let holder = "";
             colorArr.forEach(entry => {
                 holder = holder + entry + " \n"
-            })
+            });
             // someEmbed.addFields(
             //     { name: " \u200b", value: colorArr}
             // )
@@ -63,12 +50,11 @@ module.exports = {
      * Helper Function to the two below updateDeckName() and updateDeckList()
      */
     findDeckToUpdate(receivedMessage, args){
-        const deck = require('../Schema/Decks')
-        args = args.join(' ')
-        let lowerArgs = args.toString().toLowerCase()
-        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
+        args = args.join(' ');
+        let lowerArgs = args.toString().toLowerCase();
+        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id};
         return new Promise((resolve, reject)=>{
-            deck.find(deckQuery, function(err, res){
+            bootstrap.Deck.find(deckQuery, function(err, res){
                 if (res.length > 0){
                     resolve(res)
                 }
@@ -82,12 +68,11 @@ module.exports = {
      * Locates the deck to remove. Then waits for user reaction
      */
     findDeckToRemove(receivedMessage, args){
-        const deck = require('../Schema/Decks')
-        args = args.join(' ')
-        let lowerArgs = args.toString().toLowerCase()
-        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id}
+        args = args.join(' ');
+        let lowerArgs = args.toString().toLowerCase();
+        let deckQuery = {_alias: lowerArgs, _server: receivedMessage.guild.id};
         return new Promise((resolve, reject)=>{
-            deck.find(deckQuery, function(err, res){
+            bootstrap.Deck.find(deckQuery, function(err, res){
                 if (res.length > 0){
                     resolve(res)
                 }
@@ -98,10 +83,8 @@ module.exports = {
         })
     },
     addDeckHelper(message, args){
-        const deck = require('../Schema/Decks')
-        const alias = require('../Schema/Alias')
-        let primerBool
-        if (args[7].value == "False"){
+        let primerBool;
+        if (args[7].value === "False"){
             primerBool = false
         }
         else{
@@ -121,15 +104,15 @@ module.exports = {
             '_dateAdded': "",
             '_deckType': args[6].value,
             '_hasPrimer': primerBool
-        }
+        };
         let aliasSave = {
             '_name': args[0].value, 
             '_server': message.guild.id
-        }
+        };
         return new Promise ((resolve, reject)=>{
-            deck(deckSave).save(function(err, res){
+            bootstrap.Deck(deckSave).save(function(err, res){
                 if (res){
-                    alias(aliasSave).save(function(err, res){
+                    bootstrap.Alias(aliasSave).save(function(err, res){
                         if (res){
                             resolve(args[0].value)
                             //DEBUG: console.log("DEBUG: Successfully saved to ALIAS DB")
@@ -147,7 +130,7 @@ module.exports = {
         })
     },
     async checkColorDictionary(input){
-        colorDictionary = {
+        let colorDictionary = {
             white: "w",
             blue: "u",
             black: "b",
@@ -183,7 +166,7 @@ module.exports = {
             sansblue: "w, b, r, g",
             sansblack: "w, u, r, g",
             sansred: "w, u, b, g",
-        }
+        };
         if (colorDictionary.hasOwnProperty(input.toLowerCase())) {
             return new Promise((resolve, reject)=>{
                 resolve(colorDictionary[input.toLowerCase()])
@@ -197,10 +180,9 @@ module.exports = {
         }
     },
     async commanderChecker(input, receivedMessage){
-        const deck = require('../Schema/Decks')
         return new Promise((resolve, reject)=>{
-            input = module.exports.toUpper(input)
-            deck.find(
+            input = module.exports.toUpper(input);
+            bootstrap.Deck.find(
                 {_server: receivedMessage.guild.id,
                     '$text':{'$search': input}
                 }, 
@@ -210,4 +192,4 @@ module.exports = {
             })
         })
     }
-}
+};

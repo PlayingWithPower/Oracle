@@ -1,15 +1,10 @@
+const bootstrap = require('../bootstrap')
+
 /**
  * User Object
  *
  * All user based functionality.
  */
-
-const Alias = require('../Schema/Alias')
-const Deck = require('../Schema/Decks')
-const User = require('../Schema/Users')
-const Matches = require('../Schema/Games')
-const DeckHelper = require('../Helpers/DeckHelper')
-const SeasonHelper = require('../Helpers/SeasonHelper')
 
 module.exports = {
 
@@ -17,26 +12,25 @@ module.exports = {
      * Get user league profile
      */
     async profile(receivedMessage, args) {
-        
-        var currentSeasonObj = await SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
-        var currentSeason = currentSeasonObj._season_name
-        var lookUpID
+        let currentSeasonObj = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
+        let currentSeason = currentSeasonObj._season_name;
+        let lookUpID;
         return new Promise((resolve, reject)=>{
             if (typeof args[0] === 'undefined'){
-                args[0] = "Not Defined"
+                args[0] = "Not Defined";
                 lookUpID = receivedMessage.author.id
             }
             else{
                 lookUpID = args[0].replace(/[<@!>]/g, '')
             }
-            var conditionalQuery
-            var passingResult
-            var personLookedUp = ""
-            var passedArray = new Array()
+            let conditionalQuery;
+            let passingResult;
+            let personLookedUp = "";
+            let passedArray = [];
             
             //Query
-            if (args[0] == "Not Defined"){
-                personLookedUp = receivedMessage.author.id
+            if (args[0] === "Not Defined"){
+                personLookedUp = receivedMessage.author.id;
                 conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or: 
                     [
                     {_player1: receivedMessage.author.id}, 
@@ -47,7 +41,7 @@ module.exports = {
                 }
             }
             else{
-                personLookedUp = args[0].replace(/[<@!>]/g, '')
+                personLookedUp = args[0].replace(/[<@!>]/g, '');
                 conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or: 
                     [
                     {_player1: args[0].replace(/[<@!>]/g, '')}, 
@@ -57,7 +51,7 @@ module.exports = {
                     ]
                 }
             }
-            Matches.find(conditionalQuery, function(err, res){
+            bootstrap.Game.find(conditionalQuery, function(err, res){
                 if (res){
                     passingResult = res
                 }
@@ -65,15 +59,15 @@ module.exports = {
                     resolve("Error 1")
                 }
             }).then(function(passingResult){
-                if (passingResult != ""){
-                    var matchResults = []
-                    for (var i=0; i <passingResult.length; i++){
-                        var pasRes = passingResult[i]._player1Deck
-                        if (passingResult[i]._player1Deck == "Rogue"){
+                if (passingResult.length !== 0){
+                    let matchResults = [];
+                    for (let i=0; i <passingResult.length; i++){
+                        let pasRes = passingResult[i]._player1Deck;
+                        if (passingResult[i]._player1Deck === "Rogue"){
                             pasRes = passingResult[i]._player1Rogue + " | Rogue"
                         }
-                        if (passingResult[i]._player1 == personLookedUp){
-                            var exists = matchResults.find(el => el[0] === pasRes)
+                        if (passingResult[i]._player1 === personLookedUp){
+                            let exists = matchResults.find(el => el[0] === pasRes);
                             if (exists) {
                                 exists[1] += 1;
                               } else {
@@ -81,12 +75,12 @@ module.exports = {
                               }
                         }
 
-                        var pasRes = passingResult[i]._player2Deck
-                        if (passingResult[i]._player2Deck == "Rogue"){
+                        pasRes = passingResult[i]._player2Deck;
+                        if (passingResult[i]._player2Deck === "Rogue"){
                             pasRes = passingResult[i]._player2Rogue + " | Rogue"
                         }
-                        if (passingResult[i]._player2 == personLookedUp){
-                        var exists2 = matchResults.find(el => el[0] === pasRes)
+                        if (passingResult[i]._player2 === personLookedUp){
+                        let exists2 = matchResults.find(el => el[0] === pasRes);
                         if (exists2) {
                             exists2[2] += 1;
                             } else {
@@ -94,12 +88,12 @@ module.exports = {
                             } 
                         }
 
-                        var pasRes = passingResult[i]._player3Deck
-                        if (passingResult[i]._player3Deck == "Rogue"){
+                        pasRes = passingResult[i]._player3Deck;
+                        if (passingResult[i]._player3Deck === "Rogue"){
                             pasRes = passingResult[i]._player3Rogue + " | Rogue"
                         }
-                        if (passingResult[i]._player3 == personLookedUp){
-                        var exists3 = matchResults.find(el => el[0] === pasRes)
+                        if (passingResult[i]._player3 === personLookedUp){
+                        let exists3 = matchResults.find(el => el[0] === pasRes);
                         if (exists3) {
                             exists3[2] += 1;
                             } else {
@@ -107,12 +101,12 @@ module.exports = {
                             }
                         }
 
-                        var pasRes = passingResult[i]._player4Deck
-                        if (passingResult[i]._player4Deck == "Rogue"){
+                        pasRes = passingResult[i]._player4Deck;
+                        if (passingResult[i]._player4Deck === "Rogue"){
                             pasRes = passingResult[i]._player4Rogue + " | Rogue"
                         }
-                        if (passingResult[i]._player4 == personLookedUp){
-                        var exists4 = matchResults.find(el => el[0] === pasRes)
+                        if (passingResult[i]._player4 === personLookedUp){
+                        let exists4 = matchResults.find(el => el[0] === pasRes);
                         if (exists4) {
                             exists4[2] += 1;
                             } else {
@@ -121,16 +115,15 @@ module.exports = {
                         }
                     }
                     passedArray.push("Profile Look Up",matchResults, currentSeason, lookUpID)
-                   
                 }
                 else{
                     passedArray.push("No On-Going Season", passingResult, lookUpID)
                 }
             }).then(function(){
-                let query = {_server: receivedMessage.guild.id, _mentionValue: lookUpID}
-                User.findOne(query,function(err, res){
+                let query = {_server: receivedMessage.guild.id, _mentionValue: lookUpID};
+                bootstrap.User.findOne(query,function(err, res){
                     if (res){
-                        passedArray.push(res._elo, res._currentDeck)
+                        passedArray.push(res._elo, res._currentDeck);
                         resolve(passedArray)
                     }
                     else{
@@ -153,20 +146,22 @@ module.exports = {
      * 
      * @param {Discord Message Object} message 
      * 
+     * @param user
+     * @param server
      * @returns {2D Array} Array of match Arrays sorted from most recent to least recent.
-     * TODO: Server implementation
      */
     async recent(message, user = null, server = null) {
-        gameArr = []
-        const games = require('../Schema/Games')
-        const seasonObj = await SeasonHelper.getCurrentSeason(message.guild.id)
-        var seasonName = seasonObj._season_name
+        let gameArr = [];
+        let id;
+        const seasonObj = await bootstrap.SeasonHelper.getCurrentSeason(message.guild.id);
+        let seasonName = seasonObj._season_name;
         if (user == null) {
             id = message.author.id
         }
         else {
             id = user.replace(/[<@!>]/g, '')
         }
+        let findQuery;
         return new Promise((resolve, reject) => {
             if (server == null) {
                 findQuery = {$and : [
@@ -195,64 +190,27 @@ module.exports = {
                     _season: seasonName
                 }
             }
-            games.find(findQuery).then((docs) => {
+            bootstrap.Game.find(findQuery).then((docs) => {
                 docs.forEach((doc) => {
-                    timestamp = doc._id.toString().substring(0,8)
-                    date = new Date( parseInt( timestamp, 16 ) * 1000)
+                    let timestamp = doc._id.toString().substring(0,8);
+                    let date = new Date( parseInt( timestamp, 16 ) * 1000);
                     gameArr.push([date, doc._match_id, doc._server, doc._season, doc._player1, doc._player2, doc._player3, doc._player4, doc._player1Deck, doc._player2Deck, doc._player3Deck, doc._player4Deck, doc._Status, doc._player1Confirmed, doc._player2Confirmed, doc._player3Confirmed, doc._player4Confirmed,])
                 });
             }).then(function() {
-                gameArr.sort(module.exports.sortFunction)
+                gameArr.sort(module.exports.sortFunction);
                 resolve(gameArr)
             });
         })
 
     },
     /**
-     * Returns currently registered Deck name
-     */
-    currentDeck(receivedMessage, args, callback) {
-        const user = require('../Schema/Users')
-        const deck = require('../Schema/Decks')
-        const alias = require('../Schema/Alias')
-        const callBackArray = new Array()
-
-        let findQuery = {
-            _mentionValue: receivedMessage.author.id,
-            _server: receivedMessage.guild.id
-        }
-        user.findOne(findQuery, function(err, res){
-            if (res) {
-                let findQuery = {_alias: res._currentDeck.toLowerCase()}
-                deck.findOne(findQuery, function(err, res){
-                    if (res) {
-                        callBackArray.push(res._link)
-                        callBackArray.push(res._name)
-                        callback(callBackArray)
-                    }
-                    else {
-                        callback("Error: 2")
-                    }
-                })
-            }
-            else {
-                callback("Error: 1")
-            }
-        })
-    },
-    /**
      * Sets the users current Deck
      */
     useDeck(receivedMessage, args){
-        var typeOfQuery = ""
-        const seasonObj = SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
-        var seasonName = seasonObj.seasonName
+        let typeOfQuery = "";
         return new Promise((resolve, reject)=>{
             if (args.length > 2){
-                let argsWithCommas = args.toString()
-                let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
-                let splitArgs = argsWithSpaces.split(" | ")
-                if (args[args.length - 1].toString().toLowerCase() == "rogue"){
+                if (args[args.length - 1].toString().toLowerCase() === "rogue"){
                     typeOfQuery = "rogue"
                 }
             }
@@ -260,14 +218,14 @@ module.exports = {
                 typeOfQuery = "non-rogue"
             }
 
-            if (typeOfQuery == "rogue"){
-                let cleanedArg = DeckHelper.toUpper(args.join(' '))
+            if (typeOfQuery === "rogue"){
+                let cleanedArg = bootstrap.DeckHelper.toUpper(args.join(' '));
                 let userQuery = {
                     _server: receivedMessage.guild.id,
                     _mentionValue: receivedMessage.author.id
-                }
-                let updateSave = { $set: {_currentDeck: cleanedArg}}
-                User.updateOne(userQuery, updateSave, function(err, res){
+                };
+                let updateSave = { $set: {_currentDeck: cleanedArg}};
+                bootstrap.User.updateOne(userQuery, updateSave, function(err, res){
                     if (res){
                         resolve("Success")
                      }
@@ -277,20 +235,19 @@ module.exports = {
                 })
             }
             else{
-                let cleanedArg = DeckHelper.toUpper(args.join(' '))
+                let cleanedArg = bootstrap.DeckHelper.toUpper(args.join(' '));
                 let deckQuery = {
-                    _season: seasonName,
                     _server: receivedMessage.guild.id,
                     _alias: args.join(' ').toLowerCase()
-                }
+                };
                 let userQuery = {
                     _server: receivedMessage.guild.id,
                     _mentionValue: receivedMessage.author.id
-                }
-                let updateSave = { $set: {_currentDeck: cleanedArg}}
-                Deck.find(deckQuery, function(err,deckRes){
-                    if (deckRes.length != 0){
-                        User.updateOne(userQuery, updateSave, function(err, res){
+                };
+                let updateSave = { $set: {_currentDeck: cleanedArg}};
+                bootstrap.Deck.find(deckQuery, function(err,deckRes){
+                    if (deckRes.length !== 0){
+                        bootstrap.User.updateOne(userQuery, updateSave, function(err, res){
                             if (res.n > 0){
                                 resolve("Success")
                              }
@@ -306,7 +263,7 @@ module.exports = {
                         //       _commander: "text"
                         //     }
                         //   )
-                       Deck.find(
+                        bootstrap.Deck.find(
                            {_server: receivedMessage.guild.id,
                             '$text':{'$search': args.join(' ')}
                         },
@@ -323,4 +280,4 @@ module.exports = {
             }
         })
     }   
-}
+};

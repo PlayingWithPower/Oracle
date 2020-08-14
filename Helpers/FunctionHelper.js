@@ -2,17 +2,10 @@
 // It will save the default "help" strings for each of the supported commands,
 // as well as an example of the command that further assists the user.
 //
-const Discord = require('discord.js')
+const bootstrap = require('../bootstrap');
 
-var helpDictionary = Object();
-var exampleDictionary = Object();
-const ConfigHelper = require('../Helpers/ConfigHelper')
+let exampleDictionary = Object();
 
-//Colors
-const messageColorRed = "#af0000"
-const messageColorGreen = "#5fff00"
-const messageColorBlue = "#0099ff"
-const messageColorSecondBlue = "#020ff0"
 
 // Define dictionary with (string) key : (string) value.
 // ex. helpDictionary["help"] = "Where you are now. A list of all available commands."
@@ -20,26 +13,26 @@ deckDictionary = {
     decks: "Lists all available decks",
     deckstats: "Lists stats information about decks",
     deckinfo: "Provides detailed information about a deck",
-}
+};
 gameDictionary = {
     log: "Logs a game to this server's league",
     //remind: "Reminds users to confirm logged matches",
     pending: "Lists all unfinished matches",
     disputed: "Lists all disputed matches",
     info: "Provides information on a match",
-}
+};
 leagueDictionary = {
     register: "Registers a user to participate in this server's league",
     top: "Lists the top users this season"
-}
+};
 seasonDictionary = {
     seasoninfo: "Provides summary information about a season"
-}
+};
 userDictionary = {
     profile: "Displays summary information about a user",
     recent: "Displays recent matches a user has played in",
     use: "Sets a user's current deck. Required to log games",
-}
+};
 adminDictionary = 
 {
     deletematch: "Removes a match from the records",
@@ -52,7 +45,7 @@ adminDictionary =
     setseasonname: "Sets a name for a season",
     setconfig: "Sets up configurations",
     getconfig: "Displays configuration information"
-}
+};
 
 exampleDictionary =
 {
@@ -159,7 +152,7 @@ exampleDictionary =
     Generic usage: !use <Deck Name in Server's List of Decks> or !use <Any deckname> | Rogue\n\
     Example usage: !use gitrog dredge or !use Sphinx Tribal | Rogue"
 
-}
+};
 
 module.exports = {
     /**
@@ -171,11 +164,11 @@ module.exports = {
      */
     showEmbedHelpForCommand(receivedMessage, arguments)
     {
-        const exampleEmbed = new Discord.MessageEmbed()
-        .setColor(messageColorBlue)
+        const exampleEmbed = new bootstrap.Discord.MessageEmbed()
+        .setColor(bootstrap.messageColorBlue)
             exampleEmbed
-            .setAuthor("Displaying information about the command: !" + [arguments])
-            if (exampleDictionary[arguments] != undefined){
+            .setAuthor("Displaying information about the command: !" + [arguments]);
+            if (exampleDictionary[arguments] !== undefined){
                 exampleEmbed
                 .addFields(
                     { name: "Command Details", value: exampleDictionary[arguments] },
@@ -184,9 +177,9 @@ module.exports = {
             else{
                 exampleEmbed.setDescription("You've entered a non-valid command. Type !help to see a list of commands")
             }
-        const serverEmbed = new Discord.MessageEmbed()
+        const serverEmbed = new bootstrap.Discord.MessageEmbed()
         .setAuthor("Message sent to your inbox!")
-        .setColor(messageColorGreen)
+        .setColor(bootstrap.messageColorGreen)
         .setDescription("I have Direct Messaged you information!")
 
         receivedMessage.author.send(exampleEmbed).then(msg =>{
@@ -204,47 +197,47 @@ module.exports = {
      */
     async showEmbedHelpForAllCommands(receivedMessage)
     {
-        const deckEmbed = new Discord.MessageEmbed()
-        .setAuthor("Deck Commands")
-        .setColor(messageColorSecondBlue)
-        const gameEmbed = new Discord.MessageEmbed()
-        .setAuthor("Game Commands")
-        .setColor(messageColorBlue)
-        const leagueEmbed = new Discord.MessageEmbed()
-        .setAuthor("League Commands")
-        .setColor(messageColorSecondBlue)
-        const seasonEmbed = new Discord.MessageEmbed()
-        .setAuthor("Season Commands")
-        .setColor(messageColorBlue)
-        const userEmbed = new Discord.MessageEmbed()
-        .setAuthor("User Commands")
-        .setColor(messageColorSecondBlue)
-        const adminEmbed = new Discord.MessageEmbed()
-        .setAuthor("Admin Commands")
-        .setColor(messageColorBlue)
+        const deckEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("Deck Commands")
+            .setColor(bootstrap.messageColorBlue);
+        const gameEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("Game Commands")
+            .setColor(bootstrap.messageColorBlue);
+        const leagueEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("League Commands")
+            .setColor(bootstrap.messageColorBlue);
+        const seasonEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("Season Commands")
+            .setColor(bootstrap.messageColorBlue);
+        const userEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("User Commands")
+            .setColor(bootstrap.messageColorBlue);
+        const adminEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("Admin Commands")
+            .setColor(bootstrap.messageColorBlue);
 
-        const serverEmbed = new Discord.MessageEmbed()
+        const serverEmbed = new bootstrap.Discord.MessageEmbed()
         .setAuthor("Messages sent to your inbox!")
-        .setColor(messageColorGreen)
+        .setColor(bootstrap.messageColorGreen)
         .setDescription("I have Direct Messaged you the help commands. Please type !help <Command> for more information about a specific command\n\n\
-        **Completely lost in what's happening?** Type !tutorial to learn about this bot and its uses")
+        **Completely lost in what's happening?** Type !tutorial to learn about this bot and its uses");
 
-        for(var keyVal in adminDictionary){
+        for(let keyVal in adminDictionary){
             adminEmbed.addField('!' + keyVal, adminDictionary[keyVal]);   
         }
-        for (var keyVal in deckDictionary){
+        for (let keyVal in deckDictionary){
             deckEmbed.addField('!' + keyVal, deckDictionary[keyVal]);
         }
-        for (var keyVal in gameDictionary){
+        for (let keyVal in gameDictionary){
             gameEmbed.addField('!' + keyVal, gameDictionary[keyVal]);
         }
-        for (var keyVal in leagueDictionary){
+        for (let keyVal in leagueDictionary){
             leagueEmbed.addField('!' + keyVal, leagueDictionary[keyVal]);
         }
-        for (var keyVal in seasonDictionary){
+        for (let keyVal in seasonDictionary){
             seasonEmbed.addField('!' + keyVal, seasonDictionary[keyVal]);
         }
-        for (var keyVal in userDictionary){
+        for (let keyVal in userDictionary){
             userEmbed.addField('!' + keyVal, userDictionary[keyVal]);
         }
 
@@ -253,7 +246,7 @@ module.exports = {
                 .then(msg => { receivedMessage.author.send(leagueEmbed) 
                     .then(msg => { receivedMessage.author.send(seasonEmbed) 
                         .then(msg => { receivedMessage.author.send(userEmbed).then(async msg => { 
-                            let adminGet = await ConfigHelper.checkAdminPrivs(receivedMessage)
+                            let adminGet = await bootstrap.ConfigHelper.checkAdminPrivs(receivedMessage);
                                 if (adminGet){
                                     receivedMessage.author.send(adminEmbed) 
                                 }
@@ -265,4 +258,4 @@ module.exports = {
             }).catch(() => receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"));
         
     }
-}
+};

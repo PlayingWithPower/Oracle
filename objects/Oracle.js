@@ -1214,9 +1214,9 @@ module.exports = {
             Try '!use <deckname> | Rogue' to be able to use **any deck**.")
                     .setFooter("Looking for a specific color combination? Check !help decks to learn what I search by.");
                 generalChannel.send(helperEmbed);
-                return
+                return;
             }
-            let commanderRes = await DeckHelper.commanderChecker(args.join(' '), receivedMessage);
+            let commanderRes = await bootstrap.DeckHelper.commanderChecker(args.join(' '), receivedMessage);
             if (commanderRes !== "Not found"){
                 if (commanderRes.length === 0){
                     const noResEmbed = new bootstrap.Discord.MessageEmbed()
@@ -1241,6 +1241,7 @@ module.exports = {
                     }
                     generalChannel.send(newEmbed)
                 }
+                return;
             }
         }
         let returnArr = await bootstrap.DeckObj.listDecks(receivedMessage, "no");

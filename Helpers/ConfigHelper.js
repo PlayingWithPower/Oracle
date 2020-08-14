@@ -1,21 +1,20 @@
-const Discord = require('discord.js')
-const client = new Discord.Client()
-const leagueObj = require('../objects/League')
+const bootstrap = require('../bootstrap')
 
 module.exports = {
     async checkAdminPrivs(receivedMessage){
         return new Promise (async (resolve, reject)=>{
-            let configGet = await leagueObj.configGet(receivedMessage.guild.id)
-            let isAdmin = this.isUserAdmin(receivedMessage, configGet._admin)
+            let configGet = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id);
+            let isAdmin = this.isUserAdmin(receivedMessage, configGet._admin);
             resolve(isAdmin)
         })
     },
     /**
-    * isUserAdmin()
-    * @param {*} receivedMessage 
-    * 
-    * Simple check for issuer admin rights.
-    */
+     * isUserAdmin()
+     * @param {*} receivedMessage
+     *
+     * Simple check for issuer admin rights.
+     * @param roleName
+     */
    isUserAdmin(receivedMessage, roleName)
    {
        // Admin check from issuer.
@@ -29,7 +28,7 @@ module.exports = {
    },
    async getDeckThreshold(guild){
        return new Promise (async (resolve, reject)=>{
-            let configGet = await leagueObj.configGet(guild)
+            let configGet = await bootstrap.LeagueObj.configGet(guild);
             resolve(configGet)
        })
    }

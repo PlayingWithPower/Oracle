@@ -1,4 +1,4 @@
-const bootstrap = require('../bootstrap.js')
+const bootstrap = require('../bootstrap.js');
 
 module.exports = {
     getUserAvatarUrl(user) {
@@ -15,4 +15,4 @@ module.exports = {
         //     }
         // }
     },
-}
+};
