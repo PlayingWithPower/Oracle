@@ -8,6 +8,7 @@ bootstrap.mongoose.connect(bootstrap.Env.mongoConnectionUrl, { useNewUrlParser: 
 /**
  * ready() - Prebuild discord function
  * Called when the bot is turned on. Sends a debug log that the bot connected and sets the presence of the bot.
+ * Commented out block gives a full list of the servers the bot is in, and the channels inside of those servers.
  *
  */
 bootstrap.Client.on('ready', () =>{
