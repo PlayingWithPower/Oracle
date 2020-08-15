@@ -188,7 +188,7 @@ async function processCommand(receivedMessage){
             break;
         case "startseason":
             if (adminGet){
-                bootstrap.OracleObj.startSeason(receivedMessage, arguments);
+                bootstrap.OracleObj.startSeason(receivedMessage);
             }
             else{
                 bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
@@ -196,7 +196,7 @@ async function processCommand(receivedMessage){
             break;
         case "endseason":
             if (adminGet){
-                bootstrap.OracleObj.endSeason(receivedMessage, arguments);
+                bootstrap.OracleObj.endSeason(receivedMessage);
             }
             else{
                 bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);

@@ -231,7 +231,7 @@ module.exports = {
             generalChannel.send(errorEmbed)
         }
         else if (returnArr[0] === "Updated"){
-            let commandType = returnArr[1]
+            let commandType = returnArr[1];
             commandType = bootstrap.DeckHelper.toUpper(commandType);
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
@@ -241,7 +241,7 @@ module.exports = {
             generalChannel.send(updatedEmbed)
         }
         else if (returnArr[0] === "New Save"){
-            let commandType = returnArr[1]
+            let commandType = returnArr[1];
             commandType = bootstrap.DeckHelper.toUpper(commandType);
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
@@ -406,7 +406,7 @@ module.exports = {
             }
         }
     },
-    async endSeason(receivedMessage, args){
+    async endSeason(receivedMessage){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let currentSeason = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
         const confirmEndSeason = new bootstrap.Discord.MessageEmbed();
@@ -440,14 +440,14 @@ module.exports = {
                     )
             }
             generalChannel.send(confirmEndSeason)
-                .then(function (message, callback){
+                .then(function (message){
                     message.react("👍");
                     message.react("👎");
                 })
         }
 
     },
-    async startSeason(receivedMessage, args){
+    async startSeason(receivedMessage){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.SeasonObj.startSeason(receivedMessage);
 
@@ -602,7 +602,7 @@ module.exports = {
                         { name: 'Discord Link', value: returnArr[1]._discordLink},
                         { name: 'Deck Type', value: returnArr[1]._deckType},
                         { name: 'Has Primer?', value: bootstrap.DeckHelper.toUpper(returnArr[1]._hasPrimer.toString())},
-                    )
+                    );
 
                 generalChannel.send(resultEmbed)
             }
@@ -711,7 +711,7 @@ module.exports = {
                 .setURL(promiseReturn[0]._link)
                 .setDescription("<@!" + receivedMessage.author.id+">"+ " Are you sure you want to delete: **" + promiseReturn[0]._name + "** from your server's list of decks?")
             generalChannel.send(addingDeckEmbed)
-                .then(function (message, callback){
+                .then(function (message){
                     message.react("👍");
                     message.react("👎");
                 })
@@ -807,7 +807,7 @@ module.exports = {
                 }
             });
             allDecksEmbed
-                .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks")
+                .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks");
             generalChannel.send(allDecksEmbed)
 
         }
@@ -836,7 +836,7 @@ module.exports = {
                 .setDescription("You typed: '" + args.join(' ') + "' I didn't quite understand the deck you inputted. Did you mean to type any of the following?\n\
             The !deckstats command will give suggestions when it doesn't understand exactly what you typed")
                 .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)");
-            for (var key in returnArr) {
+            for (let key in returnArr) {
                 closeToResEmbed
                     .addFields(
                         {name: returnArr[key]._name, value: returnArr[key]._commander}
@@ -904,7 +904,7 @@ module.exports = {
     },
     /**
      * recent()
-     * @param {Discord Message Obj} receivedMessage
+     * @param {object} receivedMessage - Discord Message Obj
      * @param {array} args | array of other input after command
      *
      *  Allows the user to view recent matches. type "server" instead of an @ to see server recent matches. Add "more" on the end of input to add more results
@@ -1048,9 +1048,7 @@ module.exports = {
         let s4 = () => {
             return Math.floor((1 + Math.random()) * 0x1000).toString(16).substring(1);
         };
-        let id = s4() + s4() + s4() + s4()
-
-
+        let id = s4() + s4() + s4() + s4();
 
         // let checkMatchRet = await GameHelper.checkMatchID(receivedMessage.guild.id,"016a765d1455")
 
@@ -1156,7 +1154,7 @@ module.exports = {
                                 generalChannel.send(errorMsg);
                             }
                             else{
-                                bootstrap.GameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, receivedMessage, function(cb, err){
+                                bootstrap.GameObj.createMatch(UserIDs[0], UserIDs[1], UserIDs[2], UserIDs[3], id, receivedMessage, function(cb){
                                     if (cb === "FAILURE"){
                                         const errorMsg = new bootstrap.Discord.MessageEmbed()
                                             .setColor('#af0000')
@@ -1172,10 +1170,7 @@ module.exports = {
                                                     .setColor(bootstrap.messageColorBlue)
                                                     .setDescription("<@!" + res._mentionValue +">" + " used **" + res._currentDeck + "** \n **Upvote** to confirm \n **Downvote** to contest");
                                                 generalChannel.send("<@!"+res._mentionValue+">", userUpvoteEmbed)
-                                                    .then(function (message, callback){
-                                                        const filter = (reaction, user) => {
-                                                            return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
-                                                        };
+                                                    .then(function (message){
                                                         message.react("👍");
                                                         message.react("👎")
                                                     })
@@ -1356,7 +1351,7 @@ module.exports = {
             }
             let newDeckArr = [];
             newDeckArr.push(deckNick, commanderName, colorIdentity, deckLink, author, deckDescription, deckType, hasPrimer, discordLink);
-            let promiseReturn = await bootstrap.DeckObj.addDeck(receivedMessage, newDeckArr)
+            let promiseReturn = await bootstrap.DeckObj.addDeck(receivedMessage, newDeckArr);
             if (promiseReturn === "Error 1"){
                 const sameNamedEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
@@ -1390,7 +1385,7 @@ module.exports = {
                     )
                     .setFooter("If you don't have a Deck or Discord Link, type 'no link' in those slots");
 
-                generalChannel.send(awaitReactionEmbed).then(function(message, callback){
+                generalChannel.send(awaitReactionEmbed).then(function(message){
                     message.react("👍");
                     message.react("👎");
                 })
@@ -1492,7 +1487,7 @@ module.exports = {
             return
         }
 
-        let response = await GameObj.getRemindInfo(playerID, receivedMessage.guild.id).catch((message) => {
+        let response = await bootstrap.GameObj.getRemindInfo(playerID, receivedMessage.guild.id).catch((message) => {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor('#af0000')
                 .setDescription("**Error**: Unfinished match not found");
@@ -1516,7 +1511,7 @@ module.exports = {
     },
     /**
      * deleteMatch()
-     * @param {discord message obj} receivedMessage
+     * @param {object} receivedMessage - discord message obj
      * @param {array} args Message content beyond command
      *
      * Calling method checks for admin priv before getting here.
@@ -1556,7 +1551,7 @@ module.exports = {
                 .setTitle("Match ID: "+ args[0])
                 .setDescription("<@!"+sanitizedString+">" + " This is a finished match \n **Upvote** to confirm \n **Downvote** to cancel");
             generalChannel.send(confirmMsgEmbed)
-                .then(function (message, callback){
+                .then(function (message){
                     message.react("👍");
                     message.react("👎");
                 })
