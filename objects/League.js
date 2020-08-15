@@ -68,8 +68,12 @@ module.exports = {
             let deckThreshold = 10;
             let timeout = 60;
             let admin = "";
+            let adminList;
             if ((splitArgs[0]!== "player threshold") && (splitArgs[0]!== "deck threshold")
             &&(splitArgs[0]!== "timeout")&&(splitArgs[0]!== "admin")){
+                resolve("Invalid Input")
+            }
+            else if (splitArgs.length === 1){
                 resolve("Invalid Input")
             }
             else{
@@ -114,7 +118,7 @@ module.exports = {
                         }
                     }
                 }else if ((splitArgs[0] === "admin")){
-                    var adminList = splitArgs[1]
+                    adminList = splitArgs[1];
                     adminList = adminList.replace(/  /g, ', ')
                     conditionalQuery = {
                         _server: receivedMessage.guild.id,
