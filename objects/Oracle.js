@@ -508,12 +508,12 @@ module.exports = {
             })
         }
 
-        lookUpUsers = mentionValues.map(bootstrap.SeasonHelper.lookUpUsers);
+        lookUpUsers = await mentionValues.map(bootstrap.SeasonHelper.lookUpUsers);
 
         let unsortedResults = [];
         const resultsMsg = new bootstrap.Discord.MessageEmbed();
         Promise.all(lookUpUsers).then(results => {
-            for (var i = 0; i < results.length; i++){
+            for (let i = 0; i < results.length; i++){
                 if (results[i] !== "Can't find deck"){
                     let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][2])*100);
                     let elo = (20*(results[i][0][1])) - (10*(results[i][0][2])) + 1000;

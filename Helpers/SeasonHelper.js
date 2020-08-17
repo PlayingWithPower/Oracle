@@ -65,7 +65,7 @@ module.exports = {
                     }
                     passingResult = res;
                 }).then(function(passingResult){
-                    if (passingResult !== ""){
+                    if (passingResult.length > 0){
                             for (let i=0; i <passingResult.length; i++){
                                 let pasRes = passingResult[i]._player1;
                                 let exists = matchResults.find(el => el[0] === pasRes);
