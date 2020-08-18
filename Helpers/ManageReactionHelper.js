@@ -34,7 +34,7 @@ module.exports = {
         }
         let sanitizedString = user.id;
         // Catch impersonators block -- Remove if you want bot to react to reactions on non-bot messages
-        if (reaction.message.author.id !== bootstrap.Env.clientID) {
+        if (reaction.message.author.id !== bootstrap.Env.clientId) {
             return
         }
         let grabMentionValue = upperLevelEmbeds.description.toString().split(' ')[0].replace(/[<@!>]/g, '');
@@ -42,7 +42,7 @@ module.exports = {
             return
         }
         // Game Block
-        if (embeds.length > 1 && embeds[0] === "Game" && embeds[1] === "ID:" && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientID) {
+        if (embeds.length > 1 && embeds[0] === "Game" && embeds[1] === "ID:" && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientId) {
             let grabMatchID =  embeds[2];
             bootstrap.GameObj.confirmMatch(grabMatchID, sanitizedString).then(function() {
                     bootstrap.GameObj.checkMatch(grabMatchID).then(function(next) {
@@ -72,7 +72,7 @@ module.exports = {
                 })
         }
         
-        else if (embeds.length > 1 && embeds[0] === "Game" && embeds[1] === "ID:" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID){
+        else if (embeds.length > 1 && embeds[0] === "Game" && embeds[1] === "ID:" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId){
             let grabMatchID =  embeds[2];
             if (sanitizedString !==  grabMentionValue){
                 //console.log("not the right user")
@@ -90,7 +90,7 @@ module.exports = {
         }
         //end of game block
         //Confirm Delete Match Block
-        else if ((embeds.length > 1 && embeds[5] === "delete" && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientID)) {
+        else if ((embeds.length > 1 && embeds[5] === "delete" && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientId)) {
             let grabMatchID = upperLevelEmbeds.title.toString().split(' ');
             bootstrap.GameObj.confirmedDeleteMatch(grabMatchID[2], reaction.message).then((message) => {
                 const successEmbed = new bootstrap.Discord.MessageEmbed()
@@ -106,7 +106,7 @@ module.exports = {
                 reaction.message.edit(errorEmbed)
             })
         }
-        else if ((embeds.length > 1 && embeds[5] === "delete" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)) {
+        else if ((embeds.length > 1 && embeds[5] === "delete" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId)) {
             let grabMatchID = upperLevelEmbeds.title.toString().split(' ');
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
@@ -117,7 +117,7 @@ module.exports = {
         //End of Confirm Delete Match Block
         
         //Start of Remove Deck Reacts
-        else if((embeds.length === 1 && embeds === "WARNING" && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length === 1 && embeds === "WARNING" && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientId)){
         let removeDeckResult = await bootstrap.DeckObj.removeDeck(reaction.message.embeds[0].title);
             if (removeDeckResult.deletedCount >= 1 ){
                 const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
@@ -133,7 +133,7 @@ module.exports = {
             }
         }
         
-        else if((embeds.length === 1 && embeds === "WARNING" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length === 1 && embeds === "WARNING" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId)){
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Delete Deck Cancelled");
@@ -143,7 +143,7 @@ module.exports = {
 
         //Start of Update Deck Reacts
         //Commander
-        else if((embeds.length > 1 && embeds[0] === "You" && reaction.emoji.name === '1️⃣' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 1 && embeds[0] === "You" && reaction.emoji.name === '1️⃣' && user.id !== bootstrap.Env.clientId)){
             let channel = reaction.message.channel;
             let deckID = upperLevelEmbeds.title.slice(9);
             
@@ -190,7 +190,7 @@ module.exports = {
     
         }
         //Colors
-        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '2️⃣' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '2️⃣' && user.id !== bootstrap.Env.clientId)){
             let channel = reaction.message.channel;
             let deckID = upperLevelEmbeds.title.slice(9);
 
@@ -248,7 +248,7 @@ module.exports = {
     
         }
         //Deck Link
-        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '3️⃣' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '3️⃣' && user.id !== bootstrap.Env.clientId)){
             let channel = reaction.message.channel;
             let deckID = upperLevelEmbeds.title.slice(9);
 
@@ -303,7 +303,7 @@ module.exports = {
     
         }
         //Author
-        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '4️⃣' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '4️⃣' && user.id !== bootstrap.Env.clientId)){
             let channel = reaction.message.channel;
             let deckID = upperLevelEmbeds.title.slice(9);
 
@@ -351,7 +351,7 @@ module.exports = {
             })
         }
         //Deck Description
-        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '5️⃣' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '5️⃣' && user.id !== bootstrap.Env.clientId)){
             let channel = reaction.message.channel;
             let deckID = upperLevelEmbeds.title.slice(9);
 
@@ -409,7 +409,7 @@ module.exports = {
             })
         }
         //Deck Type
-        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '6️⃣' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '6️⃣' && user.id !== bootstrap.Env.clientId)){
             let channel = reaction.message.channel;
             let deckID = upperLevelEmbeds.title.slice(9);
 
@@ -465,7 +465,7 @@ module.exports = {
             })
         }
         //Primer
-        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '7️⃣' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '7️⃣' && user.id !== bootstrap.Env.clientId)){
             let channel = reaction.message.channel;
             let deckID = upperLevelEmbeds.title.slice(9);
 
@@ -522,7 +522,7 @@ module.exports = {
             })
         }
         //Discord Link
-        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '8️⃣' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '8️⃣' && user.id !== bootstrap.Env.clientId)){
             let channel = reaction.message.channel;
             let deckID = upperLevelEmbeds.title.slice(9);
 
@@ -577,7 +577,7 @@ module.exports = {
     
         }
         //Update Deck Cancelled
-        else if((embeds.length > 4 && embeds[4] === "update" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 4 && embeds[4] === "update" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId)){
             const editedWarningEmbed = new bootstrap.iscord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Update Deck Cancelled");
@@ -586,7 +586,7 @@ module.exports = {
         //End of Update Deck Block
         
         //Start of Add Deck Block
-        else if ((embeds.length > 4 && embeds[0] === "Trying"&& reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientID)){
+        else if ((embeds.length > 4 && embeds[0] === "Trying"&& reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientId)){
             let promiseReturn = await bootstrap.DeckHelper.addDeckHelper(reaction.message, upperLevelEmbeds.fields);
             if (promiseReturn === ""){
                 const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
@@ -601,7 +601,7 @@ module.exports = {
             reaction.message.edit(editedSuccessEmbed)
             }
         }
-        else if ((embeds.length > 4 && embeds[0] === "Trying"&& reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
+        else if ((embeds.length > 4 && embeds[0] === "Trying"&& reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId)){
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Add Deck Cancelled");
@@ -609,7 +609,7 @@ module.exports = {
         }
         //End of Add Deck Block
         //Start of End Season Block
-        else if ((embeds.length > 4 && embeds[0] === "WARNING:"&& reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientID)){
+        else if ((embeds.length > 4 && embeds[0] === "WARNING:"&& reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientId)){
             let returnArr = await bootstrap.SeasonObj.endSeason(reaction.message);
             const successEditedEmbed = new bootstrap.Discord.MessageEmbed();
             if (returnArr[0] === "Success"){
@@ -624,7 +624,7 @@ module.exports = {
                 reaction.message.edit(successEditedEmbed);
             }
         }
-        else if ((embeds.length > 4 && embeds[0] === "WARNING:"&& reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
+        else if ((embeds.length > 4 && embeds[0] === "WARNING:"&& reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId)){
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("End Season Cancelled");
