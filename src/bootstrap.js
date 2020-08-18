@@ -1,5 +1,5 @@
 // Bot Configuration
-const Env = require('./etc/env.js');
+const Env = require('./config.js');
 const Discord = require('discord.js');
 const Client = new Discord.Client();
 const Mongoose = require('mongoose');
