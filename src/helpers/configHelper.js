@@ -2,11 +2,9 @@ const bootstrap = require('../bootstrap')
 
 module.exports = {
   async checkAdminPrivs (receivedMessage) {
-    return new Promise(async (resolve, reject) => {
-      const configGet = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id)
-      const isAdmin = this.isUserAdmin(receivedMessage, configGet._admin)
-      resolve(isAdmin)
-    })
+    const configGet = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id)
+    const isAdmin = this.isUserAdmin(receivedMessage, configGet._admin)
+    return isAdmin
   },
   /**
      * isUserAdmin()
@@ -26,9 +24,7 @@ module.exports = {
     return isAdmin
   },
   async getDeckThreshold (guild) {
-    return new Promise(async (resolve, reject) => {
-      const configGet = await bootstrap.LeagueObj.configGet(guild)
-      resolve(configGet)
-    })
+    const configGet = await bootstrap.LeagueObj.configGet(guild)
+    return configGet
   }
 }

@@ -1,4 +1,4 @@
-const bootstrap = require('../bootstrap')
+const cron = require('cron')
 
 module.exports = {
   // error :
@@ -7,7 +7,7 @@ module.exports = {
     dateHalf = dateHalf.split('/')
     const month = dateHalf[0]
     const day = dateHalf[1]
-    const year = dateHalf[2]
+    // const year = dateHalf[2]
 
     let hour = timeHalf[0]
     const minute = timeHalf[1]
@@ -19,7 +19,7 @@ module.exports = {
 
     if (amPM === 'AM') {
       cronJobTime = second + ' ' + minute + ' ' + hour + ' '
-    } else if (amPM == 'PM') {
+    } else if (amPM === 'PM') {
       hour = parseInt(hour, 10)
       hour += 12
       cronJobTime = second + ' ' + minute + ' ' + hour.toString() + ' '

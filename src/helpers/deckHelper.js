@@ -48,38 +48,30 @@ module.exports = {
      * Checks if the deck a user is trying to update is valid.
      * Helper Function to the two below updateDeckName() and updateDeckList()
      */
-  findDeckToUpdate (receivedMessage, args) {
+  async findDeckToUpdate (receivedMessage, args) {
     args = args.join(' ')
     const lowerArgs = args.toString().toLowerCase()
     const deckQuery = { _alias: lowerArgs, _server: receivedMessage.guild.id }
-    return new Promise((resolve, reject) => {
-      bootstrap.Deck.find(deckQuery, function (err, res) {
-        if (res.length > 0) {
-          resolve(res)
-        } else {
-          resolve('Error 1')
-        }
-      })
-    })
+    const res = await bootstrap.Deck.find(deckQuery)
+    if (!res || res.length <= 0) {
+      throw new Error('Error 1')
+    }
+    return res
   },
   /**
      * Locates the deck to remove. Then waits for user reaction
      */
-  findDeckToRemove (receivedMessage, args) {
+  async findDeckToRemove (receivedMessage, args) {
     args = args.join(' ')
     const lowerArgs = args.toString().toLowerCase()
     const deckQuery = { _alias: lowerArgs, _server: receivedMessage.guild.id }
-    return new Promise((resolve, reject) => {
-      bootstrap.Deck.find(deckQuery, function (err, res) {
-        if (res.length > 0) {
-          resolve(res)
-        } else {
-          resolve('Error 1')
-        }
-      })
-    })
+    const res = await bootstrap.Deck.find(deckQuery)
+    if (!res || res.length <= 0) {
+      throw new Error('Error 1')
+    }
+    return res
   },
-  addDeckHelper (message, args) {
+  async addDeckHelper (message, args) {
     let primerBool
     if (args[7].value === 'False') {
       primerBool = false
@@ -105,23 +97,16 @@ module.exports = {
       _name: args[0].value,
       _server: message.guild.id
     }
-    return new Promise((resolve, reject) => {
-      bootstrap.Deck(deckSave).save(function (err, res) {
-        if (res) {
-          bootstrap.Alias(aliasSave).save(function (err, res) {
-            if (res) {
-              resolve(args[0].value)
-              // DEBUG: console.log("DEBUG: Successfully saved to ALIAS DB")
-            } else {
-              resolve('Error 1')
-            }
-          })
-          // DEBUG: console.log("DEBUG: Successfully saved to DECK DB")
-        } else {
-          resolve('Error 1')
-        }
-      })
-    })
+    const res = await bootstrap.Deck(deckSave).save()
+    if (!res || res.length <= 0) {
+      throw new Error('Error 1')
+    }
+
+    const res2 = bootstrap.Alias(aliasSave).save
+    if (!res2 || res2.length <= 0) {
+      throw new Error('Error 1')
+    }
+    return args[0].value
   },
   async checkColorDictionary (input) {
     const colorDictionary = {
