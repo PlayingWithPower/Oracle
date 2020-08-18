@@ -12,18 +12,12 @@ module.exports = {
      */
   async listDecks (receivedMessage, colorSpecified) {
     if (colorSpecified === 'no') {
-      return new Promise((resolve, reject) => {
-        bootstrap.Deck.find({ _server: receivedMessage.guild.id }, function (err, res) {
-          resolve(res)
-        })
-      })
+      const res = await bootstrap.Deck.find({ _server: receivedMessage.guild.id })
+      return res
     } else {
-      return new Promise((resolve, reject) => {
-        const deckQuery = { _server: receivedMessage.guild.id, _colors: colorSpecified.toUpperCase() }
-        bootstrap.Deck.find(deckQuery, function (err, res) {
-          resolve(res)
-        })
-      })
+      const deckQuery = { _server: receivedMessage.guild.id, _colors: colorSpecified.toUpperCase() }
+      const res = await bootstrap.Deck.find(deckQuery)
+      return res
     }
   },
   /**
@@ -31,41 +25,27 @@ module.exports = {
      * @param {*} receivedMessage
      * @param {*} args
      */
-  deckInfo (receivedMessage, args) {
+  async deckInfo (receivedMessage, args) {
     try {
       args = args.join(' ')
         .toLowerCase()
     } catch {
       args = ''
     }
-    const deck = require('../schema/decks')
-    const promiseRes = []
-
     const deckQuery = { _alias: args, _server: receivedMessage.guild.id }
-    return new Promise((resolve, reject) => {
-      bootstrap.Deck.findOne(deckQuery, function (err, res) {
-        if (res) {
-          promiseRes.push('First')
-          promiseRes.push(res)
-          resolve(promiseRes)
-        } else {
-          bootstrap.Deck.find(
-            {
-              _server: receivedMessage.guild.id,
-              $text: { $search: args }
-            },
-            function (err, res) {
-              if (res) {
-                promiseRes.push('Second')
-                promiseRes.push(res)
-                resolve(promiseRes)
-              } else {
-                resolve('Error 1')
-              }
-            })
-        }
+    const res = await bootstrap.Deck.findOne(deckQuery)
+    if (res) {
+      return ['First', res]
+    }
+    const res2 = await bootstrap.Deck.find(
+      {
+        _server: receivedMessage.guild.id,
+        $text: { $search: args }
       })
-    })
+    if (res2) {
+      return ['Second', res]
+    }
+    return 'Error 1'
   },
   /**
      * Returns stats about a deck alias
@@ -77,255 +57,217 @@ module.exports = {
     const argsWithSpaces = argsWithCommas.replace(/,/g, ' ')
     const splitArgs = argsWithSpaces.split(' | ')
     if (splitArgs[0][0] === '|') {
-      return new Promise((resolve, reject) => {
-        let query
-        let seasonName
-        const cleaningName = splitArgs[0]
-        const checkFormat = cleaningName.indexOf('| ')
-        console.log(checkFormat)
-        if (checkFormat === -1) {
-          resolve('Bad season deckstats input')
-          return
-        } else if (cleaningName.slice(2).toLowerCase() === 'all') {
-          query = {
-            _server: receivedMessage.guild.id,
-            _Status: 'FINISHED'
-          }
-          seasonName = 'all'
-        } else {
-          seasonName = cleaningName.slice(2)
-          query = {
-            _server: receivedMessage.guild.id,
-            _season: seasonName,
-            _Status: 'FINISHED'
-          }
-        }
-
-        let passingResult
-        const passedArray = []
-        bootstrap.Game.find(query, function (err, res) {
-          if (res) {
-            passingResult = res
-          } else {
-            resolve('Error 1')
-          }
-        }).then(function (passingResult) {
-          if (passingResult !== '') {
-            const matchResults = []
-            for (let i = 0; i < passingResult.length; i++) {
-              let pasRes = passingResult[i]._player1Deck
-              if (passingResult[i]._player1Deck === 'Rogue') {
-                pasRes = passingResult[i]._player1Rogue + ' | Rogue'
-              }
-              const exists = matchResults.find(el => el[0] === pasRes)
-              if (exists) {
-                exists[1] += 1
-              } else {
-                matchResults.push([pasRes, 1, 0])
-              }
-
-              pasRes = passingResult[i]._player2Deck
-              if (passingResult[i]._player2Deck === 'Rogue') {
-                pasRes = passingResult[i]._player2Rogue + ' | Rogue'
-              }
-              const exists2 = matchResults.find(el => el[0] === pasRes)
-              if (exists2) {
-                exists2[2] += 1
-              } else {
-                matchResults.push([pasRes, 0, 1])
-              }
-
-              pasRes = passingResult[i]._player3Deck
-              if (passingResult[i]._player3Deck === 'Rogue') {
-                pasRes = passingResult[i]._player3Rogue + ' | Rogue'
-              }
-              const exists3 = matchResults.find(el => el[0] === pasRes)
-              if (exists3) {
-                exists3[2] += 1
-              } else {
-                matchResults.push([pasRes, 0, 1])
-              }
-
-              pasRes = passingResult[i]._player4Deck
-              if (passingResult[i]._player4Deck === 'Rogue') {
-                pasRes = passingResult[i]._player4Rogue + ' | Rogue'
-              }
-              const exists4 = matchResults.find(el => el[0] === pasRes)
-              if (exists4) {
-                exists4[2] += 1
-              } else {
-                matchResults.push([[pasRes], 0, 1])
-              }
-            }
-            passedArray.push('Raw Deck Lookup', matchResults, seasonName)
-            resolve(passedArray)
-          } else {
-            bootstrap.Deck.find(
-              {
-                _server: receivedMessage.guild.id,
-                $text: { $search: args }
-              },
-              function (err, res) {
-                if (res.length > 0) {
-                  resolve(res)
-                } else {
-                  resolve("Can't find deck")
-                }
-              })
-          }
-        })
-      })
-    } else if (args.length === 0) {
-      return new Promise((resolve, reject) => {
-        const query = {
+      let query
+      let seasonName
+      const cleaningName = splitArgs[0]
+      const checkFormat = cleaningName.indexOf('| ')
+      console.log(checkFormat)
+      if (checkFormat === -1) {
+        return 'Bad season deckstats input'
+      } else if (cleaningName.slice(2).toLowerCase() === 'all') {
+        query = {
           _server: receivedMessage.guild.id,
-          _season: currentSeason,
           _Status: 'FINISHED'
         }
-
-        let passingResult
-        const passedArray = []
-        bootstrap.Game.find(query, function (err, res) {
-          if (res) {
-            passingResult = res
-          } else {
-            resolve('Error 1')
-          }
-        }).then(function (passingResult) {
-          if (passingResult !== '') {
-            const matchResults = []
-            for (let i = 0; i < passingResult.length; i++) {
-              let pasRes = passingResult[i]._player1Deck
-              if (passingResult[i]._player1Deck === 'Rogue') {
-                pasRes = passingResult[i]._player1Rogue + ' | Rogue'
-              }
-              const exists = matchResults.find(el => el[0] === pasRes)
-              if (exists) {
-                exists[1] += 1
-              } else {
-                matchResults.push([pasRes, 1, 0])
-              }
-
-              pasRes = passingResult[i]._player2Deck
-              if (passingResult[i]._player2Deck === 'Rogue') {
-                pasRes = passingResult[i]._player2Rogue + ' | Rogue'
-              }
-              const exists2 = matchResults.find(el => el[0] === pasRes)
-              if (exists2) {
-                exists2[2] += 1
-              } else {
-                matchResults.push([pasRes, 0, 1])
-              }
-
-              pasRes = passingResult[i]._player3Deck
-              if (passingResult[i]._player3Deck === 'Rogue') {
-                pasRes = passingResult[i]._player3Rogue + ' | Rogue'
-              }
-              const exists3 = matchResults.find(el => el[0] === pasRes)
-              if (exists3) {
-                exists3[2] += 1
-              } else {
-                matchResults.push([pasRes, 0, 1])
-              }
-
-              pasRes = passingResult[i]._player4Deck
-              if (passingResult[i]._player4Deck === 'Rogue') {
-                pasRes = passingResult[i]._player4Rogue + ' | Rogue'
-              }
-              const exists4 = matchResults.find(el => el[0] === pasRes)
-              if (exists4) {
-                exists4[2] += 1
-              } else {
-                matchResults.push([[pasRes], 0, 1])
-              }
-            }
-            passedArray.push('Raw Deck Lookup', matchResults, currentSeason)
-            resolve(passedArray)
-          } else {
-            resolve("Can't find deck")
-          }
-        })
-      })
-    } else if (args[0].slice(0, 2) === '<@') {
-      return new Promise((resolve, reject) => {
-        args = args.join(' ')
-        const argsWithCommas = args.toString()
-        const argsWithSpaces = argsWithCommas.replace(/,/g, ' ')
-        const splitArgs = argsWithSpaces.split(' | ')
-
-        let wins = 0
-        let losses = 0
-        let passingResult
-
-        let conditionalQuery
-        if (splitArgs[1] === undefined) {
-          conditionalQuery = {
-            _server: receivedMessage.guild.id,
-            _season: currentSeason,
-            _Status: 'FINISHED',
-            $or:
-                        [
-                          { _player1: splitArgs[0].replace(/[<@!>]/g, '') },
-                          { _player2: splitArgs[0].replace(/[<@!>]/g, '') },
-                          { _player3: splitArgs[0].replace(/[<@!>]/g, '') },
-                          { _player4: splitArgs[0].replace(/[<@!>]/g, '') }
-                        ]
-          }
-        } else if (splitArgs[1].toLowerCase() === 'all') {
-          conditionalQuery = {
-            _server: receivedMessage.guild.id,
-            _Status: 'FINISHED',
-            $or:
-                        [
-                          { _player1: splitArgs[0].replace(/[<@!>]/g, '') },
-                          { _player2: splitArgs[0].replace(/[<@!>]/g, '') },
-                          { _player3: splitArgs[0].replace(/[<@!>]/g, '') },
-                          { _player4: splitArgs[0].replace(/[<@!>]/g, '') }
-                        ]
-          }
-          currentSeason = 'all'
-        } else {
-          conditionalQuery = {
-            _server: receivedMessage.guild.id,
-            _season: splitArgs[1],
-            _Status: 'FINISHED',
-            $or:
-                        [
-                          { _player1: splitArgs[0].replace(/[<@!>]/g, '') },
-                          { _player2: splitArgs[0].replace(/[<@!>]/g, '') },
-                          { _player3: splitArgs[0].replace(/[<@!>]/g, '') },
-                          { _player4: splitArgs[0].replace(/[<@!>]/g, '') }
-                        ]
-          }
-          currentSeason = splitArgs[1]
+        seasonName = 'all'
+      } else {
+        seasonName = cleaningName.slice(2)
+        query = {
+          _server: receivedMessage.guild.id,
+          _season: seasonName,
+          _Status: 'FINISHED'
         }
-        bootstrap.Game.find(conditionalQuery, function (err, res) {
-          if (err) {
-            throw err
+      }
+
+      const passingResult = await bootstrap.Game.find(query)
+      if (!passingResult) {
+        return 'Error 1'
+      }
+      if (passingResult !== '') {
+        const matchResults = []
+        for (let i = 0; i < passingResult.length; i++) {
+          let pasRes = passingResult[i]._player1Deck
+          if (passingResult[i]._player1Deck === 'Rogue') {
+            pasRes = passingResult[i]._player1Rogue + ' | Rogue'
           }
-          passingResult = res
-        }).then(function (passingResult) {
-          if (passingResult !== '') {
-            const player = splitArgs[0].replace(/[<@!>]/g, '')
-            passingResult.forEach((entry) => {
-              if (entry._player1 === player) {
-                wins = wins + 1
-              } else if (entry._player2 === player) {
-                losses = losses + 1
-              } else if (entry._player3 === player) {
-                losses = losses + 1
-              } else if (entry._player4 === player) {
-                losses = losses + 1
-              }
-            })
-            const passedArray = []
-            passedArray.push('User Lookup', splitArgs[0].replace(/[<@!>]/g, ''), wins, losses, currentSeason)
-            resolve(passedArray)
+          const exists = matchResults.find(el => el[0] === pasRes)
+          if (exists) {
+            exists[1] += 1
           } else {
-            resolve("Can't find deck")
+            matchResults.push([pasRes, 1, 0])
+          }
+
+          pasRes = passingResult[i]._player2Deck
+          if (passingResult[i]._player2Deck === 'Rogue') {
+            pasRes = passingResult[i]._player2Rogue + ' | Rogue'
+          }
+          const exists2 = matchResults.find(el => el[0] === pasRes)
+          if (exists2) {
+            exists2[2] += 1
+          } else {
+            matchResults.push([pasRes, 0, 1])
+          }
+
+          pasRes = passingResult[i]._player3Deck
+          if (passingResult[i]._player3Deck === 'Rogue') {
+            pasRes = passingResult[i]._player3Rogue + ' | Rogue'
+          }
+          const exists3 = matchResults.find(el => el[0] === pasRes)
+          if (exists3) {
+            exists3[2] += 1
+          } else {
+            matchResults.push([pasRes, 0, 1])
+          }
+
+          pasRes = passingResult[i]._player4Deck
+          if (passingResult[i]._player4Deck === 'Rogue') {
+            pasRes = passingResult[i]._player4Rogue + ' | Rogue'
+          }
+          const exists4 = matchResults.find(el => el[0] === pasRes)
+          if (exists4) {
+            exists4[2] += 1
+          } else {
+            matchResults.push([[pasRes], 0, 1])
+          }
+        }
+        return ['Raw Deck Lookup', matchResults, seasonName]
+      } else {
+        const res = await bootstrap.Deck.find(
+          {
+            _server: receivedMessage.guild.id,
+            $text: { $search: args }
+          })
+        if (res.length > 0) {
+          return res
+        }
+        return "Can't find deck"
+      }
+    } else if (args.length === 0) {
+      const query = {
+        _server: receivedMessage.guild.id,
+        _season: currentSeason,
+        _Status: 'FINISHED'
+      }
+
+      const passingResult = await bootstrap.Game.find(query)
+      if (!passingResult) {
+        return 'Error 1'
+      }
+      if (passingResult !== '') {
+        const matchResults = []
+        for (let i = 0; i < passingResult.length; i++) {
+          let pasRes = passingResult[i]._player1Deck
+          if (passingResult[i]._player1Deck === 'Rogue') {
+            pasRes = passingResult[i]._player1Rogue + ' | Rogue'
+          }
+          const exists = matchResults.find(el => el[0] === pasRes)
+          if (exists) {
+            exists[1] += 1
+          } else {
+            matchResults.push([pasRes, 1, 0])
+          }
+
+          pasRes = passingResult[i]._player2Deck
+          if (passingResult[i]._player2Deck === 'Rogue') {
+            pasRes = passingResult[i]._player2Rogue + ' | Rogue'
+          }
+          const exists2 = matchResults.find(el => el[0] === pasRes)
+          if (exists2) {
+            exists2[2] += 1
+          } else {
+            matchResults.push([pasRes, 0, 1])
+          }
+
+          pasRes = passingResult[i]._player3Deck
+          if (passingResult[i]._player3Deck === 'Rogue') {
+            pasRes = passingResult[i]._player3Rogue + ' | Rogue'
+          }
+          const exists3 = matchResults.find(el => el[0] === pasRes)
+          if (exists3) {
+            exists3[2] += 1
+          } else {
+            matchResults.push([pasRes, 0, 1])
+          }
+
+          pasRes = passingResult[i]._player4Deck
+          if (passingResult[i]._player4Deck === 'Rogue') {
+            pasRes = passingResult[i]._player4Rogue + ' | Rogue'
+          }
+          const exists4 = matchResults.find(el => el[0] === pasRes)
+          if (exists4) {
+            exists4[2] += 1
+          } else {
+            matchResults.push([[pasRes], 0, 1])
+          }
+        }
+        return ['Raw Deck Lookup', matchResults, currentSeason]
+      }
+      return "Can't find deck"
+    } else if (args[0].slice(0, 2) === '<@') {
+      args = args.join(' ')
+      const argsWithCommas = args.toString()
+      const argsWithSpaces = argsWithCommas.replace(/,/g, ' ')
+      const splitArgs = argsWithSpaces.split(' | ')
+
+      let wins = 0
+      let losses = 0
+
+      let conditionalQuery
+      if (splitArgs[1] === undefined) {
+        conditionalQuery = {
+          _server: receivedMessage.guild.id,
+          _season: currentSeason,
+          _Status: 'FINISHED',
+          $or: [
+            { _player1: splitArgs[0].replace(/[<@!>]/g, '') },
+            { _player2: splitArgs[0].replace(/[<@!>]/g, '') },
+            { _player3: splitArgs[0].replace(/[<@!>]/g, '') },
+            { _player4: splitArgs[0].replace(/[<@!>]/g, '') }
+          ]
+        }
+      } else if (splitArgs[1].toLowerCase() === 'all') {
+        conditionalQuery = {
+          _server: receivedMessage.guild.id,
+          _Status: 'FINISHED',
+          $or: [
+            { _player1: splitArgs[0].replace(/[<@!>]/g, '') },
+            { _player2: splitArgs[0].replace(/[<@!>]/g, '') },
+            { _player3: splitArgs[0].replace(/[<@!>]/g, '') },
+            { _player4: splitArgs[0].replace(/[<@!>]/g, '') }
+          ]
+        }
+        currentSeason = 'all'
+      } else {
+        conditionalQuery = {
+          _server: receivedMessage.guild.id,
+          _season: splitArgs[1],
+          _Status: 'FINISHED',
+          $or: [
+            { _player1: splitArgs[0].replace(/[<@!>]/g, '') },
+            { _player2: splitArgs[0].replace(/[<@!>]/g, '') },
+            { _player3: splitArgs[0].replace(/[<@!>]/g, '') },
+            { _player4: splitArgs[0].replace(/[<@!>]/g, '') }
+          ]
+        }
+        currentSeason = splitArgs[1]
+      }
+      const passingResult = await bootstrap.Game.find(conditionalQuery)
+      if (passingResult !== '') {
+        const player = splitArgs[0].replace(/[<@!>]/g, '')
+        passingResult.forEach((entry) => {
+          if (entry._player1 === player) {
+            wins = wins + 1
+          } else if (entry._player2 === player) {
+            losses = losses + 1
+          } else if (entry._player3 === player) {
+            losses = losses + 1
+          } else if (entry._player4 === player) {
+            losses = losses + 1
           }
         })
-      })
+        return ['User Lookup', splitArgs[0].replace(/[<@!>]/g, ''), wins, losses, currentSeason]
+      }
+      return "Can't find deck"
     } else {
       args = args.join(' ')
       const argsWithCommas = args.toString()
@@ -356,67 +298,50 @@ module.exports = {
       let wins = 0
       let losses = 0
       let deckPlayers = []
-      let passingResult
-
-      return new Promise((resolve, reject) => {
-        bootstrap.Game.find(query, function (err, res) {
-          if (err) {
-            throw err
+      const passingResult = await bootstrap.Game.find(query)
+      if (passingResult !== '') {
+        passingResult.forEach((entry) => {
+          if (entry._player1Deck === splitArgs[0]) {
+            wins = wins + 1
+            deckPlayers.push(entry._player1)
           }
-          passingResult = res
-        }).then(function (passingResult) {
-          if (passingResult !== '') {
-            passingResult.forEach((entry) => {
-              if (entry._player1Deck === splitArgs[0]) {
-                wins = wins + 1
-                deckPlayers.push(entry._player1)
-              }
-              if (entry._player2Deck === splitArgs[0]) {
-                losses = losses + 1
-                deckPlayers.push(entry._player2)
-              }
-              if (entry._player3Deck === splitArgs[0]) {
-                losses = losses + 1
-                deckPlayers.push(entry._player3)
-              }
-              if (entry._player4Deck === splitArgs[0]) {
-                losses = losses + 1
-                deckPlayers.push(entry._player4)
-              }
-            })
-            const passedArray = []
-            deckPlayers = deckPlayers.filter(function (item, index, inputArray) {
-              return inputArray.indexOf(item) === index
-            })
-            passedArray.push('Deck Lookup', args, currentSeason, wins, losses, deckPlayers, passingResult)
-            resolve(passedArray)
-          } else {
-            bootstrap.Deck.find(
-              {
-                _server: receivedMessage.guild.id,
-                $text: { $search: args }
-              },
-              function (err, res) {
-                if (res.length > 0) {
-                  resolve(res)
-                } else {
-                  resolve("Can't find deck")
-                }
-              })
+          if (entry._player2Deck === splitArgs[0]) {
+            losses = losses + 1
+            deckPlayers.push(entry._player2)
+          }
+          if (entry._player3Deck === splitArgs[0]) {
+            losses = losses + 1
+            deckPlayers.push(entry._player3)
+          }
+          if (entry._player4Deck === splitArgs[0]) {
+            losses = losses + 1
+            deckPlayers.push(entry._player4)
           }
         })
-      })
+        deckPlayers = deckPlayers.filter(function (item, index, inputArray) {
+          return inputArray.indexOf(item) === index
+        })
+        return ['Deck Lookup', args, currentSeason, wins, losses, deckPlayers, passingResult]
+      } else {
+        const res = await bootstrap.Deck.find(
+          {
+            _server: receivedMessage.guild.id,
+            $text: { $search: args }
+          })
+        if (res.length > 0) {
+          return res
+        }
+        return "Can't find deck"
+      }
     }
   },
   /**
      * Used in ManageReactionHelper
      * Updates the Primer of a Deck
      */
-  updatePrimer (newPrimerMessage, oldID) {
+  async updatePrimer (newPrimerMessage, oldID) {
     if ((newPrimerMessage.content.toLowerCase() !== 'yes') && (newPrimerMessage.content.toLowerCase() !== 'no')) {
-      return new Promise((resolve, reject) => {
-        resolve('Error 1')
-      })
+      return 'Error 1'
     } else {
       let newPrimer = newPrimerMessage.content
       newPrimer = bootstrap.DeckHelper.toUpper(newPrimer)
@@ -426,58 +351,38 @@ module.exports = {
         newPrimer = false
       }
 
-      const promiseArr = []
       const deckQuery = { _id: oldID }
-      return new Promise((resolve, reject) => {
-        bootstrap.Deck.find(deckQuery, function (err, deckFindRes) {
-          if (deckFindRes) {
-            bootstrap.Deck.updateOne(deckQuery, { $set: { _hasPrimer: newPrimer } }, function (err, deckUpdateRes) {
-              promiseArr.push(deckFindRes[0]._name)
-              promiseArr.push(deckFindRes[0]._hasPrimer)
-              promiseArr.push(newPrimer)
-              resolve(promiseArr)
-            })
-          }
-        })
-      })
+      const deckFindRes = await bootstrap.Deck.find(deckQuery)
+      if (deckFindRes) {
+        await bootstrap.Deck.findOneAndUpdate(deckQuery, { $set: { _hasPrimer: newPrimer } })
+        return [deckFindRes[0]._name, deckFindRes[0]._hasPrimer, newPrimer]
+      }
     }
   },
   /**
      * Used in ManageReactionHelper
      * Updates the Type of a Deck
      */
-  updateType (newAuthorMessage, oldID) {
-    const promiseArr = []
+  async updateType (newAuthorMessage, oldID) {
     const deckQuery = { _id: oldID }
 
     if ((newAuthorMessage.content.toLowerCase() !== 'proactive') && (newAuthorMessage.content.toLowerCase() !== 'adaptive') && (newAuthorMessage.content.toLowerCase() !== 'disruptive')) {
-      return new Promise((resolve, reject) => {
-        resolve('Error 1')
-      })
+      return 'Error 1'
     } else {
       let newDeckType = newAuthorMessage.content
       newDeckType = bootstrap.DeckHelper.toUpper(newDeckType)
-
-      return new Promise((resolve, reject) => {
-        bootstrap.Deck.find(deckQuery, function (err, deckFindRes) {
-          if (deckFindRes) {
-            bootstrap.Deck.updateOne(deckQuery, { $set: { _deckType: newDeckType } }, function (err, deckUpdateRes) {
-              promiseArr.push(deckFindRes[0]._name)
-              promiseArr.push(deckFindRes[0]._deckType)
-              promiseArr.push(newDeckType)
-              resolve(promiseArr)
-            })
-          }
-        })
-      })
+      const deckFindRes = await bootstrap.Deck.find(deckQuery)
+      if (deckFindRes) {
+        await bootstrap.Deck.updateOne(deckQuery, { $set: { _deckType: newDeckType } })
+        return [deckFindRes[0]._name, deckFindRes[0]._deckType, newDeckType]
+      }
     }
   },
   /**
      * Used in ManageReactionHelper
      * Updates the author of a Deck
      */
-  updateAuthor (newAuthorMessage, oldID) {
-    const promiseArr = []
+  async updateAuthor (newAuthorMessage, oldID) {
     const deckQuery = { _id: oldID }
 
     let bulkAuthors = newAuthorMessage.content
@@ -490,46 +395,31 @@ module.exports = {
     })
     commaAuthors = commaAuthors.replace(/,([^,]*)$/, '$1')
     commaAuthors = commaAuthors.replace(/ ([^ ]*)$/, '$1')
-    return new Promise((resolve, reject) => {
-      bootstrap.Deck.find(deckQuery, function (err, deckFindRes) {
-        if (deckFindRes) {
-          bootstrap.Deck.updateOne(deckQuery, { $set: { _author: commaAuthors } }, function (err, deckUpdateRes) {
-            promiseArr.push(deckFindRes[0]._name)
-            promiseArr.push(deckFindRes[0]._author)
-            promiseArr.push(commaAuthors)
-            resolve(promiseArr)
-          })
-        }
-      })
-    })
+    const deckFindRes = await bootstrap.Deck.find(deckQuery)
+    if (deckFindRes) {
+      await bootstrap.Deck.updateOne(deckQuery, { $set: { _author: commaAuthors } })
+      return [deckFindRes[0]._name, deckFindRes[0]._deckType, newDeckType]
+    }
   },
   /**
      * Used in ManageReactionHelper
      * Updates the description of a Deck
      */
-  updateDescription (newDescriptionMessage, oldID) {
-    const promiseArr = []
+  async updateDescription (newDescriptionMessage, oldID) {
     const deckQuery = { _id: oldID }
     const newDescription = newDescriptionMessage.content
 
-    return new Promise((resolve, reject) => {
-      if (newDescription.length > 750) {
-        return new Promise((resolve, reject) => {
-          resolve('Error 1')
-        })
-      } else {
-        bootstrap.Deck.find(deckQuery, function (err, deckFindRes) {
-          if (deckFindRes) {
-            bootstrap.Deck.updateOne(deckQuery, { $set: { _description: newDescription } }, function (err, deckUpdateRes) {
-              if (deckUpdateRes) {
-                promiseArr.push(deckFindRes[0]._name)
-                resolve(promiseArr)
-              }
-            })
-          }
-        })
+    if (newDescription.length > 750) {
+      return 'Error 1'
+    } else {
+      const deckFindRes = await bootstrap.Deck.find(deckQuery)
+      if (deckFindRes) {
+        const deckUpdateRes = await bootstrap.Deck.updateOne(deckQuery, { $set: { _description: newDescription } })
+        if (deckUpdateRes) {
+          return [deckFindRes[0]._name]
+        }
       }
-    })
+    }
   },
   /**
      * Used in ManageReactionHelper

@@ -146,7 +146,7 @@ module.exports = {
       sansblack: 'w, u, r, g',
       sansred: 'w, u, b, g'
     }
-    if (colorDictionary.hasOwnProperty(input.toLowerCase())) {
+    if (Object.prototype.hasOwnProperty.call(colorDictionary, input.toLowerCase())) {
       return new Promise((resolve, reject) => {
         resolve(colorDictionary[input.toLowerCase()])
       })
