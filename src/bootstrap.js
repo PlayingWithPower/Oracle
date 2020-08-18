@@ -5,30 +5,30 @@ const Client = new Discord.Client();
 const Mongoose = require('mongoose');
 
 //Objects
-const OracleObj = require('./objects/Oracle');
-const DeckObj = require('./objects/Deck');
-const GameObj = require('./objects/Game');
-const LeagueObj = require('./objects/League');
-const SeasonObj = require('./objects/Season');
-const UserObj = require('./objects/User');
+const OracleObj = require('./objects/oracle');
+const DeckObj = require('./objects/deck');
+const GameObj = require('./objects/game');
+const LeagueObj = require('./objects/league');
+const SeasonObj = require('./objects/season');
+const UserObj = require('./objects/user');
 
 //Schemas
-const User = require('./Schema/Users');
-const Deck = require('./Schema/Decks');
-const Game = require('./Schema/Games');
-const Config = require('./Schema/Config');
-const Season = require('./Schema/Seasons');
-const Alias = require('./Schema/Alias');
+const User = require('./schema/users');
+const Deck = require('./schema/decks');
+const Game = require('./schema/games');
+const Config = require('./schema/config');
+const Season = require('./schema/seasons');
+const Alias = require('./schema/alias');
 
 //Helper files
-const FunctionHelper = require('./Helpers/FunctionHelper');
-const DeckHelper = require('./Helpers/DeckHelper');
-const ManageReactHelper = require('./Helpers/ManageReactionHelper');
-const SeasonHelper = require('./Helpers/SeasonHelper');
-const GameHelper = require('./Helpers/GameHelper');
-const ConfigHelper = require('./Helpers/ConfigHelper');
-const MessageHelper = require('./Helpers/MessageHelper');
-const LeagueHelper = require('./Helpers/LeagueHelper');
+const FunctionHelper = require('./helpers/functionHelper');
+const DeckHelper = require('./helpers/deckHelper');
+const ManageReactHelper = require('./helpers/manageReactionHelper');
+const SeasonHelper = require('./helpers/seasonHelper');
+const GameHelper = require('./helpers/gameHelper');
+const ConfigHelper = require('./helpers/configHelper');
+const MessageHelper = require('./helpers/messageHelper');
+const LeagueHelper = require('./helpers/leagueHelper');
 
 //Bot prefix
 const botListeningPrefix = "!";
@@ -39,7 +39,7 @@ const messageColorGreen = "#5fff00";
 const messageColorBlue = "#0099ff";
 
 //Data
-const Data = require('./data/decklists.json');
+const Data = require('../data/decklists.json');
 
 //Bot Config Export
 exports.Env = Env;

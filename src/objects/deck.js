@@ -41,7 +41,7 @@ module.exports = {
         catch{
             args = ""
         }
-        const deck = require('../Schema/Decks');
+        const deck = require('../schema/decks');
         let promiseRes = [];
 
         let deckQuery = {_alias: args, _server: receivedMessage.guild.id};
