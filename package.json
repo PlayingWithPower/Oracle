@@ -10,10 +10,12 @@
     "mongodb": "^3.5.9",
     "mongoose": "^5.9.16"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "standard": "^14.3.4"
+  },
   "scripts": {
     "start": "node src/main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "standard"
   },
   "repository": {
     "type": "git",
