@@ -21,7 +21,6 @@ module.exports = {
      * @param channel
      */
     async manageReaction(reaction, user, channel) {
-        const msg = reaction.message.content.toString().split(' ');
         let embeds = reaction.message.embeds[0];
         let upperLevelEmbeds = reaction.message.embeds[0];
         //Resolving issues where a user would upvote/downvote, then do it again. It would cause embeds.author to be null
@@ -117,7 +116,7 @@ module.exports = {
         //End of Confirm Delete Match Block
         
         //Start of Remove Deck Reacts
-        else if((embeds.length === 1 && embeds === "WARNING" && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length === 1 && embeds[0] === "WARNING" && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientID)){
         let removeDeckResult = await bootstrap.DeckObj.removeDeck(reaction.message.embeds[0].title);
             if (removeDeckResult.deletedCount >= 1 ){
                 const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
@@ -133,7 +132,7 @@ module.exports = {
             }
         }
         
-        else if((embeds.length === 1 && embeds === "WARNING" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length === 1 && embeds[0] === "WARNING" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Delete Deck Cancelled");

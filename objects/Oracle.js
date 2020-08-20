@@ -307,7 +307,7 @@ module.exports = {
             return
         }
 
-        if (args[0].length === 10){
+        if (args[0].length === 10 && args.length === 1){
             let date = new Date(args);
             const currentDate = new Date();
             if (date instanceof Date && !isNaN(date.valueOf())) {
