@@ -18,3 +18,8 @@ node main.js
 ```
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+
+## Need more help?
+Join our discord server for any more questions about the bot
+https://discord.gg/HynH4BH
