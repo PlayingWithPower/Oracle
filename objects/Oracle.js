@@ -1580,17 +1580,47 @@ module.exports = {
             let tempEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue) //blue
                 .setTitle('Game ID: ' + response[1])
-                .setThumbnail(bootstrap.LeagueHelper.getUserAvatarUrl(winner))
-                .addFields(
-                    { name: 'Season: ', value: response[3], inline: true},
-                    { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
-                    { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+response[8]+'**'},
-                    { name: 'Opponents:', value:
-                            '**'+loser1.username+'**'+ ' piloting ' + '**'+response[9]+'**' + '\n'
-                            + '**'+loser2.username+'**'+ ' piloting ' + '**'+response[10]+'**' + '\n'
-                            + '**'+loser3.username+'**'+ ' piloting ' + '**'+response[11]+'**' }
-                );
-            generalChannel.send(tempEmbed)
+                .setThumbnail(bootstrap.LeagueHelper.getUserAvatarUrl(winner));
+            if (response[12] === "Finished Match"){
+                tempEmbed
+                    .setAuthor("This is a finished match. All parties have accepted the match log.")
+                    .addFields(
+                        { name: 'Season: ', value: response[3], inline: true},
+                        { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                        { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+response[8]+'**'},
+                        { name: 'Opponents:', value:
+                                '**'+loser1.username+'**'+ ' piloting ' + '**'+response[9]+'**' + '\n'
+                                + '**'+loser2.username+'**'+ ' piloting ' + '**'+response[10]+'**' + '\n'
+                                + '**'+loser3.username+'**'+ ' piloting ' + '**'+response[11]+'**' }
+                    );
+                generalChannel.send(tempEmbed)
+            }else if (response[12] === "Disputed Match"){
+                tempEmbed
+                    .setAuthor("This is a disputed match. Some or all of the parties have disputed the outcome of this match.")
+                    .addFields(
+                        { name: 'Season: ', value: response[3], inline: true},
+                        { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                        { name: 'Winner (if match is accepted):', value: '**'+winner.username+'**' + ' piloting ' + '**'+response[8]+'**'},
+                        { name: 'Opponents:', value:
+                                '**'+loser1.username+'**'+ ' piloting ' + '**'+response[9]+'**' + '\n'
+                                + '**'+loser2.username+'**'+ ' piloting ' + '**'+response[10]+'**' + '\n'
+                                + '**'+loser3.username+'**'+ ' piloting ' + '**'+response[11]+'**' }
+                    );
+                generalChannel.send(tempEmbed)
+            }else if (response[12] === "Pending Match"){
+                tempEmbed
+                    .setAuthor("This is a pending match. Some or all of the parties have not finished logging this match.")
+                    .addFields(
+                        { name: 'Season: ', value: response[3], inline: true},
+                        { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                        { name: 'Winner (if match is accepted):', value: '**'+winner.username+'**' + ' piloting ' + '**'+response[8]+'**'},
+                        { name: 'Opponents:', value:
+                                '**'+loser1.username+'**'+ ' piloting ' + '**'+response[9]+'**' + '\n'
+                                + '**'+loser2.username+'**'+ ' piloting ' + '**'+response[10]+'**' + '\n'
+                                + '**'+loser3.username+'**'+ ' piloting ' + '**'+response[11]+'**' }
+                    );
+                generalChannel.send(tempEmbed)
+            }
         }
         else if (response === "FAIL"){
             const errorMsg = new bootstrap.Discord.MessageEmbed()

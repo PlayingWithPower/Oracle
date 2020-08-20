@@ -304,26 +304,35 @@ module.exports = {
         let returnArr = [];
 
         return new Promise((resolve, reject) => {
-            let findQuery = {_match_id: match_id, _server: server_id, _season: currentSeasonName, _Status: "FINISHED"};
+            let findQuery = {_match_id: match_id, _server: server_id, _season: currentSeasonName};
             bootstrap.Game.findOne(findQuery, function(err, res) {
                 if (res) {
-                    let timestamp = res._id.toString().substring(0,8);
-                    let date = new Date( parseInt( timestamp, 16 ) * 1000);
-                    returnArr.push(date);
-                    returnArr.push(res._match_id);
-                    returnArr.push(res._server);
-                    returnArr.push(res._season);
-                    returnArr.push(res._player1);
-                    returnArr.push(res._player2);
-                    returnArr.push(res._player3);
-                    returnArr.push(res._player4);
-                    returnArr.push(res._player1Deck);
-                    returnArr.push(res._player2Deck);
-                    returnArr.push(res._player3Deck);
-                    returnArr.push(res._player4Deck);
-                    resolve(returnArr)
-                }
-                else {
+                        let timestamp = res._id.toString().substring(0,8);
+                        let date = new Date( parseInt( timestamp, 16 ) * 1000);
+                        returnArr.push(date);
+                        returnArr.push(res._match_id);
+                        returnArr.push(res._server);
+                        returnArr.push(res._season);
+                        returnArr.push(res._player1);
+                        returnArr.push(res._player2);
+                        returnArr.push(res._player3);
+                        returnArr.push(res._player4);
+                        returnArr.push(res._player1Deck);
+                        returnArr.push(res._player2Deck);
+                        returnArr.push(res._player3Deck);
+                        returnArr.push(res._player4Deck);
+                    if (res._Status === "FINISHED"){
+                        returnArr.push("Finished Match");
+                        resolve(returnArr)
+                    }else if (res._Status === "CLOSED"){
+                        returnArr.push("Disputed Match");
+                        resolve(returnArr)
+                    }
+                    else if (res._Status === "STARTED"){
+                        returnArr.push("Pending Match");
+                        resolve(returnArr)
+                    }
+                }else {
                     resolve('FAIL')
                 }
             })
