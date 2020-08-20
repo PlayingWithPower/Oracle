@@ -557,7 +557,7 @@ module.exports = {
             if (resultsMsg.fields.length === 0){
                 resultsMsg
                     .setDescription("Seasons are case sensitive! Make sure you are spelling the season name correctly. See a list of all seasons with !seasoninfo all")
-                    .setAuthor("No Top Players Yet")
+                    .setAuthor("No Top Players yet for the specified season")
             }
             generalChannel.send(resultsMsg)
         })
