@@ -1,8 +1,3 @@
-# DiscordBot
-Discord bot for MTG related functionality.  
-1. What the project is
-2. Help for everything a developer would need, prerequistes, how to work with it, cloning, how to get up and running
-
 # Discord Elo Bot
 
 This repository is the home of a Discord Elo Bot (named Oracle Bot on discord). At its core, Oracle Bot is a Magic the Gathering statistics and information bot, aimed at the CEDH community. The bot will track data deck and player statistics inside of Discord Servers. 
