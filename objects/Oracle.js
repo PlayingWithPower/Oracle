@@ -1201,7 +1201,7 @@ module.exports = {
                 returnArr.forEach(entry =>{
                     colorSpecificArray.push(entry._name)
                 });
-                receivedMessage.author.send(bootstrap.DeckHelper.createDeckEmbed(colorSpecificArray, args)).catch(() => receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"));
+                receivedMessage.author.send(bootstrap.DeckHelper.createDeckEmbed(colorSpecificArray, bootstrap.DeckHelper.toUpper(args.toString()))).catch(() => receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"));
                 const helperEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorGreen)
                     .setTitle("I have Direct Messaged you decks! Don't see what you're looking for?")

@@ -86,7 +86,6 @@ module.exports = {
                 let seasonName;
                 let cleaningName = splitArgs[0];
                 let checkFormat = cleaningName.indexOf("| ");
-                console.log(checkFormat);
                 if (checkFormat === -1){
                     resolve("Bad season deckstats input");
                     return
@@ -117,7 +116,7 @@ module.exports = {
                         resolve("Error 1")
                     }
                 }).then(function(passingResult){
-                    if (passingResult !== ""){
+                    if (passingResult.length > 0){
                         let matchResults = [];
                         for (let i=0; i <passingResult.length; i++){
                             let pasRes = passingResult[i]._player1Deck;
@@ -168,6 +167,7 @@ module.exports = {
                         resolve(passedArray)
                     }
                     else{
+                        console.log(args)
                         bootstrap.Deck.find(
                             {_server: receivedMessage.guild.id,
                              '$text':{'$search': args}
@@ -202,7 +202,7 @@ module.exports = {
                         resolve("Error 1")
                     }
                 }).then(function(passingResult){
-                    if (passingResult !== ""){
+                    if (passingResult.length > 0){
                         let matchResults = [];
                         for (let i=0; i <passingResult.length; i++){
                             let pasRes = passingResult[i]._player1Deck;
@@ -312,7 +312,7 @@ module.exports = {
                     }
                     passingResult = res;
                 }).then(function(passingResult){
-                    if (passingResult !== ""){
+                    if (passingResult.length > 0){
                         let player = splitArgs[0].replace(/[<@!>]/g, '');
                         passingResult.forEach((entry)=>{   
                             if (entry._player1 === player){
@@ -382,7 +382,7 @@ module.exports = {
                     }
                     passingResult = res;
                 }).then(function(passingResult){
-                    if (passingResult !== ""){
+                    if (passingResult.length > 0){
                         passingResult.forEach((entry)=>{
                             if (entry._player1Deck === splitArgs[0]){
                                 wins = wins + 1;

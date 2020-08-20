@@ -171,7 +171,6 @@ module.exports = {
             return new Promise((resolve, reject)=>{
                 resolve(colorDictionary[input.toLowerCase()])
             })
-            
         }
         else{
             return new Promise((resolve, reject)=>{
