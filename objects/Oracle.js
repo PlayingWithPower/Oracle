@@ -800,7 +800,7 @@ module.exports = {
                         .addFields(
                             { name: "Deck Name", value: deck[0]},
                             { name: "Wins", value: deck[1],inline: true},
-                            { name: "Losses", value: deck[2],inline: true},
+                            { name: "Games Played", value: deck[1] + deck[2],inline: true},
                             { name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true},
                             //{ name: 'Number of Matches', value: deck[1] + deck[2], inline: true},
                         )
@@ -809,7 +809,6 @@ module.exports = {
             allDecksEmbed
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks");
             generalChannel.send(allDecksEmbed)
-
         }
         else if (returnArr === "Bad season deckstats input"){
             const errorMsg = new bootstrap.Discord.MessageEmbed()

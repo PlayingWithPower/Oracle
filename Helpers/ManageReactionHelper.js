@@ -576,8 +576,8 @@ module.exports = {
     
         }
         //Update Deck Cancelled
-        else if((embeds.length > 4 && embeds[4] === "update" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
-            const editedWarningEmbed = new bootstrap.iscord.MessageEmbed()
+        else if((embeds.length > 1 && embeds[0] === "update" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
+            const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Update Deck Cancelled");
             reaction.message.edit(editedWarningEmbed);
