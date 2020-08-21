@@ -798,7 +798,7 @@ module.exports = {
                 else{
                     allDecksEmbed
                         .addFields(
-                            { name: "Deck Names", value: deck[0]},
+                            { name: "Deck Name", value: deck[0]},
                             { name: "Wins", value: deck[1],inline: true},
                             { name: "Losses", value: deck[2],inline: true},
                             { name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true},
