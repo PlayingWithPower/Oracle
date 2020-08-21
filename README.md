@@ -11,6 +11,13 @@ Next, install Discord.JS. See documentation and help at https://discord.js.org/#
 npm install discord.js
 ```
 
+Lastly, install MongoDB. Quick help start up guide located at https://www.mongodb.com/blog/post/quick-start-nodejs-mongodb--how-to-get-connected-to-your-database.
+MongoDB homepage located at https://www.mongodb.com
+
+```
+npm install mongodb
+```
+
 ## Usage
 
 To run the bot after installation, naviagate to the /DiscordBot folder
