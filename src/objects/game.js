@@ -285,7 +285,7 @@ module.exports = {
     const returnArr = []
 
     return new Promise((resolve, reject) => {
-      const findQuery = { _match_id: match_id, _server: server_id, _season: currentSeasonName, _Status: 'FINISHED' }
+      const findQuery = { _match_id: match_id, _server: server_id, _season: currentSeasonName }
       bootstrap.Game.findOne(findQuery, function (err, res) {
         if (res) {
           const timestamp = res._id.toString().substring(0, 8)
@@ -302,6 +302,21 @@ module.exports = {
           returnArr.push(res._player2Deck)
           returnArr.push(res._player3Deck)
           returnArr.push(res._player4Deck)
+          if (res._Status === "FINISHED") {
+            returnArr.push("Finished Match")
+            resolve(returnArr)
+            return
+          }
+          if (res._Status === "CLOSED") {
+            returnArr.push("Disputed Match")
+            resolve(returnArr)
+            return
+          }
+          if (res._Status === "STARTED") {
+            returnArr.push("Pending Match")
+            resolve(returnArr)
+            return
+          }
           resolve(returnArr)
         } else {
           resolve('FAIL')

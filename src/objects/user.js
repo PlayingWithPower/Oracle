@@ -64,7 +64,7 @@ module.exports = {
           resolve('Error 1')
         }
       }).then(function (passingResult) {
-        if (passingResult.length !== 0) {
+        if (passingResult && passingResult.length > 0) {
           const matchResults = []
           for (let i = 0; i < passingResult.length; i++) {
             let pasRes = passingResult[i]._player1Deck

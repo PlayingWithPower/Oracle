@@ -61,7 +61,6 @@ module.exports = {
       let seasonName
       const cleaningName = splitArgs[0]
       const checkFormat = cleaningName.indexOf('| ')
-      console.log(checkFormat)
       if (checkFormat === -1) {
         return 'Bad season deckstats input'
       } else if (cleaningName.slice(2).toLowerCase() === 'all') {
@@ -83,7 +82,7 @@ module.exports = {
       if (!passingResult) {
         return 'Error 1'
       }
-      if (passingResult !== '') {
+      if (passingResult && passingResult.length > 0) {
         const matchResults = []
         for (let i = 0; i < passingResult.length; i++) {
           let pasRes = passingResult[i]._player1Deck
@@ -153,7 +152,7 @@ module.exports = {
       if (!passingResult) {
         return 'Error 1'
       }
-      if (passingResult !== '') {
+      if (passingResult && passingResult.length > 0) {
         const matchResults = []
         for (let i = 0; i < passingResult.length; i++) {
           let pasRes = passingResult[i]._player1Deck
@@ -252,7 +251,7 @@ module.exports = {
         currentSeason = splitArgs[1]
       }
       const passingResult = await bootstrap.Game.find(conditionalQuery)
-      if (passingResult !== '') {
+      if (passingResult && passingResult.length > 0) {
         const player = splitArgs[0].replace(/[<@!>]/g, '')
         passingResult.forEach((entry) => {
           if (entry._player1 === player) {
@@ -299,7 +298,7 @@ module.exports = {
       let losses = 0
       let deckPlayers = []
       const passingResult = await bootstrap.Game.find(query)
-      if (passingResult !== '') {
+      if (passingResult && passingResult.length > 0) {
         passingResult.forEach((entry) => {
           if (entry._player1Deck === splitArgs[0]) {
             wins = wins + 1

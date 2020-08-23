@@ -307,7 +307,7 @@ module.exports = {
             return
         }
 
-        if (args[0].length === 10){
+        if (args[0].length === 10 && args.length === 1){
             let date = new Date(args);
             const currentDate = new Date();
             if (date instanceof Date && !isNaN(date.valueOf())) {
@@ -557,7 +557,7 @@ module.exports = {
             if (resultsMsg.fields.length === 0){
                 resultsMsg
                     .setDescription("Seasons are case sensitive! Make sure you are spelling the season name correctly. See a list of all seasons with !seasoninfo all")
-                    .setAuthor("No Top Players Yet")
+                    .setAuthor("No Top Players yet for the specified season")
             }
             generalChannel.send(resultsMsg)
         })
@@ -798,9 +798,9 @@ module.exports = {
                 else{
                     allDecksEmbed
                         .addFields(
-                            { name: "Deck Names", value: deck[0]},
+                            { name: "Deck Name", value: deck[0]},
                             { name: "Wins", value: deck[1],inline: true},
-                            { name: "Losses", value: deck[2],inline: true},
+                            { name: "Games Played", value: deck[1] + deck[2],inline: true},
                             { name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true},
                             //{ name: 'Number of Matches', value: deck[1] + deck[2], inline: true},
                         )
@@ -809,7 +809,6 @@ module.exports = {
             allDecksEmbed
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks");
             generalChannel.send(allDecksEmbed)
-
         }
         else if (returnArr === "Bad season deckstats input"){
             const errorMsg = new bootstrap.Discord.MessageEmbed()
@@ -1201,7 +1200,7 @@ module.exports = {
                 returnArr.forEach(entry =>{
                     colorSpecificArray.push(entry._name)
                 });
-                receivedMessage.author.send(bootstrap.DeckHelper.createDeckEmbed(colorSpecificArray, args)).catch(() => receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"));
+                receivedMessage.author.send(bootstrap.DeckHelper.createDeckEmbed(colorSpecificArray, bootstrap.DeckHelper.toUpper(args.toString()))).catch(() => receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"));
                 const helperEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorGreen)
                     .setTitle("I have Direct Messaged you decks! Don't see what you're looking for?")
@@ -1580,17 +1579,47 @@ module.exports = {
             let tempEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue) //blue
                 .setTitle('Game ID: ' + response[1])
-                .setThumbnail(bootstrap.LeagueHelper.getUserAvatarUrl(winner))
-                .addFields(
-                    { name: 'Season: ', value: response[3], inline: true},
-                    { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
-                    { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+response[8]+'**'},
-                    { name: 'Opponents:', value:
-                            '**'+loser1.username+'**'+ ' piloting ' + '**'+response[9]+'**' + '\n'
-                            + '**'+loser2.username+'**'+ ' piloting ' + '**'+response[10]+'**' + '\n'
-                            + '**'+loser3.username+'**'+ ' piloting ' + '**'+response[11]+'**' }
-                );
-            generalChannel.send(tempEmbed)
+                .setThumbnail(bootstrap.LeagueHelper.getUserAvatarUrl(winner));
+            if (response[12] === "Finished Match"){
+                tempEmbed
+                    .setAuthor("This is a finished match. All parties have accepted the match log.")
+                    .addFields(
+                        { name: 'Season: ', value: response[3], inline: true},
+                        { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                        { name: 'Winner:', value: '**'+winner.username+'**' + ' piloting ' + '**'+response[8]+'**'},
+                        { name: 'Opponents:', value:
+                                '**'+loser1.username+'**'+ ' piloting ' + '**'+response[9]+'**' + '\n'
+                                + '**'+loser2.username+'**'+ ' piloting ' + '**'+response[10]+'**' + '\n'
+                                + '**'+loser3.username+'**'+ ' piloting ' + '**'+response[11]+'**' }
+                    );
+                generalChannel.send(tempEmbed)
+            }else if (response[12] === "Disputed Match"){
+                tempEmbed
+                    .setAuthor("This is a disputed match. Some or all of the parties have disputed the outcome of this match.")
+                    .addFields(
+                        { name: 'Season: ', value: response[3], inline: true},
+                        { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                        { name: 'Winner (if match is accepted):', value: '**'+winner.username+'**' + ' piloting ' + '**'+response[8]+'**'},
+                        { name: 'Opponents:', value:
+                                '**'+loser1.username+'**'+ ' piloting ' + '**'+response[9]+'**' + '\n'
+                                + '**'+loser2.username+'**'+ ' piloting ' + '**'+response[10]+'**' + '\n'
+                                + '**'+loser3.username+'**'+ ' piloting ' + '**'+response[11]+'**' }
+                    );
+                generalChannel.send(tempEmbed)
+            }else if (response[12] === "Pending Match"){
+                tempEmbed
+                    .setAuthor("This is a pending match. Some or all of the parties have not finished logging this match.")
+                    .addFields(
+                        { name: 'Season: ', value: response[3], inline: true},
+                        { name: 'Time (Converted to CST/CDT)', value:convertedToCentralTime, inline: true},
+                        { name: 'Winner (if match is accepted):', value: '**'+winner.username+'**' + ' piloting ' + '**'+response[8]+'**'},
+                        { name: 'Opponents:', value:
+                                '**'+loser1.username+'**'+ ' piloting ' + '**'+response[9]+'**' + '\n'
+                                + '**'+loser2.username+'**'+ ' piloting ' + '**'+response[10]+'**' + '\n'
+                                + '**'+loser3.username+'**'+ ' piloting ' + '**'+response[11]+'**' }
+                    );
+                generalChannel.send(tempEmbed)
+            }
         }
         else if (response === "FAIL"){
             const errorMsg = new bootstrap.Discord.MessageEmbed()
