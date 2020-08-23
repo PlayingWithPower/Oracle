@@ -104,7 +104,7 @@ module.exports = {
         .setAuthor('Delete Cancelled')
         .setDescription('<@!' + grabMentionValue + '>' + ' you have **cancelled** deleteting Match ID: **' + grabMatchID[2] + '**')
       reaction.message.edit(errorEmbed)
-    } else if ((embeds.length === 1 && embeds === 'WARNING' && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientId)) {
+    } else if ((embeds.length === 1 && embeds[0] === 'WARNING' && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientId)) {
       const removeDeckResult = await bootstrap.DeckObj.removeDeck(reaction.message.embeds[0].title)
       if (removeDeckResult.deletedCount >= 1) {
         const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
@@ -117,7 +117,7 @@ module.exports = {
           .setTitle("Unknown Error Occurred. Please try again. Check !decks for the deck you're trying to delete.")
         reaction.message.edit(editedWarningEmbed)
       }
-    } else if ((embeds.length === 1 && embeds === 'WARNING' && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId)) {
+    } else if ((embeds.length === 1 && embeds[0] === 'WARNING' && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId)) {
       const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
         .setColor(bootstrap.messageColorRed)
         .setTitle('Delete Deck Cancelled')
@@ -522,8 +522,8 @@ module.exports = {
           }
         } else { }
       })
-    } else if ((embeds.length > 4 && embeds[4] === 'update' && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId)) {
-      const editedWarningEmbed = new bootstrap.iscord.MessageEmbed()
+    } else if ((embeds.length > 1 && embeds[0] === 'update' && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientId)) {
+      const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
         .setColor(bootstrap.messageColorRed)
         .setTitle('Update Deck Cancelled')
       reaction.message.edit(editedWarningEmbed)
