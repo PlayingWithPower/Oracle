@@ -9,9 +9,27 @@ To install all dependancies, run the following command in the project directory:
 npm install
 ```
 
+## Environment
+
+Create a Discord application using the following link:
+https://discord.com/developers/applications
+
+After you've created a Discord application, create and invite the bot account to your Discord server.
+
+Once that's done, create a file named `.env` in the project root directory.
+
+`.env` file template - 
+```
+clientId='<discord application client id>'
+discordKey='<discord bot token>'
+mongoConnectionUrl='<mongo connection url>'
+```
+
+Alternatively, environmental variables can be set with the above keys/values instead of using a `.env` file.
+
 ## Usage
 
-To run the bot after installation, naviagate to the project directory and run the following:
+To run the bot after the environment is set up, naviagate to the project directory and run the following:
 
 ```
 npm start
