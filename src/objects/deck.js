@@ -397,7 +397,7 @@ module.exports = {
     const deckFindRes = await bootstrap.Deck.find(deckQuery)
     if (deckFindRes) {
       await bootstrap.Deck.updateOne(deckQuery, { $set: { _author: commaAuthors } })
-      return [deckFindRes[0]._name, deckFindRes[0]._deckType, newDeckType]
+      return [deckFindRes[0]._name, deckFindRes[0]._deckType, commaAuthors]
     }
   },
   /**
@@ -424,133 +424,98 @@ module.exports = {
      * Used in ManageReactionHelper
      * Updates the color of a Deck
      */
-  updateColors (newColorMessage, oldID) {
-    const promiseArr = []
+  async updateColors (newColorMessage, oldID) {
     const deckQuery = { _id: oldID }
 
     let colorIdentity = newColorMessage.content
     let catchBool = true
 
-    return new Promise((resolve, reject) => {
-      for (const letter of colorIdentity.toLowerCase()) {
-        if (letter !== ('w') && letter !== ('u') && letter !== ('b') && letter !== ('r') && letter !== ('g')) {
-          catchBool = false
-          return new Promise((resolve, reject) => {
-            resolve('Error 1')
-          })
+    for (const letter of colorIdentity.toLowerCase()) {
+      if (letter !== ('w') && letter !== ('u') && letter !== ('b') && letter !== ('r') && letter !== ('g')) {
+        catchBool = false
+        return 'Error 1'
+      }
+    }
+    if (catchBool === true) {
+      colorIdentity = colorIdentity.toUpperCase()
+      colorIdentity = colorIdentity.split('').join(' ')
+      colorIdentity = colorIdentity.replace(/ /g, ', ')
+      const deckFindRes = await bootstrap.Deck.find(deckQuery)
+      if (deckFindRes) {
+        const deckUpdateRes = await bootstrap.Deck.updateOne(deckQuery, { $set: { _colors: colorIdentity } })
+        if (deckUpdateRes) {
+          return [deckFindRes[0]._name, deckFindRes[0]._colors, colorIdentity]
         }
       }
-      if (catchBool === true) {
-        colorIdentity = colorIdentity.toUpperCase()
-        colorIdentity = colorIdentity.split('').join(' ')
-        colorIdentity = colorIdentity.replace(/ /g, ', ')
-        bootstrap.Deck.find(deckQuery, function (err, deckFindRes) {
-          if (deckFindRes) {
-            bootstrap.Deck.updateOne(deckQuery, { $set: { _colors: colorIdentity } }, function (err, deckUpdateRes) {
-              if (deckUpdateRes) {
-                promiseArr.push(deckFindRes[0]._name)
-                promiseArr.push(deckFindRes[0]._colors)
-                promiseArr.push(colorIdentity)
-                resolve(promiseArr)
-              }
-            })
-          }
-        })
-      } else { }
-    })
+    }
   },
   /**
      * Used in ManageReactionHelper
      * Updates the Commander of a Deck
      */
-  updateCommander (newNameMessage, oldID) {
-    const promiseArr = []
+  async updateCommander (newNameMessage, oldID) {
     const deckQuery = { _id: oldID }
-    let newName
 
-    newName = bootstrap.DeckHelper.toUpper(newNameMessage.content)
+    const newName = bootstrap.DeckHelper.toUpper(newNameMessage.content)
 
-    return new Promise((resolve, reject) => {
-      bootstrap.Deck.find(deckQuery, function (err, deckFindRes) {
-        if (deckFindRes) {
-          bootstrap.Deck.updateOne(deckQuery, { $set: { _commander: newName } }, function (err, deckUpdateRes) {
-            if (deckUpdateRes) {
-              promiseArr.push(deckFindRes[0]._name)
-              promiseArr.push(deckFindRes[0]._commander)
-              promiseArr.push(newName)
-              resolve(promiseArr)
-            } else {
-              console.log('error 1')
-            }
-          })
+    const deckFindRes = await bootstrap.Deck.find(deckQuery)
+    if (deckFindRes) {
+      const deckUpdateRes = await bootstrap.Deck.updateOne(deckQuery, { $set: { _commander: newName } })
+      if (deckUpdateRes) {
+        return [deckFindRes[0]._name, deckFindRes[0]._commander, newName]
+      } else {
+        console.log('error 1')
+      }
+    } else {
+      console.log('error 2')
+    }
+  },
+  /**
+     * Updates the URL of a deck
+     */
+  async updateDeckList (newURLMessage, oldNameID) {
+    const deckQuery = { _id: oldNameID }
+    if (new RegExp('([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?').test(newURLMessage.content)) {
+      const deckFindRes = await bootstrap.Deck.find(deckQuery)
+      if (deckFindRes) {
+        const deckUpdateRes = await bootstrap.Deck.updateOne(deckQuery, { $set: { _link: newURLMessage.content } })
+        if (deckUpdateRes) {
+          return [newURLMessage.content, deckFindRes[0]._name]
         } else {
-          console.log('error 2')
+          return 'Error 3'
         }
-      })
-    })
+      } else {
+        return 'Error 2'
+      }
+    } else {
+      return 'Error 1'
+    }
   },
   /**
      * Updates the URL of a deck
      */
-  updateDeckList (newURLMessage, oldNameID) {
-    const checkingArr = []
-
+  async updateDiscordLink (newURLMessage, oldNameID) {
     const deckQuery = { _id: oldNameID }
-    return new Promise((resolve, reject) => {
-      if (new RegExp('([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?').test(newURLMessage.content)) {
-        bootstrap.Deck.find(deckQuery, function (err, deckFindRes) {
-          if (deckFindRes) {
-            bootstrap.Deck.updateOne(deckQuery, { $set: { _link: newURLMessage.content } }, function (err, deckUpdateRes) {
-              if (deckUpdateRes) {
-                checkingArr.push(newURLMessage.content)
-                checkingArr.push(deckFindRes[0]._name)
-                resolve(checkingArr)
-              } else {
-                resolve('Error 3')
-              }
-            })
-          } else {
-            resolve('Error 2')
-          }
-        })
+    if (new RegExp('([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?').test(newURLMessage.content)) {
+      const deckFindRes = await bootstrap.Deck.find(deckQuery)
+      if (deckFindRes) {
+        const deckUpdateRes = await bootstrap.Deck.updateOne(deckQuery, { $set: { _discordLink: newURLMessage.content } })
+        if (deckUpdateRes) {
+          return [newURLMessage.content, deckFindRes[0]._name]
+        } else {
+          return 'Error 3'
+        }
       } else {
-        resolve('Error 1')
+        return 'Error 2'
       }
-    })
-  },
-  /**
-     * Updates the URL of a deck
-     */
-  updateDiscordLink (newURLMessage, oldNameID) {
-    const checkingArr = []
-
-    const deckQuery = { _id: oldNameID }
-    return new Promise((resolve, reject) => {
-      if (new RegExp('([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?').test(newURLMessage.content)) {
-        bootstrap.Deck.find(deckQuery, function (err, deckFindRes) {
-          if (deckFindRes) {
-            bootstrap.Deck.updateOne(deckQuery, { $set: { _discordLink: newURLMessage.content } }, function (err, deckUpdateRes) {
-              if (deckUpdateRes) {
-                checkingArr.push(newURLMessage.content)
-                checkingArr.push(deckFindRes[0]._name)
-                resolve(checkingArr)
-              } else {
-                resolve('Error 3')
-              }
-            })
-          } else {
-            resolve('Error 2')
-          }
-        })
-      } else {
-        resolve('Error 1')
-      }
-    })
+    } else {
+      return 'Error 1'
+    }
   },
   /**
      * Adds a new User deck to the server.
      */
-  addDeck (receivedMessage, newDeckArr) {
+  async addDeck (receivedMessage, newDeckArr) {
     let deckNick = newDeckArr[0]
     const deckAlias = newDeckArr[0].toLowerCase()
     let commanderName = newDeckArr[1]
@@ -575,49 +540,49 @@ module.exports = {
     } else {
       hasPrimer = true
     }
-    const sendBackArr = []
 
     const deckAliasQuery = {
       _alias: deckAlias,
       _server: receivedMessage.guild.id
     }
-    return new Promise((resolve, reject) => {
-      if (deckDescription.length > 750) {
-        resolve('Error 2')
-      }
-      bootstrap.Deck.findOne(deckAliasQuery, function (err, res) {
-        if (res) {
-          resolve('Error 1')
-        } else {
-          sendBackArr.push(
-            deckNick, commanderName, colorIdentity,
-            deckLink, author, deckDescription,
-            deckType, hasPrimer, discordLink
-          )
-          resolve(sendBackArr)
-        }
-      })
-    })
+    if (deckDescription.length > 750) {
+      return 'Error 2'
+    }
+    const res = await bootstrap.Deck.findOne(deckAliasQuery)
+    if (res) {
+      return 'Error 1'
+    } else {
+      return [
+        deckNick,
+        commanderName,
+        colorIdentity,
+        deckLink,
+        author,
+        deckDescription,
+        deckType,
+        hasPrimer,
+        discordLink
+      ]
+    }
   },
   /**
      * Takes located deck and deletes it
     */
-  removeDeck (args) {
+  async removeDeck (args) {
     const argsFiltered = args.slice(9)
     const deckQuery = { _id: argsFiltered }
 
-    return new Promise((resolve, reject) => {
-      bootstrap.Deck.deleteOne(deckQuery, function (err, res) {
-        if (res) {
-          resolve(res)
-        } else {
-          reject('Error 1')
-        }
-      })
-    })
+    const res = await bootstrap.Deck.deleteOne(deckQuery)
+    if (res) {
+      return res
+    } else {
+      // eslint-disable-next-line no-throw-literal
+      throw 'Error 1'
+    }
   },
-  setUpPopulate (guild) {
-    bootstrap.Data.forEach(decks => {
+  async setUpPopulate (guild) {
+    for (let index = 0; index < bootstrap.Data.length; index++) {
+      const decks = bootstrap.Data[index]
       let hasPrimer
       if (decks[0] === 'Y') {
         hasPrimer = true
@@ -642,24 +607,17 @@ module.exports = {
         _name: decks[2],
         _server: guild
       }
-      bootstrap.Deck.find(deckSave, function (err, findRes) {
-        if (findRes.length !== 0) { } else {
-          bootstrap.Deck(deckSave).save(function (err, res) {
-            if (res) {
-              // console.log("Success!")
-            } else {
-              console.log('Error: Unable to save to Database, please try again')
-            }
-          })
-          bootstrap.Alias(aliasSave).save(function (err, res) {
-            if (res) {
-              // console.log("Success!")
-            } else {
-              console.log('Error: Unable to save to Database, please try again')
-            }
-          })
+      const findRes = await bootstrap.Deck.find(deckSave)
+      if (findRes.length !== 0) { } else {
+        const res = await bootstrap.Deck(deckSave).save()
+        if (!res) {
+          console.log('Error: Unable to save to Database, please try again')
         }
-      })
-    })
+        const aliasRes = await bootstrap.Alias(aliasSave).save()
+        if (!aliasRes) {
+          console.log('Error: Unable to save to Database, please try again')
+        }
+      }
+    }
   }
 }

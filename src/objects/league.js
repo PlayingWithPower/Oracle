@@ -16,7 +16,7 @@ module.exports = {
   /**
      * Register a new user to the league.
      */
-  register (receivedMessage) {
+  async register (receivedMessage) {
     const findQuery = {
       _mentionValue: receivedMessage.author.id,
       _server: receivedMessage.guild.id
@@ -36,145 +36,130 @@ module.exports = {
         Losses: 1
       }
     }
-    return new Promise((resolve, reject) => {
-      bootstrap.User.findOne(findQuery, function (err, res) {
-        if (res) {
-          resolve('Already Registered')
-        } else {
-          bootstrap.User(toSave).save(function (error, result) {
-            if (result) {
-              resolve('Success')
-            } else {
-              resolve('Error')
-            }
-          })
-        }
-      })
-    })
+    const res = await bootstrap.User.findOne(findQuery)
+    if (res) {
+      return 'Already Registered'
+    } else {
+      const result = await bootstrap.User(toSave).save()
+      if (result) {
+        return 'Success'
+      } else {
+        return 'Error'
+      }
+    }
   },
 
   /**
      * Sets a configuration
      */
-  configSet (receivedMessage, args) {
+  async configSet (receivedMessage, args) {
     const argsWithCommas = args.toString()
     const argsWithSpaces = argsWithCommas.replace(/,/g, ' ')
     const splitArgs = argsWithSpaces.split(' | ')
     splitArgs[0] = splitArgs[0].toLowerCase()
 
-    return new Promise((resolve, reject) => {
-      let conditionalQuery
-      let playerThreshold = 10
-      let deckThreshold = 10
-      let timeout = 60
-      let admin = ''
-      let adminList
-      if ((splitArgs[0] !== 'player threshold') && (splitArgs[0] !== 'deck threshold') &&
-            (splitArgs[0] !== 'timeout') && (splitArgs[0] !== 'admin')) {
-        resolve('Invalid Input')
-      } else if (splitArgs.length === 1) {
-        resolve('Invalid Input')
-      } else {
-        if ((splitArgs[0] === 'player threshold')) {
-          if (parseInt(splitArgs[1])) {
-            if (!isNaN(splitArgs[1])) {
-              conditionalQuery = {
-                _server: receivedMessage.guild.id,
-                $set: {
-                  _player_threshold: splitArgs[1]
-                }
-              }
-              playerThreshold = splitArgs[1]
-            }
-          }
-        } else if ((splitArgs[0] === 'deck threshold')) {
-          if (parseInt(splitArgs[1])) {
-            if (!isNaN(splitArgs[1])) {
-              conditionalQuery = {
-                _server: receivedMessage.guild.id,
-                $set: {
-                  _deck_threshold: splitArgs[1]
-                }
-              }
-              deckThreshold = splitArgs[1]
-            }
-          }
-        } else if ((splitArgs[0] === 'timeout')) {
-          if (parseInt(splitArgs[1])) {
-            if (!isNaN(splitArgs[1])) {
-              if (splitArgs[1] > 60) {
-                resolve('Timeout too large')
-              } else {
-                conditionalQuery = {
-                  _server: receivedMessage.guild.id,
-                  $set: {
-                    _timeout: splitArgs[1]
-                  }
-                }
-                timeout = splitArgs[1]
+    let conditionalQuery
+    let playerThreshold = 10
+    let deckThreshold = 10
+    let timeout = 60
+    let admin = ''
+    let adminList
+    if ((splitArgs[0] !== 'player threshold') && (splitArgs[0] !== 'deck threshold') &&
+          (splitArgs[0] !== 'timeout') && (splitArgs[0] !== 'admin')) {
+      return 'Invalid Input'
+    } else if (splitArgs.length === 1) {
+      return 'Invalid Input'
+    } else {
+      if ((splitArgs[0] === 'player threshold')) {
+        if (parseInt(splitArgs[1])) {
+          if (!isNaN(splitArgs[1])) {
+            conditionalQuery = {
+              _server: receivedMessage.guild.id,
+              $set: {
+                _player_threshold: splitArgs[1]
               }
             }
+            playerThreshold = splitArgs[1]
           }
-        } else if ((splitArgs[0] === 'admin')) {
-          adminList = splitArgs[1]
-          adminList = adminList.replace(/ {2}/g, ', ')
-          conditionalQuery = {
-            _server: receivedMessage.guild.id,
-            _admin: adminList
-          }
-          admin = adminList
-        } else {
-          resolve('Invalid Input')
         }
-        const newSave = {
+      } else if ((splitArgs[0] === 'deck threshold')) {
+        if (parseInt(splitArgs[1])) {
+          if (!isNaN(splitArgs[1])) {
+            conditionalQuery = {
+              _server: receivedMessage.guild.id,
+              $set: {
+                _deck_threshold: splitArgs[1]
+              }
+            }
+            deckThreshold = splitArgs[1]
+          }
+        }
+      } else if ((splitArgs[0] === 'timeout')) {
+        if (parseInt(splitArgs[1])) {
+          if (!isNaN(splitArgs[1])) {
+            if (splitArgs[1] > 60) {
+              return 'Timeout too large'
+            } else {
+              conditionalQuery = {
+                _server: receivedMessage.guild.id,
+                $set: {
+                  _timeout: splitArgs[1]
+                }
+              }
+              timeout = splitArgs[1]
+            }
+          }
+        }
+      } else if ((splitArgs[0] === 'admin')) {
+        adminList = splitArgs[1]
+        adminList = adminList.replace(/ {2}/g, ', ')
+        conditionalQuery = {
           _server: receivedMessage.guild.id,
-          _player_threshold: playerThreshold,
-          _deck_threshold: deckThreshold,
-          _timeout: timeout,
-          _admin: admin
+          _admin: adminList
         }
-        bootstrap.Config.updateOne({ _server: receivedMessage.guild.id }, conditionalQuery, function (err, res) {
-          if (res.n > 0) {
-            let savedValue = splitArgs[1]
-            if (splitArgs[0] === 'admin') {
-              savedValue = adminList
-            }
-            const resArr = []
-            resArr.push('Updated', splitArgs[0], savedValue)
-            resolve(resArr)
-          } else {
-            bootstrap.Config(newSave).save({ _server: receivedMessage.guild.id }, function (err, configSaveRes) {
-              if (res) {
-                let savedValue = splitArgs[1]
-                if (splitArgs[0] === 'admin') {
-                  savedValue = adminList
-                }
-                const resArr = []
-                resArr.push('New Save', splitArgs[0], savedValue)
-                resolve(resArr)
-              } else {
-                resolve('Error')
-              }
-            })
-          }
-        })
+        admin = adminList
+      } else {
+        return 'Invalid Input'
       }
-    })
+      const newSave = {
+        _server: receivedMessage.guild.id,
+        _player_threshold: playerThreshold,
+        _deck_threshold: deckThreshold,
+        _timeout: timeout,
+        _admin: admin
+      }
+      const res = await bootstrap.Config.updateOne({ _server: receivedMessage.guild.id }, conditionalQuery)
+      if (res.n > 0) {
+        let savedValue = splitArgs[1]
+        if (splitArgs[0] === 'admin') {
+          savedValue = adminList
+        }
+        return ['Updated', splitArgs[0], savedValue]
+      } else {
+        await bootstrap.Config(newSave).save({ _server: receivedMessage.guild.id })
+        if (res) {
+          let savedValue = splitArgs[1]
+          if (splitArgs[0] === 'admin') {
+            savedValue = adminList
+          }
+          return ['New Save', splitArgs[0], savedValue]
+        } else {
+          return 'Error'
+        }
+      }
+    }
   },
 
   /**
      * gets a configuration
      */
-  configGet (guild) {
-    return new Promise((resolve, reject) => {
-      const checkForConfig = { _server: guild }
-      bootstrap.Config.findOne(checkForConfig, function (err, foundRes) {
-        if (foundRes) {
-          resolve(foundRes)
-        } else {
-          resolve('No configs')
-        }
-      })
-    })
+  async configGet (guild) {
+    const checkForConfig = { _server: guild }
+    const foundRes = await bootstrap.Config.findOne(checkForConfig)
+    if (foundRes) {
+      return foundRes
+    } else {
+      return 'No configs'
+    }
   }
 }

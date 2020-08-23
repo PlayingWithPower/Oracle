@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const { stringify } = require('querystring')
 
 var config = new mongoose.Schema({
   _server: String,

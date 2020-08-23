@@ -213,7 +213,7 @@ module.exports = {
     const serverEmbed = new bootstrap.Discord.MessageEmbed()
       .setAuthor('Messages sent to your inbox!')
       .setColor(bootstrap.messageColorGreen)
-      //  eslint-disable-next-line no-multi-str
+      // eslint-disable-next-line no-multi-str
       .setDescription("I have Direct Messaged you the help commands. Please type !help <Command> for more information about a specific command\n\n\
         **Completely lost in what's happening?** Type !tutorial to learn about this bot and its uses")
 

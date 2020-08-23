@@ -77,15 +77,10 @@ module.exports = {
     currentDate = currentDate.toLocaleString('en-US', { timeZone: 'America/New_York' })
 
     const currentSeason = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
-    return new Promise((resolve, reject) => {
-      bootstrap.Season.updateOne(currentSeason, { $set: { _season_end: currentDate } }, function (err, seasonUpdateRes) {
-        if (seasonUpdateRes) {
-          const resolveArr = []
-          resolveArr.push('Success', currentSeason, currentDate)
-          resolve(resolveArr)
-        }
-      })
-    })
+    const seasonUpdateRes = await bootstrap.Season.updateOne(currentSeason, { $set: { _season_end: currentDate } })
+    if (seasonUpdateRes) {
+      return ['Success', currentSeason, currentDate]
+    }
   },
 
   /**
@@ -103,15 +98,10 @@ module.exports = {
   async setEndDate (receivedMessage, date) {
     const currentSeason = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
     date = date.toLocaleString('en-US', { timeZone: 'America/New_York' })
-    return new Promise((resolve, reject) => {
-      bootstrap.Season.updateOne(currentSeason, { $set: { _season_end: date } }, function (err, seasonUpdateRes) {
-        if (seasonUpdateRes) {
-          const resolveArr = []
-          resolveArr.push('Success', currentSeason._season_name)
-          resolve(resolveArr)
-        }
-      })
-    })
+    const seasonUpdateRes = await bootstrap.Season.updateOne(currentSeason, { $set: { _season_end: date } })
+    if (seasonUpdateRes) {
+      return ['Success', currentSeason._season_name]
+    }
   },
 
   /**
@@ -122,25 +112,17 @@ module.exports = {
       const seasonReturn = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
       const userQuery = { _server: receivedMessage.guild.id }
       const matchQuery = { _server: receivedMessage.guild.id, _season: seasonReturn._season_name, _Status: 'FINISHED' }
-      const resolveArr = []
-      return new Promise((resolve, reject) => {
-        resolveArr.push(seasonReturn)
-        bootstrap.User.find(userQuery, function (err, userRes) {
-          if (userRes) {
-            resolveArr.push(userRes.length)
-            bootstrap.Game.find(matchQuery, function (err, matchRes) {
-              if (matchRes) {
-                resolveArr.push(matchRes.length)
-                resolve(resolveArr)
-              } else {
-                resolve("Can't Find Season")
-              }
-            })
-          } else {
-            resolve("Can't Find Season")
-          }
-        })
-      })
+      const userRes = await bootstrap.User.find(userQuery)
+      if (userRes) {
+        const matchRes = await bootstrap.Game.find(matchQuery)
+        if (matchRes) {
+          return [seasonReturn, userRes.length, matchRes.length]
+        } else {
+          return "Can't Find Season"
+        }
+      } else {
+        return "Can't Find Season"
+      }
     } else {
       let seasonQuery
       const userQuery = { _server: receivedMessage.guild.id }
@@ -152,31 +134,22 @@ module.exports = {
         seasonQuery = { _server: receivedMessage.guild.id, _season_name: args }
         matchQuery = { _server: receivedMessage.guild.id, _season: args, _Status: 'FINISHED' }
       }
-      return new Promise((resolve, reject) => {
-        const resolveArr = []
-        bootstrap.Season.find(seasonQuery, function (err, seasonRes) {
-          if (seasonRes.length > 0) {
-            resolveArr.push(seasonRes)
-            bootstrap.User.find(userQuery, function (err, userRes) {
-              if (userRes) {
-                resolveArr.push(userRes.length)
-                bootstrap.Game.find(matchQuery, function (err, matchRes) {
-                  if (matchRes) {
-                    resolveArr.push(matchRes.length)
-                    resolve(resolveArr)
-                  } else {
-                    resolve("Can't Find Season")
-                  }
-                })
-              } else {
-                resolve("Can't Find Season")
-              }
-            })
+      const seasonRes = await bootstrap.Season.find(seasonQuery)
+      if (seasonRes.length > 0) {
+        const userRes = await bootstrap.User.find(userQuery)
+        if (userRes) {
+          const matchRes = await bootstrap.Game.find(matchQuery)
+          if (matchRes) {
+            return [seasonRes, userRes.length, matchRes.length]
           } else {
-            resolve("Can't Find Season")
+            return "Can't Find Season"
           }
-        })
-      })
+        } else {
+          return "Can't Find Season"
+        }
+      } else {
+        return "Can't Find Season"
+      }
     }
   },
 
@@ -184,53 +157,42 @@ module.exports = {
      * Get leaderboard info for a number of different data points
      * Top games, score, winrate
      */
-  leaderBoard (receivedMessage) {
+  async leaderBoard (receivedMessage) {
     const userQuery = { _server: receivedMessage.guild.id }
-    return new Promise(async (resolve, reject) => {
-      bootstrap.User.find(userQuery, function (err, res) {
-        if (res) {
-          resolve(res)
-        } else {
-          resolve('Error 1')
-        }
-      })
-    })
+    const res = await bootstrap.User.find(userQuery)
+    if (res) {
+      return res
+    } else {
+      return 'Error 1'
+    }
   },
   /**
      * Sets the season name
      */
   async setSeasonName (receivedMessage, args) {
     const currentSeason = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id)
-    return new Promise((resolve, reject) => {
-      if (currentSeason !== 'No Current') {
-        bootstrap.Season.findOne({ _server: receivedMessage.guild.id, _season_name: args.join(' ') }, function (err, res) {
-          if (res) {
-            resolve('Name in use')
-          } else {
-            bootstrap.Season.updateOne(currentSeason, { $set: { _season_name: args.join(' ') } }, function (err, seasonUpdateRes) {
-              if (seasonUpdateRes) {
-                const updateMatches = {
-                  _server: receivedMessage.guild.id,
-                  _season: currentSeason._season_name
-                }
-                bootstrap.Game.updateMany(updateMatches, { $set: { _season: args.join(' ') } }, function (err, matchUpdateRes) {
-                  if (matchUpdateRes) {
-                    bootstrap.Deck.updateMany(updateMatches, { $set: { _season: args.join(' ') } }, function (err, deckUpdateRes) {
-                      if (deckUpdateRes) {
-                        const resolveArr = []
-                        resolveArr.push('Success', currentSeason._season_name, args.join(' '))
-                        resolve(resolveArr)
-                      }
-                    })
-                  }
-                })
-              }
-            })
-          }
-        })
+    if (currentSeason !== 'No Current') {
+      const res = await bootstrap.Season.findOne({ _server: receivedMessage.guild.id, _season_name: args.join(' ') })
+      if (res) {
+        return 'Name in use'
       } else {
-        resolve('No Current')
+        const seasonUpdateRes = await bootstrap.Season.updateOne(currentSeason, { $set: { _season_name: args.join(' ') } })
+        if (seasonUpdateRes) {
+          const updateMatches = {
+            _server: receivedMessage.guild.id,
+            _season: currentSeason._season_name
+          }
+          const matchUpdateRes = await bootstrap.Game.updateMany(updateMatches, { $set: { _season: args.join(' ') } })
+          if (matchUpdateRes) {
+            const deckUpdateRes = await bootstrap.Deck.updateMany(updateMatches, { $set: { _season: args.join(' ') } })
+            if (deckUpdateRes) {
+              return ['Success', currentSeason._season_name, args.join(' ')]
+            }
+          }
+        }
       }
-    })
+    } else {
+      return 'No Current'
+    }
   }
 }
