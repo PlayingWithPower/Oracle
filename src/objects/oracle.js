@@ -1,3 +1,4 @@
+const { uniq } = require('lodash')
 const bootstrap = require('../bootstrap.js')
 
 module.exports = {
@@ -1046,22 +1047,24 @@ module.exports = {
       generalChannel.send(errorMsg)
       return
     }
-    // Make sure every user in message (and message sender) are different users [Block out if testing]
-    // var tempArr = args
-    // tempArr.push(sanitizedString)
-    // if (GameObj.hasDuplicates(tempArr)){
-    //     const errorMsg = new Discord.MessageEmbed()
-    //             .setColor('#af0000')
-    //             .setDescription("**Error**: You can't log a match with duplicate players")
-    //     generalChannel.send(errorMsg)
-    //     return
-    // }
-    // Check if User who sent the message is registered
-    let someNotRegistered = false
-    const mentionValues = []
     const cleanedArg0 = args[0].replace(/[<@!>]/g, '')
     const cleanedArg1 = args[1].replace(/[<@!>]/g, '')
     const cleanedArg2 = args[2].replace(/[<@!>]/g, '')
+    // Make sure every user in message (and message sender) are different users [Block out if testing]
+    const uniqueUsers = uniq([sanitizedString, cleanedArg0, cleanedArg1, cleanedArg2])
+    if (!bootstrap.Env.allowDuplicateUsers && uniqueUsers.length !== 4) {
+      const errorMsg = new bootstrap.Discord.MessageEmbed()
+        .setColor(bootstrap.messageColorRed)
+        .setAuthor('Improper input')
+        .setDescription('**Error**: You can\'t log a match with duplicate players')
+      generalChannel.send(errorMsg)
+      return
+    }
+    
+    // Check if User who sent the message is registered
+    let someNotRegistered = false
+    const mentionValues = []
+    
     mentionValues.push([sanitizedString, receivedMessage],
       [cleanedArg0, receivedMessage],
       [cleanedArg1, receivedMessage],
