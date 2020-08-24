@@ -20,9 +20,9 @@ Once that's done, create a file named `.env` in the project root directory.
 
 `.env` file template - 
 ```
-clientId='<discord application client id>'
-discordKey='<discord bot token>'
-mongoConnectionUrl='<mongo connection url>'
+DISCORD_CLIENT_ID='<discord application client id>'
+DISCORD_TOKEN='<discord bot token>'
+MONGO_CONNECTION_URL='<mongo connection url>'
 ```
 
 Alternatively, environmental variables can be set with the above keys/values instead of using a `.env` file.
