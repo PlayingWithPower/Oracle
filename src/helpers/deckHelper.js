@@ -1,3 +1,4 @@
+const { capitalize } = require('lodash')
 const bootstrap = require('../bootstrap')
 
 module.exports = {
@@ -36,13 +37,7 @@ module.exports = {
      * @param {*} str
      */
   toUpper (str) {
-    return str
-      .toLowerCase()
-      .split(' ')
-      .map(function (word) {
-        return word[0].toUpperCase() + word.substr(1)
-      })
-      .join(' ')
+    return capitalize(str)
   },
   /**
      * Checks if the deck a user is trying to update is valid.
