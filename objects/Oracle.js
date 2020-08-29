@@ -1069,20 +1069,26 @@ module.exports = {
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")
                 .setDescription("Please submit only the **3 players** who lost in the pod")
-                .setFooter("Example: !log @user @user @user");
+                .setFooter("Example: !log @user @user @user \n" +
+                    "Tip: Have one space between each @use tag");
             generalChannel.send(errorMsg);
             return
         }
         // Make sure every user in message (and message sender) are different users [Block out if testing]
-        // var tempArr = args
-        // tempArr.push(sanitizedString)
-        // if (GameObj.hasDuplicates(tempArr)){
-        //     const errorMsg = new Discord.MessageEmbed()
-        //             .setColor('#af0000')
-        //             .setDescription("**Error**: You can't log a match with duplicate players")
-        //     generalChannel.send(errorMsg)
-        //     return
-        // }
+        let tempArr = args;
+        let addedMentionValues = "<@!" + sanitizedString + ">";
+        tempArr.push(addedMentionValues);
+        let allowDuplicateUsers = false;
+        //Uncomment out for local testing, allows you to log matches with duplicate users.
+        // allowDuplicateUsers = true;
+        if (!allowDuplicateUsers && await bootstrap.GameHelper.hasDuplicates(tempArr)) {
+            const errorMsg = new bootstrap.Discord.MessageEmbed()
+                .setColor(bootstrap.messageColorRed)
+                .setAuthor("Improper input")
+                .setDescription(" You can't log a match with duplicate players");
+            generalChannel.send(errorMsg);
+            return
+        }
         // Check if User who sent the message is registered
         let someNotRegistered = false;
         let mentionValues = [];

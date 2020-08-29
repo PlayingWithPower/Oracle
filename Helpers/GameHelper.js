@@ -65,5 +65,10 @@ module.exports = {
                 }
             })
         })
+    },
+    async hasDuplicates(enteredUsers){
+
+        let unique = enteredUsers.filter((item, i, ar) => ar.indexOf(item) === i);
+        return unique.length !== 4;
     }
 };

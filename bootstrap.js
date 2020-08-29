@@ -83,4 +83,4 @@ exports.messageColorGreen = messageColorGreen;
 exports.messageColorBlue = messageColorBlue;
 
 //Data Export
-exports.Data = Data
+exports.Data = Data;
