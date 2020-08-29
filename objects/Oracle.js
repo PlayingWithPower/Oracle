@@ -516,7 +516,7 @@ module.exports = {
             for (let i = 0; i < results.length; i++){
                 if (results[i] !== "Can't find deck"){
                     let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][2])*100);
-                    let elo = (20*(results[i][0][1])) - (10*(results[i][0][2])) + 1000;
+                    let elo = (30*(results[i][0][1])) - (10*(results[i][0][2])) + 1000;
                     let username = results[i][0][0];
                     let gamesPlayed = (results[i][0][1] + results[i][0][2]);
                     unsortedResults.push([username,calculatedWinrate,elo, gamesPlayed]);
@@ -1438,7 +1438,7 @@ module.exports = {
                     compareDeck = returnArr[1][i][1]+returnArr[1][i][2];
                     favDeck = returnArr[1][i][0]
                 }
-                elo += (20*(returnArr[1][i][1])) - (10*(returnArr[1][i][2]))
+                elo += (30*(returnArr[1][i][1])) - (10*(returnArr[1][i][2]))
             }
             const profileEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
