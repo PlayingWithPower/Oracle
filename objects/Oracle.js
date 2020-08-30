@@ -545,7 +545,7 @@ module.exports = {
                         .addFields(
                             { name: "Username", value: "<@"+sortedResults[i][0]+">",inline: true},
                             { name: "Winrate", value: sortedResults[i][1] + "%", inline: true},
-                            { name: "Elo", value: sortedResults[i][2] , inline: true},
+                            { name: "Score", value: sortedResults[i][2] , inline: true},
                         )
                 }
             }
@@ -1423,7 +1423,7 @@ module.exports = {
                 .addFields(
                     { name: 'User', value: "<@"+returnArr[2]+">", inline: true },
                     { name: 'Current Deck', value: returnArr[4], inline: true },
-                    { name: 'Current Rating', value: 1000, inline: true },
+                    { name: 'Score', value: 1000, inline: true },
                 );
             generalChannel.send(profileEmbed);
             const matchesEmbed = new bootstrap.Discord.MessageEmbed()
