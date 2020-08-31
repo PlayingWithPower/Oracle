@@ -1,6 +1,15 @@
 # Oracle
 Oracle is a Bot that runs gameplay leagues for EDH/CEDH via discord. It runs on NodeJS and MongoDB.  
 
+## Installation
+```
+npm install
+```
+## Usage
+```
+npm start
+```
+
 ## Contributing
 Pull requests are welcome and very appreciated! For major changes, please open an issue first to discuss what you would like to change.
 
