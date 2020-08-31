@@ -1,255 +1,256 @@
-//The main hub for the bot, more comments coming soon.
-//Most of the commands are labeled apprioriately so far. More organization coming soon.
+const bootstrap = require('./bootstrap.js')
 
-const Discord = require('discord.js')
-const client = new Discord.Client()
+//MongoDB Connection
+//Create initial mongoDB connection. If cloning this bot, create file named "env.js". File path: DiscordBot/etc/env.js. See Github Readme for more information.
+bootstrap.Client.login(bootstrap.Env.discordKey);
+bootstrap.mongoose.connect(bootstrap.Env.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 
-const Module = require('./mongoFunctions')
-const generalID = require('./constants')
-const moongoose = require('mongoose')
-const url = 'mongodb+srv://firstuser:e76BLigCnHWPOckS@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
-
-moongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
-
-client.on('ready', (on) =>{
-    // var MongoClient = require('mongodb').MongoClient
-    // var url = 'mongodb+srv://firstuser:willams112@cluster0-ebhft.mongodb.net/UserData?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true'
-    // MongoClient.connect(url)
-    // .then(function (db) { // <- db as first argument
-    //     console.log(db)
-    // })
-    // .catch(function (err) {})
-    console.log("Connected as " + client.user.tag)
-    
-    client.user.setActivity("Try !help", {type: ""})
-    
+/**
+ * ready() - Prebuild discord function
+ * Called when the bot is turned on. Sends a debug log that the bot connected and sets the presence of the bot.
+ * Commented out block gives a full list of the servers the bot is in, and the channels inside of those servers.
+ *
+ */
+bootstrap.Client.on('ready', () =>{
+    console.log("Debug log: Successfully connected as " + bootstrap.Client.user.tag);
+    bootstrap.Client.user.setPresence({ activity: { name: 'with !help' }, status: 'online' })
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
-
     // client.guilds.cache.forEach((guild) => {
-    //     console.log(guild.name)
+    //     console.log(guild.id)
     //     guild.channels.cache.forEach((channel) =>{
     //         console.log(` - ${channel.name} ${channel.type} ${channel.id}`)
     //     })
     // })
-    // client.user.setUsername("PWP Bot"); 
-})
-const prefix = "!";
-client.on('message', (receivedMessage) =>{
-
-    if (receivedMessage.author == client.user){
-        return
+});
+/**
+ * guildCreate() - Prebuilt discord function
+ * Function is called when the bot joins a server. It first checks for the first channel it has permission to send messages in and then sends a message about how to set up the bot.
+ *
+ * @param {*} guild - A discord guild object. Contains information about the server the bot is joining
+ */
+bootstrap.Client.on("guildCreate", (guild) => {
+    bootstrap.DeckObj.setUpPopulate(guild.id);
+    let defaultChannel = "";
+    guild.channels.cache.forEach((channel) => {
+        if(channel.type === "text" && defaultChannel === "") {
+            if(channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
+                defaultChannel = channel;
+            }
+        }
+    });
+    bootstrap.OracleObj.setup(defaultChannel)
+});
+/**
+ * message() - Prebuilt discord function
+ * This function is called whenever there is a message sent in a readable channel. It processes whether the sender of the message is the bot itself, at which point it will not respond
+ * to itself. It then processes if the message has the 'botListeningPrefix' (outlined in bootstrap.js) and finally if it has a Spelltable link. It then returns, sends information to processCommand() (see below)
+ * or spits out a message about Spell Table, in that order.
+ *
+ * @param {*} receivedMessage - The bot reads in every message sent in readable channels. This is the discord message obj read in
+ */
+bootstrap.Client.on('message', (receivedMessage) =>{
+    if (receivedMessage.author === bootstrap.Client.user){
+        return 
     }
-    if (receivedMessage.mentions.users == client.user){
-        let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-        generalChannel.channel.send("text")
-    }
-    // receivedMessage.channel.send("Message receieved, " + receivedMessage.author.toString() + ": " + receivedMessage.content)
-    if (receivedMessage.content.startsWith("!") && receivedMessage.channel == (client.channels.cache.get(generalID.getGeneralChatID()))){
+    if (receivedMessage.content.startsWith(bootstrap.botListeningPrefix)){
         processCommand(receivedMessage)
     }
-    else{
-        let currentChannel =  client.channels.cache.get()
+    if (receivedMessage.content.indexOf("https://www.spelltable.com/game/") >= 0){
+        let index = receivedMessage.content.indexOf("https://www.spelltable.com/game/");
+        let urlSpectate = receivedMessage.content.slice(index+32);
+        let urlPlayer = "https://www.spelltable.com/game/" + urlSpectate;
+        urlSpectate = urlSpectate + "?spectate";
+        const spellTableEmbed = new bootstrap.Discord.MessageEmbed()
+            .setColor(bootstrap.messageColorBlue)
+            .setAuthor("Looks like you're trying to play a game on Spelltable!")
+            .addFields(
+                {name: "Playing in this game?", value: urlPlayer},
+                {name: "Spectating this game?", value: "https://www.spelltable.com/game/"+urlSpectate}
+            );
+        receivedMessage.channel.send(spellTableEmbed);
     }
-})
-function processCommand(receivedMessage){
-    let fullCommand = receivedMessage.content.substr(1)
-    let splitCommand = fullCommand.split(" ")
-    let primaryCommand = splitCommand[0]
-    let arguments = splitCommand.slice(1)
+});
+/**
+ * messageReactionAdd() - Prebuilt discord function
+ * This function is called whenever there is a reaction in a readable channel for the bot. It first makes a check that the person reacting to the message is the bot, as the only functionality
+ * ATM for the bot is listening to its own messages. It then sends all necessary information off to a helper file (Helpers/ManageReactHelper.js), which processes exactly what is happening.
+ *
+ * @param {*} reaction - The received reaction and the message that the reaction is on. A discord message obj
+ * @param {*} user - Information about the user sending the reaction. A discord user obj
+ */
+bootstrap.Client.on('messageReactionAdd', (reaction, user) => {
+    if (reaction.message.author.id === bootstrap.Env.clientID){
+        bootstrap.ManageReactHelper.manageReaction(reaction, user, bootstrap.Client.channels.cache.get(reaction.message.channel.id))
+    }
+});
+/**
+ * processCommand()
+ * This is the central system of processing bot commands. This function is called when the bot receives a message that contains the bot listening prefix (outlined in bootstrap.js).
+ * This function will chop up the full discord message it receives into usable parts that are then sent off to their respective functions in Oracle.JS, based on a switch statement.
+ * @param {*} receivedMessage - The contents of the message the bot receives. The full statement is sliced up and processed to a form we understand. "!", "<Actual Command>", "<Parameters>"
+ */
+async function processCommand(receivedMessage){
+    let fullCommand = receivedMessage.content.substr(1).toLowerCase();
+    let splitCommand = fullCommand.split(" ");
+    let primaryCommand = splitCommand[0];
+    let arguments = splitCommand.slice(1);
+
+    let rawFullCommand = receivedMessage.content.substr(1);
+    let rawSplitCommand = rawFullCommand.split(" ");
+    let rawArguments = rawSplitCommand.slice(1);
+
+    let channel = receivedMessage.channel.id;
+    let channelResponseFormatted = bootstrap.Client.channels.cache.get(channel);
+    let adminGet = await bootstrap.ConfigHelper.checkAdminPrivs(receivedMessage);
 
     switch(primaryCommand){
         case "help":
-            helpCommand(receivedMessage, arguments)
+            bootstrap.OracleObj.helpCommand(receivedMessage, arguments);
             break;
         case "register":
-            register(receivedMessage, arguments)
-            break;
-        case "users":
-            users(receivedMessage, arguments)
+            bootstrap.OracleObj.register(receivedMessage, arguments, channelResponseFormatted);
             break;
         case "log":
-            logLosers(receivedMessage, arguments)
+            bootstrap.OracleObj.startMatch(receivedMessage, arguments);
+            break;
+        // case "remind":
+        //     remindMatch(receivedMessage, arguments)
+        //     break;
+        case "deletematch":
+            if (adminGet){
+                bootstrap.OracleObj.deleteMatch(receivedMessage, arguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "acceptmatch":
+            if (adminGet){
+                bootstrap.OracleObj.forceAccept(receivedMessage, arguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "info":
+            bootstrap.OracleObj.matchInfo(receivedMessage, arguments);
             break;
         case "profile":
-            profile(receivedMessage, arguments)
+            bootstrap.OracleObj.profile(receivedMessage, arguments);
             break;
-        case "adddeck":
-            addDeck(receivedMessage, arguments)
+        case "recent":
+            bootstrap.OracleObj.recent(receivedMessage, arguments);
+            break;
+        case "pending":
+            bootstrap.OracleObj.getPending(receivedMessage);
+            break;
+        case "disputed":
+            bootstrap.OracleObj.getDisputed(receivedMessage);
+            break;
+        case "use":
+            bootstrap.OracleObj.use(receivedMessage, arguments, rawArguments);
+            break;
+        case "decks":
+            bootstrap.OracleObj.listDecks(receivedMessage, arguments);
+            break;
+        case "deckstats":
+            bootstrap.OracleObj.deckStats(receivedMessage, rawArguments);
+            break;
+        case "deckinfo":
+            bootstrap.OracleObj.deckinfo(receivedMessage, arguments, rawArguments);
+            break;
+        case "add":
+            if (adminGet){
+                bootstrap.OracleObj.addDeck(receivedMessage, rawArguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "removedeck":
+            if (adminGet){
+                bootstrap.OracleObj.removeDeck(receivedMessage, arguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "updatedeck":
+            if (adminGet){
+                bootstrap.OracleObj.updateDeck(receivedMessage, arguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "top":
+            bootstrap.OracleObj.top(receivedMessage, rawArguments);
+            break;
+        case "startseason":
+            if (adminGet){
+                bootstrap.OracleObj.startSeason(receivedMessage);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "endseason":
+            if (adminGet){
+                bootstrap.OracleObj.endSeason(receivedMessage);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "seasoninfo":
+            bootstrap.OracleObj.seasonInfo(receivedMessage, rawArguments);
+            break;
+        case "setendseason":
+            if (adminGet){
+                bootstrap.OracleObj.setEndSeason(receivedMessage, arguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "setconfig":
+            if (adminGet){
+                bootstrap.OracleObj.configSet(receivedMessage, rawArguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "getconfig":
+            if (adminGet){
+                bootstrap.OracleObj.configGet(receivedMessage);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "setseasonname":
+            if (adminGet){
+                bootstrap.OracleObj.setSeasonName(receivedMessage, rawArguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
+        case "setup":
+            bootstrap.OracleObj.setup(getChannelID(receivedMessage));
+            break;
+        case "tutorial":
+            bootstrap.OracleObj.tutorial(receivedMessage);
             break;
         case "credits":
-            credits(receivedMessage, arguments)
+            bootstrap.OracleObj.credits(receivedMessage, arguments);
             break;
         default:
-            receivedMessage.channel.send(">>> Unknown command. Try '!help'")
+            const UnknownCommandEmbed = new bootstrap.Discord.MessageEmbed()
+                .setColor(bootstrap.messageColorRed)
+                .setAuthor("Unknown command.")
+                .setDescription("Type !help to get a list of available commands");
+            receivedMessage.channel.send(UnknownCommandEmbed);
     }
-}
-function test(receivedMessage, args){
-    // Module.addDeckList().then(function(data){
-    //     console.log(data + " data")
-    // }, function (err){
-    //     console.log(err + " err")
-    // })
-}
-function addDeck(receivedMessage, args){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.addDeckList(receivedMessage, args);
-    generalChannel.send(">>> Listed decklist in console")
-}
-function profile(receivedMessage, args){
-    // @TODO
-    // Send this information in a nicer format to discord
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.profile(receivedMessage, args);
-    generalChannel.send(">>> Listed profile in console")
-}
-async function logLosers(receivedMessage, args){
-    var callBackArray = new Array();
-    //var lostEloArray = new Array();
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-
-    Module.logLosers(args, function(callback,err){
-        callback.forEach(item => {
-            callBackArray.push(item)
-        });
-        generalChannel.send(">>> " + callback[0] + " upvote to confirm this game. Downvote to contest. Make sure to $use <deckname> before reacting.")
-        .then(function (message, callback){
-            const filter = (reaction, user) => {
-                return ['👍', '👎'].includes(reaction.emoji.name) && user.id !== message.author.id;
-            };   
-
-            message.react("👍")
-            message.react("👎")
-            // @TODO: 
-            // Look into time of awaitReactions (configurable?)
-            // Log points only after upvotes are seen. Right now we are logging THEN checking upvotes
-            message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
-                .then(collected => {
-                    const reaction = collected.first();
-
-                    if (reaction.emoji.name === '👍') {
-                        receivedMessage.reply("received confirmation for logging");
-                        //console.log(reaction.users)
-                    }
-                    else {
-                        receivedMessage.reply('received contest on game. Please resolve issue then log game again.');
-                        return
-                    }
-                })
-        })
-        callback.shift()
-        // Module.logWinners(receivedMessage, callback, function(callback, err){
-        //     //console.log(callback)
-        // })
-        
-    })
-   
-}
-function users(receivedMessage, args){
-    /* @TODO
-    This function can be useful for other aspects of the project, it should be converted to a general count function. ATM it only 
-    counts the number of documents in the user collection, but it can be expanded to a lot more.
-    */
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.listAll(receivedMessage, function(callback, err){
-        generalChannel.send(">>> There are " + callback + " registered users in this league.")
-    })
-}
-function register(receivedMessage, args){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    Module.registerFunc(receivedMessage, function(callback,err){
-        //Case 1: User is not registered and becomes registered
-        if (callback == "1"){ 
-            generalChannel.send(">>> " + receivedMessage.author.username + " is now registered.")
-        }
-        //Case 2: User is already registered and the bot tells the user they are already registered
-        else{
-            generalChannel.send(">>> " + receivedMessage.author.username + " is already registered.")
-        }
-    })
-}
-function helpCommand(receivedMessage, arguments){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    if (arguments.length == 0){
-        const exampleEmbed = new Discord.MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle('PWP Bot')
-        .setURL('')
-        .setAuthor('Noah Saldaña', '', '')
-        .setDescription('An excellent bot for excellent people')
-        .setThumbnail('')
-        .addFields(
-            { name: '!help', value: 'Where you are now. A list of all available commands with a brief description of each.' },
-            { name: '\u200B', value: '\u200B' },
-            { name: '!multiply', value: 'Multiply two numbers.', inline: true },
-            { name: '!send', value: 'Bot will tell your friends what you really think of them.', inline: true },
-            { name: '!log', value: 'Testing function, adds elo to an account. ', inline: true },
-            /* @TODO
-                Add other commands manually or find a way to programmatically list all commands available + a blurb
-            */
-        )
-        .setImage('')
-        .setTimestamp()
-        .setFooter('Some footer text here', '');
-    
-    generalChannel.send(exampleEmbed);
-    } else{
-        receivedMessage.channel.send("It looks like you need help with " + arguments)
-
-        //@TODO
-        //  Take argument user has mentioned and spit back information on it. EX: user types: !help test. Spit back information about test command.
-    }
-}
-function credits(argument, receivedMessage){
-    /* @TODO
-        Give credit where credit is due 
-    */
-}
-client.login("NzE3MDczNzY2MDMwNTA4MDcy.XtZgRg.k9uZEusoc7dXsZ1UFkwtPewA72U")
-
-
-
-
-
-//Outdated or old testing commands. Not commented out so they can be collapsed.
-
-//Sends a message to a user. Mention them and then your message and the bot will
-//   take the mentioned person and repeat your message to them
-function sendMessage(arguments, receivedMessage){
-    let generalChannel = client.channels.cache.get(generalID.getGeneralChatID())
-    let count = 0
-    msg = receivedMessage.content.toLowerCase();
-    mention = receivedMessage.mentions.users
-    if (mention == null){ return; }
-    if (msg.startsWith (prefix + "send")){
-        mention.forEach((users) => {
-            count++;
-        }) 
-    }
-    if (count > 1){ 
-        generalChannel.send(">>> Error, try again and only mention 1 person.")
-        generalChannel.send(">>> Try: !send @Username Hello my dear friend!")
-        return; 
-    }
-    else{
-        mention.forEach((users) => {
-            let fullMessage =  receivedMessage.content.substr(6)
-            let splitCommand = fullMessage.split(" ")
-            let mentionedAndMessage = splitCommand.slice(1)
-            let finishedString = mentionedAndMessage.join(" ");
-            generalChannel.send(">>> **psst " + users.toString() + " " + receivedMessage.author.toString() + " says: **")
-            generalChannel.send(">>> " + finishedString)
-        }) 
-    }
-}
-//Multiplies two numbers. Tutorial stuff 
-function multiplyCommand(arguments, receivedMessage){
-    if (arguments.length < 2){
-        receivedMessage.channel.send("Not enough arguments. Try '!multiply 2 10'")
-        return
-    }
-    let product = 1
-    arguments.forEach((value) =>{
-        product = product * parseFloat(value)
-    })
-    receivedMessage.channel.send("The product of " + arguments + " is " + product.toString())
 }

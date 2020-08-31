@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
 
 var user = new mongoose.Schema({
-    _id: String,
+    _mentionValue: String,
+    _server: String,
     _name: String,
-    _elo: Number,
-    _wins: Number,
-    _losses: Number,
+    _currentDeck: String
 });
 
 module.exports = mongoose.model('Users', user);
