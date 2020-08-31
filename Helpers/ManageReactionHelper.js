@@ -70,7 +70,7 @@ module.exports = {
                 //console.log("ERROR: " + message)
                 })
         }
-        
+
         else if (embeds.length > 1 && embeds[0] === "Game" && embeds[1] === "ID:" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID){
             let grabMatchID =  embeds[2];
             if (sanitizedString !==  grabMentionValue){
@@ -114,7 +114,7 @@ module.exports = {
             reaction.message.edit(errorEmbed);
         }
         //End of Confirm Delete Match Block
-        
+
         //Start of Remove Deck Reacts
         else if((embeds.length === 1 && embeds[0] === "WARNING" && reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientID)){
         let removeDeckResult = await bootstrap.DeckObj.removeDeck(reaction.message.embeds[0].title);
@@ -131,7 +131,7 @@ module.exports = {
                 reaction.message.edit(editedWarningEmbed);
             }
         }
-        
+
         else if((embeds.length === 1 && embeds[0] === "WARNING" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
@@ -144,9 +144,26 @@ module.exports = {
         //Commander
         else if((embeds.length > 1 && embeds[0] === "You" && reaction.emoji.name === '1️⃣' && user.id !== bootstrap.Env.clientID)){
             let channel = reaction.message.channel;
-            let deckID = upperLevelEmbeds.title.slice(9);
-            
+            let nameOfDeck = "";
+            let deckID;
+            embeds.forEach((word)=>{
+                nameOfDeck = nameOfDeck + " " + word
+            });
+            let deckName = await bootstrap.DeckHelper.findDeckToUpdateReactionHelper(reaction.message.guild.id, nameOfDeck.slice(40));
+            if (deckName !== "Error 1"){
+                deckID = deckName[0]._id
+            }
+            else{
+                const errorOnDeckFind = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Cannot find this deck")
+                    .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
+                channel.send(errorOnDeckFind);
+                return
+            }
+
             const collector = new bootstrap.Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 });
+
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Commander**. Please **type** the new Commander.");
@@ -186,15 +203,31 @@ module.exports = {
                 }
                 else{   }
             })
-    
+
         }
         //Colors
         else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '2️⃣' && user.id !== bootstrap.Env.clientID)){
             let channel = reaction.message.channel;
-            let deckID = upperLevelEmbeds.title.slice(9);
+            let nameOfDeck = "";
+            let deckID;
+            embeds.forEach((word)=>{
+                nameOfDeck = nameOfDeck + " " + word
+            });
+            let deckName = await bootstrap.DeckHelper.findDeckToUpdateReactionHelper(reaction.message.guild.id, nameOfDeck.slice(40));
+            if (deckName !== "Error 1"){
+                deckID = deckName[0]._id
+            }
+            else{
+                const errorOnDeckFind = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Cannot find this deck")
+                    .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
+                channel.send(errorOnDeckFind);
+                return
+            }
 
             const collector = new bootstrap.Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 });
-            
+
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Deck Colors**. Please **type** the new Deck Colors \
@@ -244,15 +277,31 @@ module.exports = {
                 }
                 else{   }
             })
-    
+
         }
         //Deck Link
         else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '3️⃣' && user.id !== bootstrap.Env.clientID)){
             let channel = reaction.message.channel;
-            let deckID = upperLevelEmbeds.title.slice(9);
+            let nameOfDeck = "";
+            let deckID;
+            embeds.forEach((word)=>{
+                nameOfDeck = nameOfDeck + " " + word
+            });
+            let deckName = await bootstrap.DeckHelper.findDeckToUpdateReactionHelper(reaction.message.guild.id, nameOfDeck.slice(40));
+            if (deckName !== "Error 1"){
+                deckID = deckName[0]._id
+            }
+            else{
+                const errorOnDeckFind = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Cannot find this deck")
+                    .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
+                channel.send(errorOnDeckFind);
+                return
+            }
 
             const collector = new bootstrap.Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 });
-            
+
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Deck Link**. Please **enter** the new deck link.");
@@ -299,15 +348,31 @@ module.exports = {
                 }
                 else{   }
             })
-    
+
         }
         //Author
         else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '4️⃣' && user.id !== bootstrap.Env.clientID)){
             let channel = reaction.message.channel;
-            let deckID = upperLevelEmbeds.title.slice(9);
+            let nameOfDeck = "";
+            let deckID;
+            embeds.forEach((word)=>{
+                nameOfDeck = nameOfDeck + " " + word
+            });
+            let deckName = await bootstrap.DeckHelper.findDeckToUpdateReactionHelper(reaction.message.guild.id, nameOfDeck.slice(40));
+            if (deckName !== "Error 1"){
+                deckID = deckName[0]._id
+            }
+            else{
+                const errorOnDeckFind = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Cannot find this deck")
+                    .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
+                channel.send(errorOnDeckFind);
+                return
+            }
 
             const collector = new bootstrap.Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 });
-            
+
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Author**. Please **type** the new author(s).\n\
@@ -352,10 +417,26 @@ module.exports = {
         //Deck Description
         else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '5️⃣' && user.id !== bootstrap.Env.clientID)){
             let channel = reaction.message.channel;
-            let deckID = upperLevelEmbeds.title.slice(9);
+            let nameOfDeck = "";
+            let deckID;
+            embeds.forEach((word)=>{
+                nameOfDeck = nameOfDeck + " " + word
+            });
+            let deckName = await bootstrap.DeckHelper.findDeckToUpdateReactionHelper(reaction.message.guild.id, nameOfDeck.slice(40));
+            if (deckName !== "Error 1"){
+                deckID = deckName[0]._id
+            }
+            else{
+                const errorOnDeckFind = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Cannot find this deck")
+                    .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
+                channel.send(errorOnDeckFind);
+                return
+            }
 
             const collector = new bootstrap.Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 20000, max: 1 });
-            
+
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Description**. Please **type** the new Description.\n\
@@ -410,10 +491,26 @@ module.exports = {
         //Deck Type
         else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '6️⃣' && user.id !== bootstrap.Env.clientID)){
             let channel = reaction.message.channel;
-            let deckID = upperLevelEmbeds.title.slice(9);
+            let nameOfDeck = "";
+            let deckID;
+            embeds.forEach((word)=>{
+                nameOfDeck = nameOfDeck + " " + word
+            });
+            let deckName = await bootstrap.DeckHelper.findDeckToUpdateReactionHelper(reaction.message.guild.id, nameOfDeck.slice(40));
+            if (deckName !== "Error 1"){
+                deckID = deckName[0]._id
+            }
+            else{
+                const errorOnDeckFind = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Cannot find this deck")
+                    .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
+                channel.send(errorOnDeckFind);
+                return
+            }
 
             const collector = new bootstrap.Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 20000, max: 1 });
-            
+
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Deck Type**. Please **type** the new Type.\n\
@@ -466,10 +563,26 @@ module.exports = {
         //Primer
         else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '7️⃣' && user.id !== bootstrap.Env.clientID)){
             let channel = reaction.message.channel;
-            let deckID = upperLevelEmbeds.title.slice(9);
+            let nameOfDeck = "";
+            let deckID;
+            embeds.forEach((word)=>{
+                nameOfDeck = nameOfDeck + " " + word
+            });
+            let deckName = await bootstrap.DeckHelper.findDeckToUpdateReactionHelper(reaction.message.guild.id, nameOfDeck.slice(40));
+            if (deckName !== "Error 1"){
+                deckID = deckName[0]._id
+            }
+            else{
+                const errorOnDeckFind = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Cannot find this deck")
+                    .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
+                channel.send(errorOnDeckFind);
+                return
+            }
 
             const collector = new bootstrap.Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 20000, max: 1 });
-            
+
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Primer**. Please type **Yes** or **No**.\n\
@@ -523,10 +636,25 @@ module.exports = {
         //Discord Link
         else if((embeds.length > 4 && embeds[0] === "You" && reaction.emoji.name === '8️⃣' && user.id !== bootstrap.Env.clientID)){
             let channel = reaction.message.channel;
-            let deckID = upperLevelEmbeds.title.slice(9);
-
+            let nameOfDeck = "";
+            let deckID;
+            embeds.forEach((word)=>{
+                nameOfDeck = nameOfDeck + " " + word
+            });
+            let deckName = await bootstrap.DeckHelper.findDeckToUpdateReactionHelper(reaction.message.guild.id, nameOfDeck.slice(40));
+            if (deckName !== "Error 1"){
+                deckID = deckName[0]._id
+            }
+            else{
+                const errorOnDeckFind = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Cannot find this deck")
+                    .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
+                channel.send(errorOnDeckFind);
+                return
+            }
             const collector = new bootstrap.Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 });
-            
+
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Discord Link**. Please **enter** the new Discord Link.");
@@ -573,17 +701,17 @@ module.exports = {
                 }
                 else{   }
             })
-    
+
         }
         //Update Deck Cancelled
-        else if((embeds.length > 1 && embeds[0] === "update" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
+        else if((embeds.length > 1 && embeds[0] === "You" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Update Deck Cancelled");
             reaction.message.edit(editedWarningEmbed);
         }
         //End of Update Deck Block
-        
+
         //Start of Add Deck Block
         else if ((embeds.length > 4 && embeds[0] === "Trying"&& reaction.emoji.name === '👍' && user.id !== bootstrap.Env.clientID)){
             let promiseReturn = await bootstrap.DeckHelper.addDeckHelper(reaction.message, upperLevelEmbeds.fields);
@@ -630,6 +758,6 @@ module.exports = {
             reaction.message.edit(editedWarningEmbed);
         }
         else {  }
-        
+
     }
 };
