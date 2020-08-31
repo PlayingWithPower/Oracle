@@ -1,6 +1,6 @@
 # Discord Elo Bot
 
-This repository is the home of a Discord Elo Bot (nicknamed Oracle Bot). At its core, Oracle Bot is a Magic the Gathering statistics and information bot, aimed at the CEDH community. The bot will track data deck and player statistics inside of Discord Servers. 
+This repository is the home of a Discord Elo Bot (nicknamed Oracle Bot). At its core, Oracle Bot is a Magic the Gathering statistics and information bot, aimed at the CEDH community. The bot will track deck data and player statistics inside of Discord Servers. 
 
 ## Installation
 Core packages to run this bot include Node.JS and Discord.JS. Please check if Node.JS is present on your machine by typing **node --version--**. If it is not present, download it at https://nodejs.org/.
