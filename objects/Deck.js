@@ -414,8 +414,8 @@ module.exports = {
                              '$text':{'$search': args}
                          },
                          function(err,res){
-                             if (res.length > 0){
-                                resolve(res)
+                             if (res !== undefined && res.length > 0){
+                                 resolve(res)
                              }
                              else{
                                 resolve("Can't find deck")
