@@ -1015,7 +1015,6 @@ module.exports = {
             let convertedToCentralTime = match[0].toLocaleString("en-US", {timeZone: "America/Chicago"});
 
             //const bot = await getUserFromMention(Config.clientID)
-            //console.log(match)
             const winner = await bootstrap.LeagueHelper.getUserFromMention(match[4]);
             const loser1 = await bootstrap.LeagueHelper.getUserFromMention(match[5]);
             const loser2 = await bootstrap.LeagueHelper.getUserFromMention(match[6]);
@@ -1037,7 +1036,6 @@ module.exports = {
         })
     },
     async startMatch(receivedMessage, args){
-
         let currentSeason = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
         let generalChannel = bootstrap.Client.channels.cache.get(receivedMessage.channel.id);
         let sanitizedString = receivedMessage.author.id;
@@ -1051,7 +1049,6 @@ module.exports = {
 
         // let checkMatchRet = await GameHelper.checkMatchID(receivedMessage.guild.id,"016a765d1455")
 
-        // console.log(checkMatchRet)
 
         // Check to make sure there is a season on-going
         if (currentSeason === "No Current"){
@@ -1074,8 +1071,9 @@ module.exports = {
             generalChannel.send(errorMsg);
             return
         }
-        // Make sure every user in message (and message sender) are different users [Block out if testing]
-        let tempArr = args;
+        // Make sure every user in message (and message sender) are different users
+        let tempArr = [];
+        tempArr.push(args);
         let addedMentionValues = "<@!" + sanitizedString + ">";
         tempArr.push(addedMentionValues);
         let allowDuplicateUsers = false;
@@ -1085,7 +1083,7 @@ module.exports = {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")
-                .setDescription(" You can't log a match with duplicate players");
+                .setDescription("You can't log a match with duplicate players");
             generalChannel.send(errorMsg);
             return
         }
