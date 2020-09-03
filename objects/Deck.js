@@ -167,7 +167,6 @@ module.exports = {
                         resolve(passedArray)
                     }
                     else{
-                        console.log(args)
                         bootstrap.Deck.find(
                             {_server: receivedMessage.guild.id,
                              '$text':{'$search': args}
@@ -340,7 +339,6 @@ module.exports = {
             })
         }
         else{
-            
             args = args.join(' ');
             let argsWithCommas = args.toString();
             let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
