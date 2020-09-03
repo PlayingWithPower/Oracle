@@ -1073,13 +1073,15 @@ module.exports = {
         }
         // Make sure every user in message (and message sender) are different users
         let tempArr = [];
-        tempArr.push(args);
+        args.forEach((userMentionValue)=>{
+            tempArr.push(userMentionValue)
+        })
         let addedMentionValues = "<@!" + sanitizedString + ">";
         tempArr.push(addedMentionValues);
         let allowDuplicateUsers = false;
         //Uncomment out for local testing, allows you to log matches with duplicate users.
         // allowDuplicateUsers = true;
-        if (!allowDuplicateUsers && await bootstrap.GameHelper.hasDuplicates(tempArr)) {
+        if ((!allowDuplicateUsers) && (await bootstrap.GameHelper.hasDuplicates(tempArr))) {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")
