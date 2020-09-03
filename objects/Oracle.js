@@ -832,6 +832,7 @@ module.exports = {
         else{
             const closeToResEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
+                .setAuthor("The deck: " + args.join(' ') + " has no logged matches this Season.")
                 .setDescription("You typed: '" + args.join(' ') + "' I didn't quite understand the deck you inputted. Did you mean to type any of the following?\n\
             The !deckstats command will give suggestions when it doesn't understand exactly what you typed")
                 .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)");
