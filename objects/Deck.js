@@ -172,7 +172,7 @@ module.exports = {
                              '$text':{'$search': args}
                          },
                          function(err,res){
-                             if (res.length > 0){
+                             if (res!==undefined && res.length > 0){
                                 resolve(res)
                              }
                              else{
