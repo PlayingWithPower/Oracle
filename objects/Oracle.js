@@ -1078,7 +1078,7 @@ module.exports = {
         tempArr.push(addedMentionValues);
         let allowDuplicateUsers = false;
         //Uncomment out for local testing, allows you to log matches with duplicate users.
-        allowDuplicateUsers = true;
+        // allowDuplicateUsers = true;
         if (!allowDuplicateUsers && await bootstrap.GameHelper.hasDuplicates(tempArr)) {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
