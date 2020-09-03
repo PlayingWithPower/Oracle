@@ -167,13 +167,12 @@ module.exports = {
                         resolve(passedArray)
                     }
                     else{
-                        console.log(args)
                         bootstrap.Deck.find(
                             {_server: receivedMessage.guild.id,
                              '$text':{'$search': args}
                          },
                          function(err,res){
-                             if (res.length > 0){
+                             if (res!==undefined && res.length > 0){
                                 resolve(res)
                              }
                              else{
