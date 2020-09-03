@@ -1,0 +1,27 @@
+{
+  "name": "oracle",
+  "version": "1.0.0",
+  "description": "Oracle is a Bot that runs gameplay leagues for EDH/CEDH via discord. It runs on NodeJS and MongoDB.",
+  "main": "main.js",
+  "dependencies": {
+    "cron": "^1.8.2",
+    "discord.js": "^12.2.0",
+    "mongodb": "^3.5.9",
+    "mongoose": "^5.9.16"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PlayingWithPower/DiscordBot.git"
+  },
+  "author": "Ryan Street, Noah Saldana",
+  "license": "OSL-3.0",
+  "bugs": {
+    "url": "https://github.com/PlayingWithPower/Oracle/issues"
+  },
+  "homepage": "https://github.com/PlayingWithPower/Oracle#readme"
+}

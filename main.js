@@ -238,7 +238,7 @@ async function processCommand(receivedMessage){
             }
             break;
         case "setup":
-            bootstrap.OracleObj.setup(getChannelID(receivedMessage));
+            bootstrap.OracleObj.setup(bootstrap.MessageHelper.getChannelID(receivedMessage));
             break;
         case "tutorial":
             bootstrap.OracleObj.tutorial(receivedMessage);
