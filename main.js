@@ -246,11 +246,5 @@ async function processCommand(receivedMessage){
         case "credits":
             bootstrap.OracleObj.credits(receivedMessage, arguments);
             break;
-        default:
-            const UnknownCommandEmbed = new bootstrap.Discord.MessageEmbed()
-                .setColor(bootstrap.messageColorRed)
-                .setAuthor("Unknown command.")
-                .setDescription("Type !help to get a list of available commands");
-            receivedMessage.channel.send(UnknownCommandEmbed);
     }
 }
