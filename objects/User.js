@@ -226,7 +226,7 @@ module.exports = {
                 };
                 let updateSave = { $set: {_currentDeck: cleanedArg}};
                 bootstrap.User.updateOne(userQuery, updateSave, function(err, res){
-                    if (res){
+                    if (res.n > 0){
                         resolve("Success")
                      }
                      else{
