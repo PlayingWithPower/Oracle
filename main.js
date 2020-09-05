@@ -1,10 +1,14 @@
 const bootstrap = require('./bootstrap.js')
-
+var mongooseReady = true
 //MongoDB Connection
 //Create initial mongoDB connection. If cloning this bot, create file named "env.js". File path: DiscordBot/etc/env.js. See Github Readme for more information.
 bootstrap.Client.login(bootstrap.Env.discordKey);
-bootstrap.mongoose.connect(bootstrap.Env.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
-
+try{
+    bootstrap.mongoose.connect(bootstrap.Env.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+}catch(MongooseError){
+    console.log(MongooseError.message)
+    mongooseReady = false
+}
 /**
  * ready() - Prebuild discord function
  * Called when the bot is turned on. Sends a debug log that the bot connected and sets the presence of the bot.
@@ -13,7 +17,26 @@ bootstrap.mongoose.connect(bootstrap.Env.mongoConnectionUrl, { useNewUrlParser: 
  */
 bootstrap.Client.on('ready', () =>{
     console.log("Debug log: Successfully connected as " + bootstrap.Client.user.tag);
+    console.log(mongooseReady)
     bootstrap.Client.user.setPresence({ activity: { name: 'with !help' }, status: 'online' })
+    if (!mongooseReady){
+        const mongooseNotReadyEmbed = new bootstrap.Discord.MessageEmbed()
+            .setColor(bootstrap.messageColorRed)
+            .setTitle("Our Discord")
+            .setURL("https://discord.gg/ARZwqzh")
+            .setAuthor("Could not connect to Database")
+            .setDescription("Oracle could not make a connection to our Database. This is most likely an issue with our Database. Please \
+            wait a few minutes then try again. If the problem persists, please come tell us about it on our Discord Server! It is linked above.")
+        bootstrap.Client.guilds.cache.forEach((guild) => {
+            guild.channels.cache.forEach((channel) => {
+                if(channel.type === "text" && defaultChannel === "") {
+                    if(channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
+                        channel.send(mongooseNotReadyEmbed)
+                    }
+                }
+            });
+        })
+    }
     //Lists out the "guilds" in a discord server, these are the unique identifiers so the bot can send messages to server channels
     // client.guilds.cache.forEach((guild) => {
     //     console.log(guild.id)
