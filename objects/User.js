@@ -210,7 +210,7 @@ module.exports = {
         let typeOfQuery = "";
         return new Promise((resolve, reject)=>{
             if (args.length > 2){
-                if (args[args.length - 1].toString().toLowerCase() === "rogue"){
+                if (args[args.length - 2] + args[args.length - 1].toString().toLowerCase() === "|rogue"){
                     typeOfQuery = "rogue"
                 }
             }
