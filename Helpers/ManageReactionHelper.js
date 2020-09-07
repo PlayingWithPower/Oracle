@@ -50,9 +50,15 @@ module.exports = {
                                 bootstrap.GameObj.finishMatch(grabMatchID, reaction.message).then(function(){
                                     const confirmMessage = new bootstrap.Discord.MessageEmbed()
                                         .setColor(bootstrap.messageColorGreen)
-                                        .setAuthor("Sucessfully Logged Match!")
+                                        .setAuthor("Sucessfully Logged Match: " + grabMatchID)
                                         .setDescription("Type **!profile** to see changes to your score\n\
-                                        Type **!top** to see changes to this season's leaderboard");
+                                        Type **!top** to see changes to this season's leaderboard")
+                                        .addFields(
+                                            {name: "Winner", value: "<@"+final[0]+"> gained 30 points"},
+                                            {name: "Loser", value: "<@"+final[1]+"> lost 10 points"},
+                                            {name: "Loser", value: "<@"+final[2]+"> lost 10 points"},
+                                            {name: "Loser", value: "<@"+final[3]+"> lost 10 points"},
+                                            );
                                         channel.send(confirmMessage);
                                     //console.log("Game #" + grabMatchID + " success")
                                 }).catch((message) => {

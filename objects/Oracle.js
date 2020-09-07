@@ -1076,7 +1076,7 @@ module.exports = {
         let tempArr = [];
         args.forEach((userMentionValue)=>{
             tempArr.push(userMentionValue)
-        })
+        });
         let addedMentionValues = "<@!" + sanitizedString + ">";
         tempArr.push(addedMentionValues);
         let allowDuplicateUsers = false;
