@@ -730,7 +730,7 @@ module.exports = {
         if (returnArr[0] === "Deck Lookup"){
             let deckName = returnArr[1].split(" | ");
             let seasonName;
-            if (deckName[1 ]=== undefined){
+            if (deckName[1]=== undefined){
                 seasonName = returnArr[2]
             }else{ seasonName = deckName[1]}
             deckStatsEmbed
@@ -759,7 +759,6 @@ module.exports = {
             generalChannel.send(usersList)
         }
         else if (returnArr[0] === "User Lookup"){
-
             deckStatsEmbed
                 .setColor(bootstrap.messageColorBlue)
                 .setTitle("Deck Stats")
@@ -777,7 +776,6 @@ module.exports = {
                 deckStatsEmbed.setDescription("For user: "+ "<@!"+returnArr[1]+">"+ ". Across all seasons")
             }
             generalChannel.send(deckStatsEmbed)
-
         }
         else if (returnArr[0] === "Raw Deck Lookup"){
             const allDecksEmbed = new bootstrap.Discord.MessageEmbed()
@@ -788,26 +786,31 @@ module.exports = {
                 allDecksEmbed
                     .setDescription("Data across all seasons")
             }
-            let nameVar = "";
+            let listOfDeckNames = "";
+            let listOfGamesPlayed = "";
+            let listOfPercentages = "";
             let sortedArray = returnArr[1].sort(function(a, b) {
                 return parseFloat(b[1]+b[2]) - parseFloat(a[1]+a[2]);
             });
-            sortedArray.forEach((deck)=>{
-                nameVar += deck[0] + "\n";
-                if (deck[1] + deck[2] < threshold){ }
-                else{
-                    allDecksEmbed
-                        .addFields(
-                            { name: "Deck Name", value: deck[0]},
-                            { name: "Wins", value: deck[1],inline: true},
-                            { name: "Games Played", value: deck[1] + deck[2],inline: true},
-                            { name: 'Winrate', value: Math.round((deck[1]/(deck[1]+deck[2]))*100) + "%", inline: true},
-                            //{ name: 'Number of Matches', value: deck[1] + deck[2], inline: true},
-                        )
+            for (let i = 0; i < sortedArray.length; i++){
+                if (sortedArray[i][1] + sortedArray[i][2] < threshold){break}
+                if ((listOfDeckNames + listOfGamesPlayed + listOfPercentages).length > 975) {
+                    break;
+                }else{
+                    listOfDeckNames += sortedArray[i][0] + "\n" ;
+                    listOfGamesPlayed += Math.round(sortedArray[i][1]+sortedArray[i][2]) + "\n";
+                    listOfPercentages += Math.round((sortedArray[i][1]/(sortedArray[i][1]+sortedArray[i][2]))*100) + "% \n";
                 }
-            });
+            }
+            allDecksEmbed.addFields(
+                {name: "Deck Name", value: listOfDeckNames, inline: true},
+                {name: "Games Played", value: listOfGamesPlayed, inline: true},
+                {name: "Winrate", value: listOfPercentages, inline: true},
+
+            );
             allDecksEmbed
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks");
+
             generalChannel.send(allDecksEmbed)
         }
         else if (returnArr === "Bad season deckstats input"){
