@@ -61,9 +61,8 @@ bootstrap.Client.on('message', (receivedMessage) =>{
         urlSpectate = urlSpectate + "?spectate";
         const spellTableEmbed = new bootstrap.Discord.MessageEmbed()
             .setColor(bootstrap.messageColorBlue)
-            .setAuthor("Looks like you're trying to play a game on Spelltable!")
             .addFields(
-                {name: "Spectating this game?", value: "https://www.spelltable.com/game/"+urlSpectate}
+                {name: "Click this link to spectate this game", value: "https://www.spelltable.com/game/"+urlSpectate}
             );
         receivedMessage.channel.send(spellTableEmbed);
     }
