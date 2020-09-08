@@ -18,7 +18,7 @@ module.exports = {
             let findQuery = {_mentionValue: id, _server: receivedMessage.guild.id};
             bootstrap.User.findOne(findQuery, function(err, res) {
                 if (res) {
-                    resolve("**" + id + "**'s won. Check !profile to see your update score")
+                    resolve(id)
                 }
                 else {
                     reject('PLAYER NOT FOUND')
@@ -32,7 +32,7 @@ module.exports = {
             let findQuery = {_mentionValue: id, _server: receivedMessage.guild.id};
             bootstrap.User.findOne(findQuery, function(err, res) {
                 if (res) {
-                    resolve("**" + id + "**'s lost. Check !profile to see your update score")
+                    resolve(id)
                 }
                 else {
                     reject('PLAYER NOT FOUND')
