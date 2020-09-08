@@ -246,5 +246,7 @@ async function processCommand(receivedMessage){
         case "credits":
             bootstrap.OracleObj.credits(receivedMessage, arguments);
             break;
+        default:
+            console.log("DEBUG LOG: Could not find command: '" + primaryCommand +"'")
     }
 }
