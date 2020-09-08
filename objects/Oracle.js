@@ -662,7 +662,7 @@ module.exports = {
             updateDeckEmbed
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("You are attempting to update the deck: "+ promiseReturn[0]._name)
-                .setTitle('Deck ID: ' + promiseReturn[0]._id)
+                .setTitle('Deck Link')
                 .setURL(promiseReturn[0]._link)
                 .setDescription("<@" + receivedMessage.author.id + ">" +" React with the **1** to update the **Commander**.\
         \nReact with the **2** to update the **Deck Colors**.\
