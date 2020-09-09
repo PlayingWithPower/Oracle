@@ -13,8 +13,6 @@ module.exports = {
      */
     async startSeason(receivedMessage, args) {
         let currentDate = new Date();
-        currentDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"});
-
         let getSeasonReturn = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
         let newSeasonNameReturn = await bootstrap.SeasonHelper.newSeasonName(receivedMessage.guild.id);
         let seasonName = newSeasonNameReturn.toString();
@@ -31,7 +29,7 @@ module.exports = {
                 if (result){
                     if ((result._season_end === "Not Specified") || (new Date(result._season_end) >= currentDate)){
                         let ongoingSeasonArr = [];
-                        ongoingSeasonArr.push("Season Ongoing", result._season_start, result._season_end, result._season_name, currentDate)
+                        ongoingSeasonArr.push("Season Ongoing", result._season_start, result._season_end, result._season_name, currentDate.toLocaleString("en-US", {timeZone: "America/New_York"}));
                         resolve(ongoingSeasonArr)
                     }
                     else{
