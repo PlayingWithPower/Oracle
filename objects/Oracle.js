@@ -475,7 +475,8 @@ module.exports = {
                 .addFields(
                     {name: "Season Name", value: returnArr[3], inline: true},
                     {name: "Current Date", value: returnArr[4], inline: true}
-                );
+                )
+                .setFooter("Current date is converted to CST/UTC-6");
             generalChannel.send(ongoingEmbed)
         }
         else if (returnArr[0] === "Successfully Saved"){
