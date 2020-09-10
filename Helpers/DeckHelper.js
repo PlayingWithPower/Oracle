@@ -64,6 +64,27 @@ module.exports = {
             })
         })
     },
+    /**
+     * Similar to the method above, except with small modifications to account for where it is called.
+     * Update Deck related ManageReactionHelper.js functions will call this to check and get results on the
+     * deck a user is trying to update.
+     * @param deckName - The deck to update
+     * @param guild - the guild to search for the deck in
+     */
+    findDeckToUpdateReactionHelper(guild, deckName){
+        let lowerCaseDeck = deckName.toLowerCase();
+        let deckQuery = {_alias: lowerCaseDeck, _server: guild};
+        return new Promise((resolve, reject)=>{
+            bootstrap.Deck.find(deckQuery, function(err, res){
+                if (res.length > 0){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
+            })
+        })
+    },
     /** 
      * Locates the deck to remove. Then waits for user reaction
      */

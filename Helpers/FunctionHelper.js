@@ -78,7 +78,7 @@ exampleDictionary =
     Example usage: !endseason",
     setendseason: "Use this function to set an automatic end date to a season. This is an Admin-Only command. Similar to the !endseason function, you will provide this function a date at which you want the current season to end\
     and it will end it automatically for you at the specified date. See !help endseason for more information on what ending a season does. \n\n\
-    Example usage: !setendseason 12/12/2020",
+    Example usage: !setendseason 01/28/2020",
     setseasonname: "Use this function to set the name of a season. This is an Admin-Only command that can be changed as many times as you want and as frequently as you want\n\n\
     Example usage: !setseasonname Season 2",
     setconfig: "Use this function to set the configurations for your server. This is an Admin-Only command. Default configurations for your server are provided\
