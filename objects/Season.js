@@ -13,6 +13,7 @@ module.exports = {
      */
     async startSeason(receivedMessage, args) {
         let currentDate = new Date();
+        let convertedToLocaleStringDate = currentDate.toLocaleString("en-US", {timeZone: "America/New_York"})
         let getSeasonReturn = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
         let newSeasonNameReturn = await bootstrap.SeasonHelper.newSeasonName(receivedMessage.guild.id);
         let seasonName = newSeasonNameReturn.toString();
@@ -29,14 +30,14 @@ module.exports = {
                 if (result){
                     if ((result._season_end === "Not Specified") || (new Date(result._season_end) >= currentDate)){
                         let ongoingSeasonArr = [];
-                        ongoingSeasonArr.push("Season Ongoing", result._season_start, result._season_end, result._season_name, currentDate.toLocaleString("en-US", {timeZone: "America/New_York"}));
+                        ongoingSeasonArr.push("Season Ongoing", result._season_start, result._season_end, result._season_name, convertedToLocaleStringDate);
                         resolve(ongoingSeasonArr)
                     }
                     else{
                         let newSeason = {
                             '_server': receivedMessage.guild.id,
                             '_season_name': seasonName,
-                            '_season_start': currentDate,
+                            '_season_start': convertedToLocaleStringDate,
                             '_season_end': "Not Specified"
                         };
                         bootstrap.Season(newSeason).save(function(err, otherRes){
@@ -44,7 +45,7 @@ module.exports = {
                                 resolve("Error 2")
                             }
                             let successSave = [];
-                            successSave.push("Successfully Saved", currentDate, "Not Specified", seasonName);
+                            successSave.push("Successfully Saved", convertedToLocaleStringDate, "Not Specified", seasonName);
                             resolve(successSave)
                         })
                     }
@@ -52,7 +53,7 @@ module.exports = {
                     let newSeason = {
                         '_server': receivedMessage.guild.id,
                         '_season_name': seasonName,
-                        '_season_start': currentDate,
+                        '_season_start': convertedToLocaleStringDate,
                         '_season_end': "Not Specified"
                     };
                     bootstrap.Season(newSeason).save(function(err, otherRes){
@@ -60,7 +61,7 @@ module.exports = {
                             resolve("Error 2")
                         }
                         let seasonArr = [];
-                        seasonArr.push("Successfully Saved", currentDate, "Not Specified", seasonName);
+                        seasonArr.push("Successfully Saved", convertedToLocaleStringDate, "Not Specified", seasonName);
                         resolve(seasonArr)
                     })
                 }
