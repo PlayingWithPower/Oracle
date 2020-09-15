@@ -23,7 +23,7 @@ module.exports = {
             let notFound = 1;
             let invalidDeckSet = 2;
             let findQuery = {_mentionValue: mentionValue[0], _server: mentionValue[1].guild.id};
-            bootstrap. User.findOne(findQuery, function(err, res){
+            bootstrap.User.findOne(findQuery, function(err, res){
                 if (res._currentDeck !== "None") {
                     if (res._currentDeck.slice(-8) === " | Rogue"){
                         resolve(found)
