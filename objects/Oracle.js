@@ -1090,10 +1090,7 @@ module.exports = {
         });
         let addedMentionValues = "<@!" + sanitizedString + ">";
         tempArr.push(addedMentionValues);
-        let allowDuplicateUsers = false;
-        //Uncomment out for local testing, allows you to log matches with duplicate users.
-        allowDuplicateUsers = true;
-        if ((!allowDuplicateUsers) && (await bootstrap.GameHelper.hasDuplicates(tempArr))) {
+        if ((!bootstrap.Env.allowedLoggedDuplicates) && (await bootstrap.GameHelper.hasDuplicates(tempArr))) {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")
