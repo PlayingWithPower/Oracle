@@ -531,18 +531,19 @@ module.exports = {
             let sortedResults = unsortedResults;
             let threshold = 5;
             let topPlayersThreshold = 10;
+            let listOfPlayers = "";
+            let listOfWinrates = "";
+            let listOfScores = "";
+            let maxEmbedSize = 975;
             if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._player_threshold }
 
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
-            let listOfPlayers = "";
-            let listOfWinrates = "";
-            let listOfScores = "";
             for (let i = 0; i < sortedResults.length; i++){
                 if (i >= topPlayersThreshold){break}
                 if (sortedResults[i][3] < threshold){break}
-                if ((listOfPlayers + listOfWinrates + listOfScores).length > 975) {
+                if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                     break;
                 }else{
                     listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
