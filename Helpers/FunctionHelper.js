@@ -85,7 +85,6 @@ exampleDictionary =
     without the need for this command. This command will let you fine tune this experience in a variety of categories. These categories are:\n\n\
     'Player Threshold' - The number of games a player must play before appearing on the leaderboard\n\
     'Deck Threshold' - The number of games a deck must be used before appearing on a user's profile\n\
-    'Timeout' - The amount of time before a game log timesout\n\
     'Admin' - The names of the roles of users with admin privileges in this server. Any user in your server with basic Discord Administrative privileges will be able to use admin commands.\
     Note: Write this as a list separated by commas.\n\n\
     Example usage: !setconfig <Config Type> | <New Value>. !setconfig Admin | Admin Role 1, Admin Role 2, Admin Role 3",

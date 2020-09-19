@@ -191,7 +191,6 @@ module.exports = {
                 .addFields(
                     {name: "Player Threshold", value: returnArr._player_threshold},
                     {name: "Deck Threshold", value: returnArr._deck_threshold},
-                    {name: "Timeout (in minutes)", value: returnArr._timeout},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
                 .setFooter("Want to edit these values? Use !setconfig");
@@ -201,7 +200,7 @@ module.exports = {
             const noConfigEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("No current information about your configurations")
-                .setDescription("Configurations are automatically generated when I join your server.");
+                .setDescription("Default configurations are provided to every server. Type !setconfig to change these defaults");
             generalChannel.send(noConfigEmbed)
         }
     },
@@ -217,7 +216,6 @@ module.exports = {
         The types of configurations are:\n\
         'Player Threshold (A **number**)', \n\
         'Deck Threshold (A **number**)', \n\
-        'Timeout (**Minutes**, less than 60)' \n\
         'Admin' (A list of **Discord Roles** seperated by commas)\n\n\
         Confused on what these mean? Try !help setconfig")
                 .setFooter("A default set of configuration values are set for every server. Updating these configs is to fine tune your experience");
@@ -235,7 +233,7 @@ module.exports = {
             commandType = bootstrap.DeckHelper.toUpper(commandType);
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
-                .setAuthor("Succesfully updated your configs")
+                .setAuthor("Successfully updated your configs")
                 .setDescription("You have updated the configuration:\n\
          **" + commandType + "** to **" + returnArr[2] + "**");
             generalChannel.send(updatedEmbed)
