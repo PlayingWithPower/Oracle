@@ -530,27 +530,35 @@ module.exports = {
             let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
             let sortedResults = unsortedResults;
             let threshold = 5;
+            let topPlayersThreshold = 10;
+            let listOfPlayers = "";
+            let listOfWinrates = "";
+            let listOfScores = "";
+            let maxEmbedSize = 975;
             if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._player_threshold }
 
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
-            // let holder = String();
             for (let i = 0; i < sortedResults.length; i++){
-                if (sortedResults[i][3] < threshold){ }
-                else if (i > 7){ }
-                else{
-                    //holder = holder + "<@"+sortedResults[i][0]+">\n" + sortedResults[i][1] + "%" + sortedResults[i][2] + "\n"
-                    resultsMsg
-                    // .setDescription(holder)
-                        .addFields(
-                            { name: "Username", value: "<@"+sortedResults[i][0]+">",inline: true},
-                            { name: "Winrate", value: sortedResults[i][1] + "%", inline: true},
-                            { name: "Score", value: sortedResults[i][2] , inline: true},
-                        )
+                if (i >= topPlayersThreshold){break}
+                if (sortedResults[i][3] < threshold){break}
+                if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
+                    break;
+                }else{
+                    listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
+                    listOfWinrates += sortedResults[i][1] + "% \n";
+                    listOfScores += sortedResults[i][2] + "\n";
                 }
             }
-            resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
+            resultsMsg.addFields(
+                {name: "Username", value: listOfPlayers, inline: true},
+                {name: "Winrate", value: listOfWinrates, inline: true},
+                {name: "Score", value: listOfScores, inline: true},
+
+            );
+            resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\n" +
+                "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
             if (args.length === 0){
                 resultsMsg
                     .setAuthor("Displaying Top Players of the current season")
@@ -1083,10 +1091,7 @@ module.exports = {
         });
         let addedMentionValues = "<@!" + sanitizedString + ">";
         tempArr.push(addedMentionValues);
-        let allowDuplicateUsers = false;
-        //Uncomment out for local testing, allows you to log matches with duplicate users.
-        // allowDuplicateUsers = true;
-        if ((!allowDuplicateUsers) && (await bootstrap.GameHelper.hasDuplicates(tempArr))) {
+        if ((!bootstrap.Env.allowedLoggedDuplicates) && (await bootstrap.GameHelper.hasDuplicates(tempArr))) {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")

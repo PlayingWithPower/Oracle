@@ -50,7 +50,7 @@ module.exports = {
             let server = users[1];
             let personLookedUp = users[0];
                 let getWinnersQuery = {
-                    _server: server, 
+                    _server: server,
                     _season: season,
                     _Status: "FINISHED",
                     $or: 
