@@ -498,17 +498,30 @@ module.exports = {
         let returnArr = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
         let mentionValues = [];
         let lookUpUsers;
+        let argsWithCommas = args.toString();
+        let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+        let splitArgs = argsWithSpaces.split("| ");
         if (args.length === 0){
             returnArr.forEach(user =>{
                 mentionValues.push([user._mentionValue, receivedMessage.guild.id])
             })
         }
-        else{
+        else if (splitArgs[1] !== undefined){
             returnArr.forEach(user =>{
-                mentionValues.push([user._mentionValue, receivedMessage.guild.id, args.join(' ')])
+                mentionValues.push([user._mentionValue, receivedMessage.guild.id, splitArgs[1]])
             })
         }
-
+        else{
+           const errorMsg = new bootstrap.Discord.MessageEmbed()
+               .setColor(bootstrap.messageColorRed)
+               .setAuthor("Invalid Input")
+               .setDescription("I didn't quite understand what you meant. \n\
+               Please either type !top to see a list of the current season's top players \n\
+               or !top | <Season Name Here> to see a list of a specified season's top players")
+               .setFooter("Seasons are case sensitive! Make sure you are spelling the season name correctly. See a list of all seasons with !seasoninfo all")
+            generalChannel.send(errorMsg)
+            return
+        };
         lookUpUsers = await mentionValues.map(bootstrap.SeasonHelper.lookUpUsers);
 
         let unsortedResults = [];
@@ -534,7 +547,7 @@ module.exports = {
 
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
-                .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
+                .setAuthor("Displaying Top Players for the season name: " + splitArgs[1]);
             // let holder = String();
             for (let i = 0; i < sortedResults.length; i++){
                 if (sortedResults[i][3] < threshold){ }
