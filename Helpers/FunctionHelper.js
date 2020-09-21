@@ -85,7 +85,6 @@ exampleDictionary =
     without the need for this command. This command will let you fine tune this experience in a variety of categories. These categories are:\n\n\
     'Player Threshold' - The minimum number of games before a player shows up in !top\n\
     'Deck Threshold' - The minimum number of games before a deck shows up in !deckstats\n\
-    'Timeout' - The amount of time before a game log timesout\n\
     'Admin' - The Discord roles which are allowed to use admin commands.\n\n\
     Example usage: !setconfig <Config Type> | <New Value>. !setconfig Admin | Admin Role 1, Admin Role 2, Admin Role 3",
     getconfig: "Use this function to get the current configurations for your server. This is an Admin-Only command and should be used in conjunction with !setconfig. This function\

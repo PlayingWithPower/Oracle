@@ -8,7 +8,6 @@ const bootstrap = require('../bootstrap.js');
  * Configurations available:
  *  - Player Threshold (minimum matches before a player appears on the leaderboard)
  *  - Deck Threshold (mimimum matches before a deck appears on the leaderboard)
- *  - Timeout (how long before a match is considered timed out and nullified)
  *  - Alias Required (this setting allows you to require a deck alias when registering a user deck)
  *  - Admin (users who have admin privileges on your server)
  */
@@ -66,11 +65,10 @@ module.exports = {
             let conditionalQuery;
             let playerThreshold = 10;
             let deckThreshold = 10;
-            let timeout = 60;
             let admin = "";
             let adminList;
             if ((splitArgs[0]!== "player threshold") && (splitArgs[0]!== "deck threshold")
-            &&(splitArgs[0]!== "timeout")&&(splitArgs[0]!== "admin")){
+            &&(splitArgs[0]!== "admin")){
                 resolve("Invalid Input")
             }
             else if (splitArgs.length === 1){
@@ -101,22 +99,6 @@ module.exports = {
                             deckThreshold = splitArgs[1]
                         }
                     }
-                }else if ((splitArgs[0] === "timeout")){
-                    if (parseInt(splitArgs[1])){
-                        if (!isNaN(splitArgs[1])){
-                            if (splitArgs[1] > 60){
-                                resolve("Timeout too large")
-                            }else{
-                                conditionalQuery = {
-                                    _server: receivedMessage.guild.id,
-                                    $set:{
-                                        _timeout: splitArgs[1]
-                                    }
-                                };
-                                timeout = splitArgs[1]
-                            }   
-                        }
-                    }
                 }else if ((splitArgs[0] === "admin")){
                     adminList = splitArgs[1];
                     adminList = adminList.replace(/  /g, ', ')
@@ -133,28 +115,27 @@ module.exports = {
                     _server: receivedMessage.guild.id,
                     _player_threshold: playerThreshold,
                     _deck_threshold: deckThreshold,
-                    _timeout: timeout, 
                     _admin: admin, 
                 };
                 bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, function(err,res){
                     if (res.n > 0){
-                        let savedValue = splitArgs[1]
+                        let savedValue = splitArgs[1];
                         if (splitArgs[0] === "admin"){
                             savedValue = adminList
                         }
                         let resArr = [];
-                        resArr.push("Updated", splitArgs[0], savedValue)
+                        resArr.push("Updated", splitArgs[0], savedValue);
                         resolve(resArr)
                     }
                     else{
                         bootstrap.Config(newSave).save({_server: receivedMessage.guild.id}, function(err,configSaveRes){
                             if (res){
-                                let savedValue = splitArgs[1]
+                                let savedValue = splitArgs[1];
                                 if (splitArgs[0] === "admin"){
                                     savedValue = adminList
                                 }
                                 let resArr = [];
-                                resArr.push("New Save", splitArgs[0], savedValue)
+                                resArr.push("New Save", splitArgs[0], savedValue);
                                 resolve(resArr)
                             }
                             else{
