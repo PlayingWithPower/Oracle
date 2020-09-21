@@ -244,9 +244,10 @@ module.exports = {
                     _server: receivedMessage.guild.id,
                     _mentionValue: receivedMessage.author.id
                 };
-                let updateSave = { $set: {_currentDeck: cleanedArg}};
+
                 bootstrap.Deck.find(deckQuery, function(err,deckRes){
                     if (deckRes.length !== 0){
+                        let updateSave = { $set: {_currentDeck: deckRes[0]._name}};
                         bootstrap.User.updateOne(userQuery, updateSave, function(err, res){
                             if (res.n > 0){
                                 resolve("Success")
