@@ -542,7 +542,7 @@ module.exports = {
                 .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
             for (let i = 0; i < sortedResults.length; i++){
                 if (i >= topPlayersThreshold){break}
-                if (sortedResults[i][3] < threshold){break}
+                if (sortedResults[i][3] < threshold){continue}
                 if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                     break;
                 }else{
@@ -551,7 +551,7 @@ module.exports = {
                     listOfScores += sortedResults[i][2] + "\n";
                 }
             }
-            if (!(listOfWinrates === "" || listOfPlayers === "" || listOfScores == "")){
+            if (!(listOfWinrates === "" || listOfPlayers === "" || listOfScores === "")){
                 resultsMsg.addFields(
                     {name: "Username", value: listOfPlayers, inline: true},
                     {name: "Winrate", value: listOfWinrates, inline: true},
