@@ -551,12 +551,14 @@ module.exports = {
                     listOfScores += sortedResults[i][2] + "\n";
                 }
             }
-            resultsMsg.addFields(
-                {name: "Username", value: listOfPlayers, inline: true},
-                {name: "Winrate", value: listOfWinrates, inline: true},
-                {name: "Score", value: listOfScores, inline: true},
+            if (!(listOfWinrates === "" || listOfPlayers === "" || listOfScores == "")){
+                resultsMsg.addFields(
+                    {name: "Username", value: listOfPlayers, inline: true},
+                    {name: "Winrate", value: listOfWinrates, inline: true},
+                    {name: "Score", value: listOfScores, inline: true},
 
-            );
+                );
+            }
             resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\n" +
                 "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
             if (args.length === 0){
