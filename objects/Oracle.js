@@ -498,13 +498,30 @@ module.exports = {
         let returnArr = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
         let mentionValues = [];
         let lookUpUsers;
+
+        let allCheck = false;
+
         let argsWithCommas = args.toString();
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let splitArgs = argsWithSpaces.split("| ");
+
+        let topPlayersThreshold = 10;
+        let listOfPlayers = "";
+        let listOfWinrates = "";
+        let listOfScores = "";
+        let listOfWins = "";
+        let maxEmbedSize = 975;
+
         if (args.length === 0){
             returnArr.forEach(user =>{
                 mentionValues.push([user._mentionValue, receivedMessage.guild.id])
             })
+        }
+        else if ((splitArgs[1] !== undefined) && splitArgs[1].toLowerCase() === "all"){
+            returnArr.forEach(user =>{
+                mentionValues.push([user._mentionValue, receivedMessage.guild.id, "all"])
+            });
+            allCheck = true;
         }
         else if (splitArgs[1] !== undefined){
             returnArr.forEach(user =>{
@@ -519,9 +536,9 @@ module.exports = {
                Please either type !top to see a list of the current season's top players \n\
                or !top | <Season Name Here> to see a list of a specified season's top players")
                .setFooter("Seasons are case sensitive! Make sure you are spelling the season name correctly. See a list of all seasons with !seasoninfo all")
-            generalChannel.send(errorMsg)
+            generalChannel.send(errorMsg);
             return
-        };
+        }
         lookUpUsers = await mentionValues.map(bootstrap.SeasonHelper.lookUpUsers);
 
         let unsortedResults = [];
@@ -533,7 +550,12 @@ module.exports = {
                     let elo = (30*(results[i][0][1])) - (10*(results[i][0][2])) + 1000;
                     let username = results[i][0][0];
                     let gamesPlayed = (results[i][0][1] + results[i][0][2]);
-                    unsortedResults.push([username,calculatedWinrate,elo, gamesPlayed]);
+                    if (allCheck){
+                        unsortedResults.push([username,calculatedWinrate, results[i][0][1], results[i][0][2]]);
+                    }
+                    else{
+                        unsortedResults.push([username,calculatedWinrate,elo, gamesPlayed]);
+                    }
                 }
             }
         }).then(async function(){
@@ -544,26 +566,49 @@ module.exports = {
             let sortedResults = unsortedResults;
             let threshold = 5;
             if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._player_threshold }
-
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
-                .setAuthor("Displaying Top Players for the season name: " + splitArgs[1]);
-            // let holder = String();
-            for (let i = 0; i < sortedResults.length; i++){
-                if (sortedResults[i][3] < threshold){ }
-                else if (i > 7){ }
-                else{
-                    //holder = holder + "<@"+sortedResults[i][0]+">\n" + sortedResults[i][1] + "%" + sortedResults[i][2] + "\n"
-                    resultsMsg
-                    // .setDescription(holder)
-                        .addFields(
-                            { name: "Username", value: "<@"+sortedResults[i][0]+">",inline: true},
-                            { name: "Winrate", value: sortedResults[i][1] + "%", inline: true},
-                            { name: "Score", value: sortedResults[i][2] , inline: true},
-                        )
+                .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
+            if (allCheck){ //When a user types !top | all
+                resultsMsg
+                    .setAuthor("Displaying Top Players across all seasons");
+                for (let i = 0; i < sortedResults.length; i++){
+                    if (i >= topPlayersThreshold){break}
+                    if (sortedResults[i][3] < threshold){break}
+                    if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
+                        break;
+                    }else{
+                        listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
+                        listOfWinrates += sortedResults[i][1] + "% \n";
+                        listOfWins += sortedResults[i][2] + "\n";
+                    }
                 }
+                resultsMsg.addFields(
+                    {name: "Username", value: listOfPlayers, inline: true},
+                    {name: "Winrate", value: listOfWinrates, inline: true},
+                    {name: "Wins", value: listOfWins, inline: true},
+                );
             }
-            resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
+            else{ //When a user specifies a season, or just types !top
+                resultsMsg
+                    .setAuthor("Displaying Top Players for the season name: " + splitArgs[1]);
+                for (let i = 0; i < sortedResults.length; i++){
+                    if (i >= topPlayersThreshold){break}
+                    if (sortedResults[i][3] < threshold){break}
+                    if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
+                        break;
+                    }else{
+                        listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
+                        listOfWinrates += sortedResults[i][1] + "% \n";
+                        listOfScores += sortedResults[i][2] + "\n";
+                    }
+                }
+                resultsMsg.addFields(
+                    {name: "Username", value: listOfPlayers, inline: true},
+                    {name: "Winrate", value: listOfWinrates, inline: true},
+                    {name: "Score", value: listOfScores, inline: true},
+                );
+            }
             if (args.length === 0){
                 resultsMsg
                     .setAuthor("Displaying Top Players of the current season")
