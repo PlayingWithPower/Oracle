@@ -183,7 +183,7 @@ module.exports = {
         if (returnArr !== "No configs"){
             let adminPrivs = returnArr._admin;
             if (returnArr._admin === ""){
-                adminPrivs = "\u200b"
+                adminPrivs = "None"
             }
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
@@ -194,7 +194,7 @@ module.exports = {
                     {name: "Timeout (in minutes)", value: returnArr._timeout},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
-                .setFooter("Want to edit these values? Use !setconfig");
+                .setFooter("Confused by what these thresholds mean? Use !help setconfig \n\Want to edit these values? Use !setconfig");
             generalChannel.send(updatedEmbed)
         }
         else{
@@ -219,8 +219,8 @@ module.exports = {
         'Deck Threshold (A **number**)', \n\
         'Timeout (**Minutes**, less than 60)' \n\
         'Admin' (A list of **Discord Roles** seperated by commas)\n\n\
-        Confused on what these mean? Try !help setconfig")
-                .setFooter("A default set of configuration values are set for every server. Updating these configs is to fine tune your experience");
+        **Confused on what these mean? Try !help setconfig**")
+                .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
             generalChannel.send(errorEmbed)
         }
         else if (returnArr === "Error"){
@@ -245,10 +245,10 @@ module.exports = {
             commandType = bootstrap.DeckHelper.toUpper(commandType);
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
-                .setAuthor("Created a new set of configs for this rver")
+                .setAuthor("Created a new set of configs for this server")
                 .setDescription("You have set the configuration:\n\
          **" + commandType + "** to **" + returnArr[2] + "**\n\
-         Your other configurations have been given default values. Check those with !getconfig");
+         Your other configurations have been given default values. Type !getconfig to see your changes");
             generalChannel.send(updatedEmbed)
         }
     },
@@ -542,7 +542,7 @@ module.exports = {
                 .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
             for (let i = 0; i < sortedResults.length; i++){
                 if (i >= topPlayersThreshold){break}
-                if (sortedResults[i][3] < threshold){break}
+                if (sortedResults[i][3] < threshold){continue}
                 if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                     break;
                 }else{
@@ -551,12 +551,14 @@ module.exports = {
                     listOfScores += sortedResults[i][2] + "\n";
                 }
             }
-            resultsMsg.addFields(
-                {name: "Username", value: listOfPlayers, inline: true},
-                {name: "Winrate", value: listOfWinrates, inline: true},
-                {name: "Score", value: listOfScores, inline: true},
+            if (!(listOfWinrates === "" || listOfPlayers === "" || listOfScores === "")){
+                resultsMsg.addFields(
+                    {name: "Username", value: listOfPlayers, inline: true},
+                    {name: "Winrate", value: listOfWinrates, inline: true},
+                    {name: "Score", value: listOfScores, inline: true},
 
-            );
+                );
+            }
             resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\n" +
                 "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
             if (args.length === 0){

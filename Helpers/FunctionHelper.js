@@ -83,11 +83,10 @@ exampleDictionary =
     Example usage: !setseasonname Season 2",
     setconfig: "Use this function to set the configurations for your server. This is an Admin-Only command. Default configurations for your server are provided\
     without the need for this command. This command will let you fine tune this experience in a variety of categories. These categories are:\n\n\
-    'Player Threshold' - The number of games a player must play before appearing on the leaderboard\n\
-    'Deck Threshold' - The number of games a deck must be used before appearing on a user's profile\n\
+    'Player Threshold' - The minimum number of games before a player shows up in !top\n\
+    'Deck Threshold' - The minimum number of games before a deck shows up in !deckstats\n\
     'Timeout' - The amount of time before a game log timesout\n\
-    'Admin' - The names of the roles of users with admin privileges in this server. Any user in your server with basic Discord Administrative privileges will be able to use admin commands.\
-    Note: Write this as a list separated by commas.\n\n\
+    'Admin' - The Discord roles which are allowed to use admin commands.\n\n\
     Example usage: !setconfig <Config Type> | <New Value>. !setconfig Admin | Admin Role 1, Admin Role 2, Admin Role 3",
     getconfig: "Use this function to get the current configurations for your server. This is an Admin-Only command and should be used in conjunction with !setconfig. This function\
     should be used to check your current configurations for your server. To see more information about what configurations there are and their users, type !help setconfig\n\n\
