@@ -567,7 +567,7 @@ module.exports = {
         
         return new Promise((resolve, reject)=>{
             for (let letter of colorIdentity.toLowerCase()) {
-                if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g")){
+                if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g") && letter !== ("c")){
                     catchBool = false;
                     return new Promise((resolve, reject)=>{
                         resolve("Error 1")
@@ -696,7 +696,7 @@ module.exports = {
      */
     addDeck(receivedMessage, newDeckArr) {
         let deckNick = newDeckArr[0];
-        let deckAlias = newDeckArr[0].toLowerCase();
+        let deckAlias = newDeckArr[0].toLowerCase().slice(0,-1);
         let commanderName = newDeckArr[1];
         let colorIdentity = newDeckArr[2];
         let deckLink = newDeckArr[3];
