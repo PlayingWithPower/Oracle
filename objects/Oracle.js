@@ -522,9 +522,11 @@ module.exports = {
                 }
             }
         }).then(async function(){
+
             unsortedResults.sort(function(a, b) {
                 return parseFloat(b[2]) - parseFloat(a[2]);
             });
+
             let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
             let sortedResults = unsortedResults;
             let threshold = 5;
@@ -533,13 +535,14 @@ module.exports = {
             let listOfWinrates = "";
             let listOfScores = "";
             let maxEmbedSize = 975;
+            let playersOnList = 0;
             if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._player_threshold }
 
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
             for (let i = 0; i < sortedResults.length; i++){
-                if (i >= topPlayersThreshold){break}
+                if (playersOnList >= topPlayersThreshold){break}
                 if (sortedResults[i][3] < threshold){continue}
                 if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                     break;
@@ -547,6 +550,7 @@ module.exports = {
                     listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
                     listOfWinrates += sortedResults[i][1] + "% \n";
                     listOfScores += sortedResults[i][2] + "\n";
+                    playersOnList += 1;
                 }
             }
             if (!(listOfWinrates === "" || listOfPlayers === "" || listOfScores === "")){
@@ -554,7 +558,6 @@ module.exports = {
                     {name: "Username", value: listOfPlayers, inline: true},
                     {name: "Winrate", value: listOfWinrates, inline: true},
                     {name: "Score", value: listOfScores, inline: true},
-
                 );
             }
             resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\n" +
