@@ -192,7 +192,7 @@ module.exports = {
             '5color': "w, u, b, r, g",
             '5c': "w, u, b, r, g",
             '5-c': "w, u, b, r, g",
-            '5-color': "w, u, b, r, g",
+            '5-color': "w, u, b, r, g", 
         };
         if (colorDictionary.hasOwnProperty(input.toLowerCase())) {
             return new Promise((resolve, reject)=>{
