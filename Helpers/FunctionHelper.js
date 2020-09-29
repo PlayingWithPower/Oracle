@@ -170,20 +170,16 @@ module.exports = {
                 exampleEmbed
                 .addFields(
                     { name: "Command Details", value: exampleDictionary[arguments] },
-                )
-            }
-            else{
-                exampleEmbed.setDescription("You've entered a non-valid command. Type !help to see a list of commands")
-            }
-        const serverEmbed = new bootstrap.Discord.MessageEmbed()
-        .setAuthor("Message sent to your inbox!")
-        .setColor(bootstrap.messageColorGreen)
-        .setDescription("I have Direct Messaged you information!")
+                );
+                const serverEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setAuthor("Message sent to your inbox!")
+                    .setColor(bootstrap.messageColorGreen)
+                    .setDescription("I have Direct Messaged you information!");
 
-        receivedMessage.author.send(exampleEmbed).then(msg =>{
-            receivedMessage.channel.send(serverEmbed)
-        })
-
+                receivedMessage.author.send(exampleEmbed).then(msg =>{
+                    receivedMessage.channel.send(serverEmbed)
+                })
+            }
     },
 
     /**
