@@ -1328,15 +1328,15 @@ module.exports = {
             .setFooter("If you don't have a Deck or Discord Link, type 'no link' in those slots");
 
         if (splitArgs.length === 9){
-            let deckNick = deckNickname;
-            let commanderName = splitArgs[1];
-            let colorIdentity = splitArgs[2].toLowerCase();
-            let deckLink = splitArgs[3];
-            let author = splitArgs[4];
-            let deckDescription = splitArgs[5];
-            let deckType = splitArgs[6];
-            let hasPrimer = splitArgs[7];
-            let discordLink = splitArgs[8];
+            let deckNick = deckNickname.trim();
+            let commanderName = splitArgs[1].trim();
+            let colorIdentity = splitArgs[2].toLowerCase().trim();
+            let deckLink = splitArgs[3].trim();
+            let author = splitArgs[4].trim();
+            let deckDescription = splitArgs[5].trim();
+            let deckType = splitArgs[6].trim();
+            let hasPrimer = splitArgs[7].trim();
+            let discordLink = splitArgs[8].trim();
             commanderName = commanderName.replace(/  /g, ', ');
 
             if((hasPrimer.toLowerCase() !== "yes") && (hasPrimer.toLowerCase() !== "no")){
@@ -1356,6 +1356,12 @@ module.exports = {
             }
             if(!(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(deckLink))) {
                 deckLink = "No Link Provided";
+            }
+            if(deckNick[0].toLowerCase() === "<" && (deckNick[1].toLowerCase() === "!" || deckNick[1].toLowerCase() === "@" )){
+                errorEmbed.setDescription("It looks like you're trying to set a deck name as a Discord Mention Value. Please set \
+                your deck name to a non-Discord Mention Value");
+                generalChannel.send(errorEmbed);
+                return
             }
 
             colorIdentity = colorIdentity.replace(/ /g, '');
