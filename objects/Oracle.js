@@ -814,15 +814,18 @@ module.exports = {
                     listOfPercentages += Math.round((sortedArray[i][1]/(sortedArray[i][1]+sortedArray[i][2]))*100) + "% \n";
                 }
             }
-            allDecksEmbed.addFields(
-                {name: "Deck Name", value: listOfDeckNames, inline: true},
-                {name: "Games Played", value: listOfGamesPlayed, inline: true},
-                {name: "Winrate", value: listOfPercentages, inline: true},
-
-            );
+            if (listOfGamesPlayed.length === 0 || listOfDeckNames.length === 0 || listOfPercentages.length === 0){
+                allDecksEmbed.setDescription("No decks fit within your threshold")
+            }
+            else{
+                allDecksEmbed.addFields(
+                    {name: "Deck Name", value: listOfDeckNames, inline: true},
+                    {name: "Games Played", value: listOfGamesPlayed, inline: true},
+                    {name: "Winrate", value: listOfPercentages, inline: true},
+                );
+            }
             allDecksEmbed
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks");
-
             generalChannel.send(allDecksEmbed)
         }
         else if (returnArr === "Bad season deckstats input"){
