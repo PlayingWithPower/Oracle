@@ -78,7 +78,9 @@ module.exports = {
             }
             bootstrap.Game.find(getWinnersQuery, function(err,res){
                 if (err){
-                    throw err;
+                    console.log("DEBUG LOG: Season Helper: lookUpUsers function: \n\
+                    Unable to find users from 'Matches' collection using query: 'getWinnersQuery'\n\
+                    This is either a DB connection issue or a sign of !top working incorrectly")
                 }
                 passingResult = res;
             }).then(function(passingResult){
