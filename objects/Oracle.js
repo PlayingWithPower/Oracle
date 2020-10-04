@@ -1423,10 +1423,14 @@ module.exports = {
         let elo = 1000;
         let overallWins = 0;
         let overallLosses = 0;
+        let user = "<@"+receivedMessage.author+">";
+        if (args[0] !== "Not Defined"){
+            user = args[0]
+        }
         if (returnArr === "Can't find user"){
             const errorUserEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
-                .setDescription("Cannot find specified user: " +args[0])
+                .setDescription("Cannot find specified user: " + user)
                 .setFooter("User is not registered for this league. Make sure you are using Discord Mentions and the user is registered. Type !help profile for more information");
             generalChannel.send(errorUserEmbed)
         }
