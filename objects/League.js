@@ -55,20 +55,17 @@ module.exports = {
     /**
      * Sets a configuration
      */
-    configSet(receivedMessage, args) {
+     configSet(receivedMessage, args) {
         let argsWithCommas = args.toString();
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let splitArgs = argsWithSpaces.split(" | ");
-        splitArgs[0] = splitArgs[0].toLowerCase();
+        splitArgs[0] = splitArgs[0].toLowerCase().trim();
         
         return new Promise((resolve, reject)=>{
             let conditionalQuery;
             let playerThreshold = 10;
             let deckThreshold = 10;
-            let admin = "";
-            let adminList;
-            if ((splitArgs[0]!== "player threshold") && (splitArgs[0]!== "deck threshold")
-            &&(splitArgs[0]!== "admin")){
+            if ((splitArgs[0] !== "player threshold") && (splitArgs[0] !== "deck threshold")){
                 resolve("Invalid Input")
             }
             else if (splitArgs.length === 1){
@@ -99,14 +96,6 @@ module.exports = {
                             deckThreshold = splitArgs[1]
                         }
                     }
-                }else if ((splitArgs[0] === "admin")){
-                    adminList = splitArgs[1];
-                    adminList = adminList.replace(/  /g, ', ')
-                    conditionalQuery = {
-                        _server: receivedMessage.guild.id,
-                        _admin: adminList
-                    };
-                    admin = adminList
                 }
                 else{
                     resolve("Invalid Input")
@@ -115,39 +104,155 @@ module.exports = {
                     _server: receivedMessage.guild.id,
                     _player_threshold: playerThreshold,
                     _deck_threshold: deckThreshold,
-                    _admin: admin, 
                 };
-                bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, function(err,res){
+                bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, async function(err,res){
                     if (res.n > 0){
                         let savedValue = splitArgs[1];
-                        if (splitArgs[0] === "admin"){
-                            savedValue = adminList
-                        }
                         let resArr = [];
                         resArr.push("Updated", splitArgs[0], savedValue);
                         resolve(resArr)
                     }
                     else{
-                        bootstrap.Config(newSave).save({_server: receivedMessage.guild.id}, function(err,configSaveRes){
-                            if (res){
-                                let savedValue = splitArgs[1];
-                                if (splitArgs[0] === "admin"){
-                                    savedValue = adminList
-                                }
-                                let resArr = [];
-                                resArr.push("New Save", splitArgs[0], savedValue);
-                                resolve(resArr)
-                            }
-                            else{
-                                resolve("Error")
-                            }
-                        })
+                        let newSaveRes = await bootstrap.LeagueHelper.createNewConfigs(receivedMessage, newSave);
+                        if (newSaveRes !== "Error"){
+                            let savedValue = splitArgs[1];
+                            let resArr = [];
+                            resArr.push("New Save", splitArgs[0], savedValue);
+                            resolve(resArr)
+                        }else{
+                            resolve("Error")
+                        }
                     }
                 })
             }
         })
     },
+    async adminAppend(receivedMessage, discordRoles){
+        let newDiscordRoles = [];
+        let newSaveBool = false;
+        return new Promise((resolve, reject)=>{
+            bootstrap.Config.findOne({_server:receivedMessage.guild.id}).then(async foundRes=>{
+                if (foundRes){
+                    discordRoles.forEach((entry)=>{
+                        if(foundRes._admin.includes(entry)){
+                        }
+                        else{
+                            newDiscordRoles.push(entry)
+                        }
+                    })
+                }
+                else{
+                    let newSave = {
+                        _server: receivedMessage.guild.id,
+                        _player_threshold: 10,
+                        _deck_threshold: 10,
+                    };
+                    let newSaveRes = await bootstrap.LeagueHelper.createNewConfigs(receivedMessage, newSave);
+                    if (newSaveRes !== "Error"){
+                        if (discordRoles.length > 0){
+                            discordRoles.forEach((adminEntry)=>{
+                                let adminToAppend = {
+                                    $push:{
+                                        _admin: adminEntry
+                                    }
+                                };
+                                bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, adminToAppend, function(err, res){
+                                    if (err){
+                                        console.log(err)
+                                    }
+                                })
+                            });
+                            newSaveBool = true;
+                        }
+                    }else{
+                        let retArr = [];
+                        retArr.push("DB Connect Error", newDiscordRoles);
+                        resolve(retArr)
+                    }
+                }
 
+            })
+            .then(function(e){
+                if (newDiscordRoles.length > 0){
+                    newDiscordRoles.forEach((adminEntry)=>{
+                        let adminToAppend = {
+                            $push:{
+                                _admin: adminEntry
+                            }
+                        };
+                        bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, adminToAppend, function(err, res){
+                            if (err){
+                                let retArr = [];
+                                retArr.push("DB Connect Error", newDiscordRoles);
+                                resolve(retArr)
+                            }
+                            else{
+                                let retArr = [];
+                                retArr.push("Success", newDiscordRoles);
+                                resolve(retArr)
+                            }
+                        })
+                    })
+                }
+                else if (!newSaveBool){
+                    let retArr = [];
+                    retArr.push("No New Roles Error", newDiscordRoles);
+                    resolve(retArr)
+                }
+                else{
+                    let retArr = [];
+                    retArr.push("New Success", newDiscordRoles);
+                    resolve(retArr)
+                }
+            });
+        });
+    },
+    adminDelete(receivedMessage, discordRoles){
+        let newDiscordRoles = [];
+        return new Promise((resolve, reject)=>{
+            bootstrap.Config.findOne({_server: receivedMessage.guild.id}).then(async foundRes=>{
+                if (foundRes){
+                    discordRoles.forEach((entry)=>{
+                        if(foundRes._admin.includes(entry)){
+                            newDiscordRoles.push(entry)
+                        }
+                    })
+                }
+                else{
+                    let retArr = [];
+                    retArr.push("No Config Error", newDiscordRoles);
+                    resolve(retArr)
+                }
+            }).then(function(e){
+                if (newDiscordRoles.length > 0){
+                    newDiscordRoles.forEach((adminEntry)=>{
+                        let adminToAppend = {
+                            $pull:{
+                                _admin: adminEntry
+                            }
+                        };
+                        bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, adminToAppend, function(err, res){
+                            if (err){
+                                let retArr = [];
+                                retArr.push("DB Connect Error", newDiscordRoles);
+                                resolve(retArr)
+                            }
+                            else{
+                                let retArr = [];
+                                retArr.push("Success", newDiscordRoles);
+                                resolve(retArr)
+                            }
+                        })
+                    })
+                }
+                else{
+                    let retArr = [];
+                    retArr.push("No Roles Error", newDiscordRoles);
+                    resolve(retArr)
+                }
+            });
+        })
+    },
     /**
      * gets a configuration
      */

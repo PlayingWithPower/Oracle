@@ -44,7 +44,8 @@ adminDictionary =
     setendseason: "Sets an end date for the current season",
     setseasonname: "Sets a name for a season",
     setconfig: "Sets up configurations",
-    getconfig: "Displays configuration information"
+    getconfig: "Displays configuration information",
+    admin: "Sets Oracle Bot Admin Privileges"
 };
 
 exampleDictionary =
@@ -85,11 +86,16 @@ exampleDictionary =
     without the need for this command. This command will let you fine tune this experience in a variety of categories. These categories are:\n\n\
     'Player Threshold' - The minimum number of games before a player shows up in !top\n\
     'Deck Threshold' - The minimum number of games before a deck shows up in !deckstats\n\
-    'Admin' - The Discord roles which are allowed to use admin commands.\n\n\
-    Example usage: !setconfig <Config Type> | <New Value>. !setconfig Admin | Admin Role 1, Admin Role 2, Admin Role 3",
+    Example usage: !setconfig <Config Type> | <New Value>. !setconfig Player Threshold | 10",
     getconfig: "Use this function to get the current configurations for your server. This is an Admin-Only command and should be used in conjunction with !setconfig. This function\
     should be used to check your current configurations for your server. To see more information about what configurations there are and their users, type !help setconfig\n\n\
     Example usage: !getconfig",
+    admin: "Use this function to tell Oracle who has admin privileges. This is an Admin-Only command that should be used to allow users with certain @Discord Roles to access Admin-Only\
+    functions. This command has two modes: 'add' & 'remove'. 'Add' will add to your server's list of admin roles while 'Remove' will remove from your server's list of admin roles. Both accept\
+    multiple inputs, as is highlighted below\n\
+    Example usage: \n\
+    !admin add @My Favorite People's Role @Another Discord Role @A third Role\n\
+    !add remove @Another Discord Role @A third Role",
 
     decks: "Use this function to list all decks on this server. This command will organize by color and then alphabetize all decks.\
     You can also search by 1, 2, 3 or 4-color pairings. Lastly, you can search the list of decks by commander. Use this function before you set your deck with !use <Deck Name>\n\n\

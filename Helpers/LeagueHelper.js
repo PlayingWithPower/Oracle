@@ -15,4 +15,16 @@ module.exports = {
         //     }
         // }
     },
+    createNewConfigs(receivedMessage, newSave){
+        return new Promise((resolve, reject)=>{
+        bootstrap.Config(newSave).save({_server: receivedMessage.guild.id}, function(err,configSaveRes){
+            if (configSaveRes){
+                resolve(configSaveRes)
+            }
+            else{
+                resolve("Error")
+            }
+        })
+        })
+    }
 };
