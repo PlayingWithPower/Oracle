@@ -875,14 +875,14 @@ module.exports = {
                     listOfPercentages += Math.round((sortedArray[i][1]/(sortedArray[i][1]+sortedArray[i][2]))*100) + "% \n";
                 }
             }
-            if (listOfGamesPlayed.length === 0 || listOfDeckNames.length === 0 || listOfPercentages.length === 0){
-                allDecksEmbed.setDescription("No decks fit within your threshold")
-            }
-            else{
+            if ((listOfDeckNames.length > 0) && (listOfGamesPlayed.length>0) && (listOfGamesPlayed.length>0)){
                 allDecksEmbed.addFields(
                     {name: "Deck Name", value: listOfDeckNames, inline: true},
                     {name: "Games Played", value: listOfGamesPlayed, inline: true},
                     {name: "Winrate", value: listOfPercentages, inline: true},
+                )
+            }else{
+                allDecksEmbed.setDescription("No Data within your Threshold for the season named: " + returnArr[2])
                 );
             }
             allDecksEmbed
