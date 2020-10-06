@@ -316,11 +316,11 @@ module.exports = {
                 .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
             generalChannel.send(errorEmbed)
         }
-        else if (returnArr === "Error"){
+        else if (returnArr === "Error connecting to DB"){
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
-                .setAuthor("Error")
-                .setDescription("An Error has occurred, please try again");
+                .setAuthor("Error connecting to database")
+                .setDescription("An Error connecting to the database has occurred, please try again");
             generalChannel.send(errorEmbed)
         }
         else if (returnArr[0] === "Updated"){

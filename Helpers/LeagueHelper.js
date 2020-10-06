@@ -22,7 +22,7 @@ module.exports = {
                 resolve(configSaveRes)
             }
             else{
-                resolve("Error")
+                resolve("Error connecting to DB")
             }
         })
         })

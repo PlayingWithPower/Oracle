@@ -95,7 +95,7 @@ exampleDictionary =
     multiple inputs, as is highlighted below\n\
     Example usage: \n\
     !admin add @My Favorite People's Role @Another Discord Role @A third Role\n\
-    !add remove @Another Discord Role @A third Role",
+    !admin remove @Another Discord Role @A third Role",
 
     decks: "Use this function to list all decks on this server. This command will organize by color and then alphabetize all decks.\
     You can also search by 1, 2, 3 or 4-color pairings. Lastly, you can search the list of decks by commander. Use this function before you set your deck with !use <Deck Name>\n\n\

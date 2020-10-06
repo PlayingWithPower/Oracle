@@ -114,13 +114,13 @@ module.exports = {
                     }
                     else{
                         let newSaveRes = await bootstrap.LeagueHelper.createNewConfigs(receivedMessage, newSave);
-                        if (newSaveRes !== "Error"){
+                        if (newSaveRes !== "Error connecting to DB"){
                             let savedValue = splitArgs[1];
                             let resArr = [];
                             resArr.push("New Save", splitArgs[0], savedValue);
                             resolve(resArr)
                         }else{
-                            resolve("Error")
+                            resolve("Error connecting to DB")
                         }
                     }
                 })
