@@ -814,12 +814,15 @@ module.exports = {
                     listOfPercentages += Math.round((sortedArray[i][1]/(sortedArray[i][1]+sortedArray[i][2]))*100) + "% \n";
                 }
             }
-            allDecksEmbed.addFields(
-                {name: "Deck Name", value: listOfDeckNames, inline: true},
-                {name: "Games Played", value: listOfGamesPlayed, inline: true},
-                {name: "Winrate", value: listOfPercentages, inline: true},
-
-            );
+            if ((listOfDeckNames.length > 0) && (listOfGamesPlayed.length>0) && (listOfGamesPlayed.length>0)){
+                allDecksEmbed.addFields(
+                    {name: "Deck Name", value: listOfDeckNames, inline: true},
+                    {name: "Games Played", value: listOfGamesPlayed, inline: true},
+                    {name: "Winrate", value: listOfPercentages, inline: true},
+                )
+            }else{
+                allDecksEmbed.setDescription("No Data within your Threshold for the season named: " + returnArr[2])
+            }
             allDecksEmbed
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks");
 
