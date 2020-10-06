@@ -237,7 +237,7 @@ module.exports = {
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Deck Colors**. Please **type** the new Deck Colors \
-                \nBe careful of formatting. I understand WUBRG and combinations of it. \
+                \nBe careful of formatting. I understand WUBRG and combinations of it or C for colorless. \
                 \n**Example Input:** UBG");
             reaction.message.edit(selectedEditEmbed);
 
@@ -251,7 +251,7 @@ module.exports = {
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("You have entered a non-valid Color combination. Please try again. \
-                            \nI understand WUBRG and combinations of it");
+                            \nI understand WUBRG and combinations of it or C for colorless");
                         reaction.message.edit(nonValidURLEmbed);
                     }
                     else if (promiseReturn){

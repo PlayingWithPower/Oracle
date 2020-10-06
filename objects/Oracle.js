@@ -1421,9 +1421,9 @@ module.exports = {
 
             colorIdentity = colorIdentity.replace(/ /g, '');
             for (let letter of colorIdentity) {
-                if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g")){
+                if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g") &&letter !== ("c")){
                     errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
-                It looks like you're having trouble with the Color. Correct input includes the 5 letters 'WUBRG' in some combination");
+                It looks like you're having trouble with the Color. Correct input includes the 6 letters 'WUBRG' in some combination or 'C'");
                     generalChannel.send(errorEmbed);
                     return;
                 }
