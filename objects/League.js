@@ -65,14 +65,17 @@ module.exports = {
             let conditionalQuery;
             let playerThreshold = 10;
             let deckThreshold = 10;
-            if ((splitArgs[0] !== "player threshold") && (splitArgs[0] !== "deck threshold")){
+            let admin = "";
+            let adminList;
+          
+            if ((splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks")){
                 resolve("Invalid Input")
             }
             else if (splitArgs.length === 1){
                 resolve("Invalid Input")
             }
             else{
-                if ((splitArgs[0] === "player threshold")){
+                if ((splitArgs[0] === "minimum games")){
                     if (parseInt(splitArgs[1])){
                         if (!isNaN(splitArgs[1])){
                             conditionalQuery = {
@@ -84,7 +87,7 @@ module.exports = {
                             playerThreshold = splitArgs[1]
                         }
                     }
-                }else if ((splitArgs[0] === "deck threshold")){
+                }else if ((splitArgs[0] === "minimum decks")){
                     if (parseInt(splitArgs[1])){
                         if (!isNaN(splitArgs[1])){
                             conditionalQuery = {

@@ -177,7 +177,7 @@ module.exports = {
             })
         }
     },
-    async configGet(receivedMessage){
+    async getConfig(receivedMessage){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id);
         if (returnArr !== "No configs"){
@@ -189,8 +189,8 @@ module.exports = {
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying information about your configurations")
                 .addFields(
-                    {name: "Player Threshold", value: returnArr._player_threshold},
-                    {name: "Deck Threshold", value: returnArr._deck_threshold},
+                    {name: "Minimum Games (to be appear on !top)", value: returnArr._player_threshold},
+                    {name: "Minimum Decks (to appear on !deckstats)", value: returnArr._deck_threshold},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
                 .setFooter("Confused by what these thresholds mean? Use !help setconfig \n\Want to edit these values? Use !setconfig");
@@ -300,7 +300,7 @@ module.exports = {
             generalChannel.send(errorEmbed)
         }
     },
-    async configSet(receivedMessage, args){
+    async setConfig(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.LeagueObj.configSet(receivedMessage, args);
         if (returnArr === "Invalid Input"){
@@ -310,8 +310,8 @@ module.exports = {
                 .setDescription("Please retry entering your config. I understand the format: \n\
         !setconfig <Type> | <Value>\n\
         The types of configurations are:\n\
-        'Player Threshold (A **number**)', \n\
-        'Deck Threshold (A **number**)', \n\
+        'Minimum Games (A **number**)', \n\
+        'Minimum Decks (A **number**)', \n\
         **Confused on what these mean? Try !help setconfig**")
                 .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
             generalChannel.send(errorEmbed)
@@ -591,17 +591,47 @@ module.exports = {
         let returnArr = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
         let mentionValues = [];
         let lookUpUsers;
+
+        let allCheck = false;
+
+        let argsWithCommas = args.toString();
+        let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
+        let splitArgs = argsWithSpaces.split("| ");
+
+        let topPlayersThreshold = 10;
+        let listOfPlayers = "";
+        let listOfWinrates = "";
+        let listOfScores = "";
+        let listOfWins = "";
+        let maxEmbedSize = 975;
+
         if (args.length === 0){
             returnArr.forEach(user =>{
                 mentionValues.push([user._mentionValue, receivedMessage.guild.id])
             })
         }
-        else{
+        else if ((splitArgs[1] !== undefined) && splitArgs[1].toLowerCase() === "all"){
             returnArr.forEach(user =>{
-                mentionValues.push([user._mentionValue, receivedMessage.guild.id, args.join(' ')])
+                mentionValues.push([user._mentionValue, receivedMessage.guild.id, "all"])
+            });
+            allCheck = true;
+        }
+        else if (splitArgs[1] !== undefined){
+            returnArr.forEach(user =>{
+                mentionValues.push([user._mentionValue, receivedMessage.guild.id, splitArgs[1]])
             })
         }
-
+        else{
+           const errorMsg = new bootstrap.Discord.MessageEmbed()
+               .setColor(bootstrap.messageColorRed)
+               .setAuthor("Invalid Input")
+               .setDescription("I didn't quite understand what you meant. \n\
+               Please either type !top to see a list of the current season's top players \n\
+               or !top | <Season Name Here> to see a list of a specified season's top players")
+               .setFooter("Seasons are case sensitive! Make sure you are spelling the season name correctly. See a list of all seasons with !seasoninfo all")
+            generalChannel.send(errorMsg);
+            return
+        }
         lookUpUsers = await mentionValues.map(bootstrap.SeasonHelper.lookUpUsers);
 
         let unsortedResults = [];
@@ -613,7 +643,12 @@ module.exports = {
                     let elo = (30*(results[i][0][1])) - (10*(results[i][0][2])) + 1000;
                     let username = results[i][0][0];
                     let gamesPlayed = (results[i][0][1] + results[i][0][2]);
-                    unsortedResults.push([username,calculatedWinrate,elo, gamesPlayed]);
+                    if (allCheck){
+                        unsortedResults.push([username,calculatedWinrate, results[i][0][1], results[i][0][2]]);
+                    }
+                    else{
+                        unsortedResults.push([username,calculatedWinrate,elo, gamesPlayed]);
+                    }
                 }
             }
         }).then(async function(){
@@ -632,28 +667,54 @@ module.exports = {
             let maxEmbedSize = 975;
             let playersOnList = 0;
             if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._player_threshold }
-
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
-                .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
-            for (let i = 0; i < sortedResults.length; i++){
-                if (playersOnList >= topPlayersThreshold){break}
-                if (sortedResults[i][3] < threshold){continue}
-                if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
-                    break;
-                }else{
-                    listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
-                    listOfWinrates += sortedResults[i][1] + "% \n";
-                    listOfScores += sortedResults[i][2] + "\n";
-                    playersOnList += 1;
+                .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
+            if (allCheck){ //When a user types !top | all
+                resultsMsg
+                    .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
+                for (let i = 0; i < sortedResults.length; i++){
+                    if (playersOnList >= topPlayersThreshold){break}
+                    if (sortedResults[i][3] < threshold){continue}
+                    if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
+                        break;
+                    }else{
+                        listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
+                        listOfWinrates += sortedResults[i][1] + "% \n";
+                        listOfWins += sortedResults[i][2] + "\n";
+                        playersOnList += 1;
+                    }
+                }
+                if (!(listOfWinrates === "" || listOfPlayers === "" || listOfWins === "")){
+                  resultsMsg.addFields(
+                      {name: "Username", value: listOfPlayers, inline: true},
+                      {name: "Winrate", value: listOfWinrates, inline: true},
+                      {name: "Wins", value: listOfWins, inline: true},
+                  );
                 }
             }
-            if (!(listOfWinrates === "" || listOfPlayers === "" || listOfScores === "")){
-                resultsMsg.addFields(
-                    {name: "Username", value: listOfPlayers, inline: true},
-                    {name: "Winrate", value: listOfWinrates, inline: true},
-                    {name: "Score", value: listOfScores, inline: true},
-                );
+            else{ //When a user specifies a season, or just types !top
+                resultsMsg
+                    .setAuthor("Displaying Top Players for the season name: " + splitArgs[1]);
+                for (let i = 0; i < sortedResults.length; i++){
+                    if (playersOnList >= topPlayersThreshold){break}
+                    if (sortedResults[i][3] < threshold){continue}
+                    if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
+                        break;
+                    }else{
+                        listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
+                        listOfWinrates += sortedResults[i][1] + "% \n";
+                        listOfScores += sortedResults[i][2] + "\n";
+                        playersOnList += 1;
+                    }
+                }
+                if (!(listOfWinrates === "" || listOfPlayers === "" || listOfScores === "")){
+                  resultsMsg.addFields(
+                      {name: "Username", value: listOfPlayers, inline: true},
+                      {name: "Winrate", value: listOfWinrates, inline: true},
+                      {name: "Score", value: listOfScores, inline: true},
+                  );
+                }
             }
             resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\n" +
                 "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
@@ -839,7 +900,7 @@ module.exports = {
             let seasonName;
             if (deckName[1]=== undefined){
                 seasonName = returnArr[2]
-            }else{ seasonName = deckName[1]}
+            }else{seasonName = deckName[1]}
             deckStatsEmbed
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor(bootstrap.DeckHelper.toUpper(deckName[0]) + " Deckstats")
@@ -909,16 +970,26 @@ module.exports = {
                     listOfPercentages += Math.round((sortedArray[i][1]/(sortedArray[i][1]+sortedArray[i][2]))*100) + "% \n";
                 }
             }
-            allDecksEmbed.addFields(
-                {name: "Deck Name", value: listOfDeckNames, inline: true},
-                {name: "Games Played", value: listOfGamesPlayed, inline: true},
-                {name: "Winrate", value: listOfPercentages, inline: true},
-
-            );
+            if (listOfGamesPlayed.length === 0 || listOfDeckNames.length === 0 || listOfPercentages.length === 0){
+                allDecksEmbed.setDescription("No decks fit within your threshold")
+            }
+            else{
+                allDecksEmbed.addFields(
+                    {name: "Deck Name", value: listOfDeckNames, inline: true},
+                    {name: "Games Played", value: listOfGamesPlayed, inline: true},
+                    {name: "Winrate", value: listOfPercentages, inline: true},
+                );
+            }
             allDecksEmbed
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks");
-
             generalChannel.send(allDecksEmbed)
+        }
+        else if (returnArr[0] === "No Games Played"){
+            const noGamesEmbed = new bootstrap.Discord.MessageEmbed()
+                .setColor(bootstrap.messageColorRed)
+                .setAuthor("The Deck " + returnArr[2] + " has no logged matches this season")
+
+            generalChannel.send(noGamesEmbed)
         }
         else if (returnArr === "Bad season deckstats input"){
             const errorMsg = new bootstrap.Discord.MessageEmbed()
@@ -942,7 +1013,6 @@ module.exports = {
         else{
             const closeToResEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
-                .setAuthor("The deck: " + args.join(' ') + " has no logged matches this Season.")
                 .setDescription("You typed: '" + args.join(' ') + "' I didn't quite understand the deck you inputted. Did you mean to type any of the following?\n\
             The !deckstats command will give suggestions when it doesn't understand exactly what you typed")
                 .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)");
@@ -1423,15 +1493,15 @@ module.exports = {
             .setFooter("If you don't have a Deck or Discord Link, type 'no link' in those slots");
 
         if (splitArgs.length === 9){
-            let deckNick = deckNickname;
-            let commanderName = splitArgs[1];
-            let colorIdentity = splitArgs[2].toLowerCase();
-            let deckLink = splitArgs[3];
-            let author = splitArgs[4];
-            let deckDescription = splitArgs[5];
-            let deckType = splitArgs[6];
-            let hasPrimer = splitArgs[7];
-            let discordLink = splitArgs[8];
+            let deckNick = deckNickname.trim();
+            let commanderName = splitArgs[1].trim();
+            let colorIdentity = splitArgs[2].toLowerCase().trim();
+            let deckLink = splitArgs[3].trim();
+            let author = splitArgs[4].trim();
+            let deckDescription = splitArgs[5].trim();
+            let deckType = splitArgs[6].trim();
+            let hasPrimer = splitArgs[7].trim();
+            let discordLink = splitArgs[8].trim();
             commanderName = commanderName.replace(/  /g, ', ');
 
             if((hasPrimer.toLowerCase() !== "yes") && (hasPrimer.toLowerCase() !== "no")){
@@ -1452,12 +1522,18 @@ module.exports = {
             if(!(new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?").test(deckLink))) {
                 deckLink = "No Link Provided";
             }
+            if(deckNick[0].toLowerCase() === "<" && (deckNick[1].toLowerCase() === "!" || deckNick[1].toLowerCase() === "@" )){
+                errorEmbed.setDescription("It looks like you're trying to set a deck name as a Discord Mention Value. Please set \
+                your deck name to a non-Discord Mention Value");
+                generalChannel.send(errorEmbed);
+                return
+            }
 
             colorIdentity = colorIdentity.replace(/ /g, '');
             for (let letter of colorIdentity) {
-                if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g")){
+                if (letter !== ("w") &&letter !== ("u") &&letter !== ("b") &&letter !== ("r") &&letter !== ("g") &&letter !== ("c")){
                     errorEmbed.setDescription("Incorrect input format. Try this format: \n!add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link \n \
-                It looks like you're having trouble with the Color. Correct input includes the 5 letters 'WUBRG' in some combination");
+                It looks like you're having trouble with the Color. Correct input includes the 6 letters 'WUBRG' in some combination or 'C'");
                     generalChannel.send(errorEmbed);
                     return;
                 }
@@ -1518,10 +1594,14 @@ module.exports = {
         let elo = 1000;
         let overallWins = 0;
         let overallLosses = 0;
+        let user = "<@"+receivedMessage.author+">";
+        if (args[0] !== "Not Defined"){
+            user = args[0]
+        }
         if (returnArr === "Can't find user"){
             const errorUserEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
-                .setDescription("Cannot find specified user: " +args[0])
+                .setDescription("Cannot find specified user: " + user)
                 .setFooter("User is not registered for this league. Make sure you are using Discord Mentions and the user is registered. Type !help profile for more information");
             generalChannel.send(errorUserEmbed)
         }

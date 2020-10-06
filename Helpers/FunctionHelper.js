@@ -84,9 +84,11 @@ exampleDictionary =
     Example usage: !setseasonname Season 2",
     setconfig: "Use this function to set the configurations for your server. This is an Admin-Only command. Default configurations for your server are provided\
     without the need for this command. This command will let you fine tune this experience in a variety of categories. These categories are:\n\n\
-    'Player Threshold' - The minimum number of games before a player shows up in !top\n\
-    'Deck Threshold' - The minimum number of games before a deck shows up in !deckstats\n\
+    'Minimum Games' - The minimum number of games before a player shows up in !top\n\
+    'Minimum Decks' - The minimum number of games before a deck shows up in !deckstats\n\
+    'Admin' - The Discord roles which are allowed to use admin commands.\n\n\
     Example usage: !setconfig <Config Type> | <New Value>. !setconfig Player Threshold | 10",
+
     getconfig: "Use this function to get the current configurations for your server. This is an Admin-Only command and should be used in conjunction with !setconfig. This function\
     should be used to check your current configurations for your server. To see more information about what configurations there are and their users, type !help setconfig\n\n\
     Example usage: !getconfig",
@@ -176,20 +178,16 @@ module.exports = {
                 exampleEmbed
                 .addFields(
                     { name: "Command Details", value: exampleDictionary[arguments] },
-                )
-            }
-            else{
-                exampleEmbed.setDescription("You've entered a non-valid command. Type !help to see a list of commands")
-            }
-        const serverEmbed = new bootstrap.Discord.MessageEmbed()
-        .setAuthor("Message sent to your inbox!")
-        .setColor(bootstrap.messageColorGreen)
-        .setDescription("I have Direct Messaged you information!")
+                );
+                const serverEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setAuthor("Message sent to your inbox!")
+                    .setColor(bootstrap.messageColorGreen)
+                    .setDescription("I have Direct Messaged you information!");
 
-        receivedMessage.author.send(exampleEmbed).then(msg =>{
-            receivedMessage.channel.send(serverEmbed)
-        })
-
+                receivedMessage.author.send(exampleEmbed).then(msg =>{
+                    receivedMessage.channel.send(serverEmbed)
+                })
+            }
     },
 
     /**

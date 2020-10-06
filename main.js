@@ -220,7 +220,7 @@ async function processCommand(receivedMessage){
             break;
         case "setconfig":
             if (adminGet){
-                bootstrap.OracleObj.configSet(receivedMessage, rawArguments);
+                bootstrap.OracleObj.setConfig(receivedMessage, rawArguments);
             }
             else{
                 bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
@@ -228,7 +228,7 @@ async function processCommand(receivedMessage){
             break;
         case "getconfig":
             if (adminGet){
-                bootstrap.OracleObj.configGet(receivedMessage);
+                bootstrap.OracleObj.getConfig(receivedMessage);
             }
             else{
                 bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
