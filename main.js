@@ -210,6 +210,14 @@ async function processCommand(receivedMessage){
                 bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
             }
             break;
+        case "admin":
+            if (adminGet){
+                bootstrap.OracleObj.adminSet(receivedMessage, rawArguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
         case "setconfig":
             if (adminGet){
                 bootstrap.OracleObj.setConfig(receivedMessage, rawArguments);

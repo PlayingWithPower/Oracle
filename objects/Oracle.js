@@ -204,6 +204,102 @@ module.exports = {
             generalChannel.send(noConfigEmbed)
         }
     },
+    async adminSet(receivedMessage, args){
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        if (args[0].toLowerCase().trim() === "add"){
+            let discordRolesWithDups = [];
+            for (i = 1; i < args.length; i++){
+                if (receivedMessage.guild.roles.cache.find(role => "<@&"+role.id+">" === args[i]) !== undefined){
+                    discordRolesWithDups.push(args[i])
+                }
+            }
+            let holderDiscordRoles = new Set(discordRolesWithDups);
+            let discordRoles = [...holderDiscordRoles];
+            let returnRes = await bootstrap.LeagueObj.adminAppend(receivedMessage, discordRoles);
+            if (returnRes[0] === "Success"){
+                const successEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorGreen)
+                    .setAuthor("Successfully set new Admins roles")
+                    .setDescription("Added new discord roles to this server's list of admins: \n\ " + returnRes[1]);
+                generalChannel.send(successEmbed)
+            }
+            else if (returnRes[0] === "New Success"){
+                const successEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorGreen)
+                    .setAuthor("Successfully set new Admins roles and created configs for this server")
+                    .setDescription("Added new discord roles to this server's list of admins: \n\ " + returnRes[1]);
+                generalChannel.send(successEmbed)
+            }
+            else if (returnRes[0] === "DB Connect Error"){
+                const errorEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Unable to Add Roles")
+                    .setDescription("Unable to connect to Data Base. Please try again");
+
+                generalChannel.send(errorEmbed)
+            }
+            else if (returnRes[0] === "No New Roles Error"){
+                const errorEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Unable to Add Roles")
+                    .setDescription("All the roles you're attempting to add are already present in your configurations")
+                    .setFooter("Try typing !getconfigs to see a list of admin roles \n\To remove roles, type !admin remove <@Discord Roles Here>");
+                generalChannel.send(errorEmbed)
+            }
+        }
+        else if (args[0].toLowerCase().trim() === "remove"){
+            let discordRolesWithDups = [];
+            for (i = 1; i < args.length; i++){
+                if (receivedMessage.guild.roles.cache.find(role => "<@&"+role.id+">" === args[i]) !== undefined){
+                    discordRolesWithDups.push(args[i])
+                }
+            }
+            let holderDiscordRoles = new Set(discordRolesWithDups);
+            let discordRoles = [...holderDiscordRoles];
+            let returnRes = await bootstrap.LeagueObj.adminDelete(receivedMessage, discordRoles)
+            if (returnRes[0] === "Success"){
+                const successEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorGreen)
+                    .setAuthor("Successfully removed Admins roles")
+                    .setDescription("Removed discord roles from this server's list of admins: \n\ " + returnRes[1]);
+                generalChannel.send(successEmbed)
+            }
+            else if (returnRes[0] === "No Roles Error"){
+                const successEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Unable to Remove Roles")
+                    .setDescription("All of the roles you're attempting to remove are not present in your configurations")
+                    .setFooter("Try typing !getconfigs to see a list of admin roles \n\To add roles, type !admin add <@Discord Roles Here>");
+                generalChannel.send(successEmbed)
+            }
+            else if (returnRes[0] === "DB Connect Error"){
+                const errorEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Unable to Add Roles")
+                    .setDescription("Unable to connect to Data Base. Please try again");
+
+                generalChannel.send(errorEmbed)
+            }
+            else if (returnRes[0] === "No Config Error"){
+                const errorEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setColor(bootstrap.messageColorRed)
+                    .setAuthor("Error: Unable to Remove Roles")
+                    .setDescription("Your server has no Admin Roles set.")
+                    .setFooter("All users that have Discord Roles with administrative privileges have Oracle Bot Admin Privileges\n\To add roles, type !admin add <@Discord Roles Here>");
+                generalChannel.send(errorEmbed)
+            }
+        }
+        else{
+            const errorEmbed = new bootstrap.Discord.MessageEmbed()
+                .setColor(bootstrap.messageColorRed)
+                .setAuthor("Incorrect Input")
+                .setDescription("Please retry entering your list of admins in either format below: \n\
+                !admin add <@discord role>\n\
+                !admin remove <@discord role>")
+                .setFooter("For more info, type !help admin");
+            generalChannel.send(errorEmbed)
+        }
+    },
     async setConfig(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.LeagueObj.configSet(receivedMessage, args);
@@ -216,16 +312,15 @@ module.exports = {
         The types of configurations are:\n\
         'Minimum Games (A **number**)', \n\
         'Minimum Decks (A **number**)', \n\
-        'Admin' (A list of **Discord Roles** seperated by commas)\n\n\
         **Confused on what these mean? Try !help setconfig**")
                 .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
             generalChannel.send(errorEmbed)
         }
-        else if (returnArr === "Error"){
+        else if (returnArr === "Error connecting to DB"){
             const errorEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
-                .setAuthor("Error")
-                .setDescription("An Error has occurred, please try again");
+                .setAuthor("Error connecting to database")
+                .setDescription("An Error connecting to the database has occurred, please try again");
             generalChannel.send(errorEmbed)
         }
         else if (returnArr[0] === "Updated"){

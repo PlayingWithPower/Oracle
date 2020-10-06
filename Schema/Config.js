@@ -6,7 +6,7 @@ var config = new mongoose.Schema({
     _player_threshold: String,
     _deck_threshold: String,
     _timeout: String,
-    _admin: String
+    _admin: Array
 });
 
 module.exports = mongoose.model('Config', config);
