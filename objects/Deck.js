@@ -80,6 +80,7 @@ module.exports = {
         let argsWithCommas = args.toString();
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let splitArgs = argsWithSpaces.split(" | ");
+
         if (splitArgs[0][0] === "|"){
             return new Promise((resolve, reject)=>{
                 let query;
@@ -257,7 +258,6 @@ module.exports = {
                 })
             })
         }
-
         else if (args[0].slice(0,2) === "<@"){
             return new Promise((resolve, reject) => {
                 args = args.join(' ');
@@ -349,6 +349,7 @@ module.exports = {
             if (splitArgs[1] === undefined){
                 query = {
                     _season: currentSeason,
+                    _server: receivedMessage.guild.id,
                     _Status: "FINISHED", 
                     $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ],
 
@@ -356,14 +357,15 @@ module.exports = {
             }
             else if (splitArgs[1].toLowerCase() === "all"){
                 query = {
-                    _Status: "FINISHED", 
+                    _server: receivedMessage.guild.id,
+                    _Status: "FINISHED",
                     $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] 
                 }
             }
             else{
-
                 query = {
-                    _season: splitArgs[1], 
+                    _season: splitArgs[1],
+                    _server: receivedMessage.guild.id,
                     _Status: "FINISHED", 
                     $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] 
                 }
@@ -374,51 +376,56 @@ module.exports = {
             let passingResult;
 
             return new Promise((resolve, reject) =>{
-                bootstrap.Game.find(query, function(err, res){
-                    if (err){
-                        throw err;
-                    }
-                    passingResult = res;
-                }).then(function(passingResult){
-                    if (passingResult.length > 0){
-                        passingResult.forEach((entry)=>{
-                            if (entry._player1Deck === splitArgs[0]){
-                                wins = wins + 1;
-                                deckPlayers.push(entry._player1)
+                bootstrap.Deck.find({_server: receivedMessage.guild.id, _name: splitArgs[0]}, function(err, res){
+                    if (res.length > 0){
+                        bootstrap.Game.find(query, function(err, gameRes){
+                            if (err){
+                                throw err;
                             }
-                            if (entry._player2Deck === splitArgs[0]){
-                                losses = losses + 1;
-                                deckPlayers.push(entry._player2)
+                            passingResult = gameRes;
+                        }).then(function(passingResult){
+                            if (passingResult.length > 0){
+                                passingResult.forEach((entry)=>{
+                                    if (entry._player1Deck === splitArgs[0]){
+                                        wins = wins + 1;
+                                        deckPlayers.push(entry._player1)
+                                    }
+                                    if (entry._player2Deck === splitArgs[0]){
+                                        losses = losses + 1;
+                                        deckPlayers.push(entry._player2)
+                                    }
+                                    if (entry._player3Deck === splitArgs[0]){
+                                        losses = losses + 1;
+                                        deckPlayers.push(entry._player3)
+                                    }
+                                    if (entry._player4Deck === splitArgs[0]){
+                                        losses = losses + 1;
+                                        deckPlayers.push(entry._player4)
+                                    }
+                                });
+                                let passedArray = [];
+                                deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
+                                    return inputArray.indexOf(item) === index;
+                                });
+                                passedArray.push("Deck Lookup",args, currentSeason, wins, losses, deckPlayers, passingResult);
+                                resolve(passedArray)
                             }
-                            if (entry._player3Deck === splitArgs[0]){
-                                losses = losses + 1;
-                                deckPlayers.push(entry._player3)
+                            else{
+                                let passedArray = [];
+                                passedArray.push("No Games Played", args, res[0]._name)
+                                resolve(passedArray)
                             }
-                            if (entry._player4Deck === splitArgs[0]){
-                                losses = losses + 1;
-                                deckPlayers.push(entry._player4)
-                            }
-                        });
-                        let passedArray = [];
-                        deckPlayers = deckPlayers.filter( function( item, index, inputArray ) {
-                            return inputArray.indexOf(item) === index;
-                        });
-                        passedArray.push("Deck Lookup",args, currentSeason, wins, losses, deckPlayers, passingResult);
-                        resolve(passedArray)
+                        })
                     }
                     else{
-                        bootstrap.Deck.find(
-                            {_server: receivedMessage.guild.id,
-                             '$text':{'$search': args}
-                         },
-                         function(err,res){
-                             if (res !== undefined && res.length > 0){
-                                 resolve(res)
-                             }
-                             else{
+                        bootstrap.Deck.find({_server: receivedMessage.guild.id, '$text':{'$search': args} }, function(err,res){
+                            if (res !== undefined && res.length > 0){
+                                resolve(res)
+                            }
+                            else{
                                 resolve("Can't find deck")
-                             }
-                         })
+                            }
+                        })
                     }
                 })
             })

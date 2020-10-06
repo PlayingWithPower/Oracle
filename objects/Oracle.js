@@ -805,7 +805,7 @@ module.exports = {
             let seasonName;
             if (deckName[1]=== undefined){
                 seasonName = returnArr[2]
-            }else{ seasonName = deckName[1]}
+            }else{seasonName = deckName[1]}
             deckStatsEmbed
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor(bootstrap.DeckHelper.toUpper(deckName[0]) + " Deckstats")
@@ -889,6 +889,13 @@ module.exports = {
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks");
             generalChannel.send(allDecksEmbed)
         }
+        else if (returnArr[0] === "No Games Played"){
+            const noGamesEmbed = new bootstrap.Discord.MessageEmbed()
+                .setColor(bootstrap.messageColorRed)
+                .setAuthor("The Deck " + returnArr[2] + " has no logged matches this season")
+
+            generalChannel.send(noGamesEmbed)
+        }
         else if (returnArr === "Bad season deckstats input"){
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
@@ -911,7 +918,6 @@ module.exports = {
         else{
             const closeToResEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
-                .setAuthor("The deck: " + args.join(' ') + " has no logged matches this Season.")
                 .setDescription("You typed: '" + args.join(' ') + "' I didn't quite understand the deck you inputted. Did you mean to type any of the following?\n\
             The !deckstats command will give suggestions when it doesn't understand exactly what you typed")
                 .setFooter("Decks are displayed in the format: \nDeck Name\nCommander(s) Name(s)");
