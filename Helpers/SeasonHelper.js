@@ -49,6 +49,7 @@ module.exports = {
             let server = users[1];
             let personLookedUp = users[0];
             let getWinnersQuery;
+          
             if (users[2] === "all"){
                 getWinnersQuery = {
                     _server: server,

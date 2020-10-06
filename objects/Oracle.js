@@ -183,7 +183,7 @@ module.exports = {
         if (returnArr !== "No configs"){
             let adminPrivs = returnArr._admin;
             if (returnArr._admin === ""){
-                adminPrivs = "\u200b"
+                adminPrivs = "None"
             }
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
@@ -191,17 +191,16 @@ module.exports = {
                 .addFields(
                     {name: "Player Threshold", value: returnArr._player_threshold},
                     {name: "Deck Threshold", value: returnArr._deck_threshold},
-                    {name: "Timeout (in minutes)", value: returnArr._timeout},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
-                .setFooter("Want to edit these values? Use !setconfig");
+                .setFooter("Confused by what these thresholds mean? Use !help setconfig \n\Want to edit these values? Use !setconfig");
             generalChannel.send(updatedEmbed)
         }
         else{
             const noConfigEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("No current information about your configurations")
-                .setDescription("Configurations are automatically generated when I join your server.");
+                .setDescription("Default configurations are provided to every server. Type !setconfig to change these defaults");
             generalChannel.send(noConfigEmbed)
         }
     },
@@ -217,10 +216,9 @@ module.exports = {
         The types of configurations are:\n\
         'Player Threshold (A **number**)', \n\
         'Deck Threshold (A **number**)', \n\
-        'Timeout (**Minutes**, less than 60)' \n\
         'Admin' (A list of **Discord Roles** seperated by commas)\n\n\
-        Confused on what these mean? Try !help setconfig")
-                .setFooter("A default set of configuration values are set for every server. Updating these configs is to fine tune your experience");
+        **Confused on what these mean? Try !help setconfig**")
+                .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
             generalChannel.send(errorEmbed)
         }
         else if (returnArr === "Error"){
@@ -235,7 +233,7 @@ module.exports = {
             commandType = bootstrap.DeckHelper.toUpper(commandType);
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
-                .setAuthor("Succesfully updated your configs")
+                .setAuthor("Successfully updated your configs")
                 .setDescription("You have updated the configuration:\n\
          **" + commandType + "** to **" + returnArr[2] + "**");
             generalChannel.send(updatedEmbed)
@@ -245,10 +243,10 @@ module.exports = {
             commandType = bootstrap.DeckHelper.toUpper(commandType);
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
-                .setAuthor("Created a new set of configs for this rver")
+                .setAuthor("Created a new set of configs for this server")
                 .setDescription("You have set the configuration:\n\
          **" + commandType + "** to **" + returnArr[2] + "**\n\
-         Your other configurations have been given default values. Check those with !getconfig");
+         Your other configurations have been given default values. Type !getconfig to see your changes");
             generalChannel.send(updatedEmbed)
         }
     },
@@ -559,56 +557,72 @@ module.exports = {
                 }
             }
         }).then(async function(){
+
             unsortedResults.sort(function(a, b) {
                 return parseFloat(b[2]) - parseFloat(a[2]);
             });
+
             let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
             let sortedResults = unsortedResults;
             let threshold = 5;
+            let topPlayersThreshold = 10;
+            let listOfPlayers = "";
+            let listOfWinrates = "";
+            let listOfScores = "";
+            let maxEmbedSize = 975;
+            let playersOnList = 0;
             if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._player_threshold }
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
             if (allCheck){ //When a user types !top | all
                 resultsMsg
-                    .setAuthor("Displaying Top Players across all seasons");
+                    .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
                 for (let i = 0; i < sortedResults.length; i++){
-                    if (i >= topPlayersThreshold){break}
-                    if (sortedResults[i][3] < threshold){break}
+                    if (playersOnList >= topPlayersThreshold){break}
+                    if (sortedResults[i][3] < threshold){continue}
                     if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                         break;
                     }else{
                         listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
                         listOfWinrates += sortedResults[i][1] + "% \n";
                         listOfWins += sortedResults[i][2] + "\n";
+                        playersOnList += 1;
                     }
                 }
-                resultsMsg.addFields(
-                    {name: "Username", value: listOfPlayers, inline: true},
-                    {name: "Winrate", value: listOfWinrates, inline: true},
-                    {name: "Wins", value: listOfWins, inline: true},
-                );
+                if (!(listOfWinrates === "" || listOfPlayers === "" || listOfWins === "")){
+                  resultsMsg.addFields(
+                      {name: "Username", value: listOfPlayers, inline: true},
+                      {name: "Winrate", value: listOfWinrates, inline: true},
+                      {name: "Wins", value: listOfWins, inline: true},
+                  );
+                }
             }
             else{ //When a user specifies a season, or just types !top
                 resultsMsg
                     .setAuthor("Displaying Top Players for the season name: " + splitArgs[1]);
                 for (let i = 0; i < sortedResults.length; i++){
-                    if (i >= topPlayersThreshold){break}
-                    if (sortedResults[i][3] < threshold){break}
+                    if (playersOnList >= topPlayersThreshold){break}
+                    if (sortedResults[i][3] < threshold){continue}
                     if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                         break;
                     }else{
                         listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
                         listOfWinrates += sortedResults[i][1] + "% \n";
                         listOfScores += sortedResults[i][2] + "\n";
+                        playersOnList += 1;
                     }
                 }
-                resultsMsg.addFields(
-                    {name: "Username", value: listOfPlayers, inline: true},
-                    {name: "Winrate", value: listOfWinrates, inline: true},
-                    {name: "Score", value: listOfScores, inline: true},
-                );
+                if (!(listOfWinrates === "" || listOfPlayers === "" || listOfScores === "")){
+                  resultsMsg.addFields(
+                      {name: "Username", value: listOfPlayers, inline: true},
+                      {name: "Winrate", value: listOfWinrates, inline: true},
+                      {name: "Score", value: listOfScores, inline: true},
+                  );
+                }
             }
+            resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\n" +
+                "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
             if (args.length === 0){
                 resultsMsg
                     .setAuthor("Displaying Top Players of the current season")
@@ -1141,10 +1155,7 @@ module.exports = {
         });
         let addedMentionValues = "<@!" + sanitizedString + ">";
         tempArr.push(addedMentionValues);
-        let allowDuplicateUsers = false;
-        //Uncomment out for local testing, allows you to log matches with duplicate users.
-        // allowDuplicateUsers = true;
-        if ((!allowDuplicateUsers) && (await bootstrap.GameHelper.hasDuplicates(tempArr))) {
+        if ((!bootstrap.Env.allowedLoggedDuplicates) && (await bootstrap.GameHelper.hasDuplicates(tempArr))) {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")
