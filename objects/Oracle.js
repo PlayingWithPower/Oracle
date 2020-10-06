@@ -177,7 +177,7 @@ module.exports = {
             })
         }
     },
-    async configGet(receivedMessage){
+    async getConfig(receivedMessage){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id);
         if (returnArr !== "No configs"){
@@ -189,8 +189,8 @@ module.exports = {
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying information about your configurations")
                 .addFields(
-                    {name: "Player Threshold", value: returnArr._player_threshold},
-                    {name: "Deck Threshold", value: returnArr._deck_threshold},
+                    {name: "Minimum Games (to be appear on !top)", value: returnArr._player_threshold},
+                    {name: "Minimum Decks (to appear on !deckstats)", value: returnArr._deck_threshold},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
                 .setFooter("Confused by what these thresholds mean? Use !help setconfig \n\Want to edit these values? Use !setconfig");
@@ -204,7 +204,7 @@ module.exports = {
             generalChannel.send(noConfigEmbed)
         }
     },
-    async configSet(receivedMessage, args){
+    async setConfig(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.LeagueObj.configSet(receivedMessage, args);
         if (returnArr === "Invalid Input"){
@@ -214,8 +214,8 @@ module.exports = {
                 .setDescription("Please retry entering your config. I understand the format: \n\
         !setconfig <Type> | <Value>\n\
         The types of configurations are:\n\
-        'Player Threshold (A **number**)', \n\
-        'Deck Threshold (A **number**)', \n\
+        'Minimum Games (A **number**)', \n\
+        'Minimum Decks (A **number**)', \n\
         'Admin' (A list of **Discord Roles** seperated by commas)\n\n\
         **Confused on what these mean? Try !help setconfig**")
                 .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
