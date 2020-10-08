@@ -917,7 +917,7 @@ module.exports = {
             }
             usersList
                 .setColor(bootstrap.messageColorBlue)
-                .setTitle("People who've played this deck in the time frame provided.");
+                .setTitle("People who've played this deck in the season provided.");
             for (i = 0; i < returnArr[5].length; i++){
                 usersList.addFields(
                     {name: " \u200b", value: "<@!"+returnArr[5][i]+">", inline: true}
