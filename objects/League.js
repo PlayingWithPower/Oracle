@@ -65,10 +65,9 @@ module.exports = {
             let conditionalQuery;
             let playerThreshold = 10;
             let deckThreshold = 10;
-            let admin = "";
-            let adminList;
+            let topThreshold = 10;
           
-            if ((splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks")){
+            if ((splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks") && (splitArgs[0]!== "maximum top")){
                 resolve("Invalid Input")
             }
             else if (splitArgs.length === 1){
@@ -100,6 +99,19 @@ module.exports = {
                         }
                     }
                 }
+                else if ((splitArgs[0] === "maximum top")){
+                    if (parseInt(splitArgs[1])){
+                        if (!isNaN(splitArgs[1])){
+                            conditionalQuery = {
+                                _server: receivedMessage.guild.id,
+                                $set:{
+                                    _top_threshold: splitArgs[1]
+                                }
+                            };
+                            topThreshold = splitArgs[1]
+                        }
+                    }
+                }
                 else{
                     resolve("Invalid Input")
                 }
@@ -107,6 +119,8 @@ module.exports = {
                     _server: receivedMessage.guild.id,
                     _player_threshold: playerThreshold,
                     _deck_threshold: deckThreshold,
+                    _top_threshold: topThreshold,
+                    _admin: [],
                 };
                 bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, async function(err,res){
                     if (res.n > 0){

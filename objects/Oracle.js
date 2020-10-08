@@ -189,8 +189,9 @@ module.exports = {
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying information about your configurations")
                 .addFields(
-                    {name: "Minimum Games (to be appear on !top)", value: returnArr._player_threshold},
-                    {name: "Minimum Decks (to appear on !deckstats)", value: returnArr._deck_threshold},
+                    {name: "Minimum Games (Minimum number of games to appear on !top)", value: returnArr._player_threshold},
+                    {name: "Maximum Top (Maximum number of players to appear on !top)", value: returnArr._top_threshold},
+                    {name: "Minimum Decks (Minimum number of games on a deck to appear on !deckstats)", value: returnArr._deck_threshold},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
                 .setFooter("Confused by what these thresholds mean? Use !help setconfig \n\Want to edit these values? Use !setconfig");
@@ -598,13 +599,6 @@ module.exports = {
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let splitArgs = argsWithSpaces.split("| ");
 
-        let topPlayersThreshold = 10;
-        let listOfPlayers = "";
-        let listOfWinrates = "";
-        let listOfScores = "";
-        let listOfWins = "";
-        let maxEmbedSize = 975;
-
         if (args.length === 0){
             returnArr.forEach(user =>{
                 mentionValues.push([user._mentionValue, receivedMessage.guild.id])
@@ -659,23 +653,27 @@ module.exports = {
 
             let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
             let sortedResults = unsortedResults;
-            let threshold = 5;
+            let minimumGamesThreshold = 5;
             let topPlayersThreshold = 10;
             let listOfPlayers = "";
             let listOfWinrates = "";
             let listOfScores = "";
             let maxEmbedSize = 975;
             let playersOnList = 0;
-            if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._player_threshold }
+            let listOfWins = "";
+            if (getDeckThreshold !== "No configs"){
+                minimumGamesThreshold = getDeckThreshold._player_threshold;
+                topPlayersThreshold = getDeckThreshold._top_threshold;
+            }
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
-                .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
+                .setFooter("Note: The threshold to appear on this list is " + minimumGamesThreshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
             if (allCheck){ //When a user types !top | all
                 resultsMsg
                     .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
                 for (let i = 0; i < sortedResults.length; i++){
                     if (playersOnList >= topPlayersThreshold){break}
-                    if (sortedResults[i][3] < threshold){continue}
+                    if (sortedResults[i][3] < minimumGamesThreshold){continue}
                     if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                         break;
                     }else{
@@ -698,7 +696,7 @@ module.exports = {
                     .setAuthor("Displaying Top Players for the season name: " + splitArgs[1]);
                 for (let i = 0; i < sortedResults.length; i++){
                     if (playersOnList >= topPlayersThreshold){break}
-                    if (sortedResults[i][3] < threshold){continue}
+                    if (sortedResults[i][3] < minimumGamesThreshold){continue}
                     if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                         break;
                     }else{
@@ -716,7 +714,7 @@ module.exports = {
                   );
                 }
             }
-            resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\n" +
+            resultsMsg.setFooter("Note: The threshold to appear on this list is " + minimumGamesThreshold.toString() + " game(s)\n" +
                 "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
             if (args.length === 0){
                 resultsMsg
