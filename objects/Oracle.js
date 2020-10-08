@@ -977,8 +977,7 @@ module.exports = {
                     {name: "Winrate", value: listOfPercentages, inline: true},
                 )
             }else{
-                allDecksEmbed.setDescription("No Data within your Threshold for the season named: " + returnArr[2])
-                );
+                allDecksEmbed.setDescription("No Data within your Threshold for the season named: " + returnArr[2]);
             }
             allDecksEmbed
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig\nLooking for detailed deck breakdown? Try !deckinfo <deckname> to see more about specific decks");
