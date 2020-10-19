@@ -182,7 +182,7 @@ module.exports = {
         let returnArr = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id);
         if (returnArr !== "No configs"){
             let adminPrivs = returnArr._admin;
-            if (returnArr._admin === ""){
+            if (adminPrivs.length == 0){
                 adminPrivs = "None"
             }
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
