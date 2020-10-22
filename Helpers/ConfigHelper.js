@@ -24,10 +24,9 @@ module.exports = {
                isAdmin = true
                break;
            }
-           else if (receivedMessage.member.hasPermission("ADMINISTRATOR")){
-               isAdmin = true
-               break;
-           }
+       }
+       if (receivedMessage.member.hasPermission("ADMINISTRATOR")){
+           isAdmin = true
        }
        return isAdmin;
    },
