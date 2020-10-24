@@ -81,6 +81,9 @@ module.exports = {
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let splitArgs = argsWithSpaces.split(" | ");
 
+        const deckNameFetch = await bootstrap.DeckHelper.findDeckToCheckStats(splitArgs[0], receivedMessage.guild.id)
+        let deckNameProper = deckNameFetch[0]._name
+
         if (splitArgs[0][0] === "|"){
             return new Promise((resolve, reject)=>{
                 let query;
@@ -343,15 +346,14 @@ module.exports = {
             let argsWithCommas = args.toString();
             let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
             let splitArgs = argsWithSpaces.split(" | ");
-            splitArgs[0] = bootstrap.DeckHelper.toUpper(splitArgs[0]);
-
             let query;
+
             if (splitArgs[1] === undefined){
                 query = {
                     _season: currentSeason,
                     _server: receivedMessage.guild.id,
                     _Status: "FINISHED", 
-                    $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ],
+                    $or: [ { _player1Deck: deckNameProper }, { _player2Deck: deckNameProper },{ _player3Deck: deckNameProper }, { _player4Deck: deckNameProper } ],
 
                 }
             }
@@ -359,7 +361,7 @@ module.exports = {
                 query = {
                     _server: receivedMessage.guild.id,
                     _Status: "FINISHED",
-                    $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] 
+                    $or: [ { _player1Deck: deckNameProper }, { _player2Deck: deckNameProper },{ _player3Deck: deckNameProper }, { _player4Deck: deckNameProper } ]
                 }
             }
             else{
@@ -367,7 +369,7 @@ module.exports = {
                     _season: splitArgs[1],
                     _server: receivedMessage.guild.id,
                     _Status: "FINISHED", 
-                    $or: [ { _player1Deck: splitArgs[0] }, { _player2Deck: splitArgs[0] },{ _player3Deck: splitArgs[0] }, { _player4Deck: splitArgs[0] } ] 
+                    $or: [ { _player1Deck: deckNameProper }, { _player2Deck: deckNameProper },{ _player3Deck: deckNameProper }, { _player4Deck: deckNameProper } ]
                 }
             }
             let wins = 0;
@@ -376,7 +378,7 @@ module.exports = {
             let passingResult;
 
             return new Promise((resolve, reject) =>{
-                bootstrap.Deck.find({_server: receivedMessage.guild.id, _name: splitArgs[0]}, function(err, res){
+                bootstrap.Deck.find({_server: receivedMessage.guild.id, _name: deckNameProper}, function(err, res){
                     if (res.length > 0){
                         bootstrap.Game.find(query, function(err, gameRes){
                             if (err){
@@ -386,19 +388,19 @@ module.exports = {
                         }).then(function(passingResult){
                             if (passingResult.length > 0){
                                 passingResult.forEach((entry)=>{
-                                    if (entry._player1Deck === splitArgs[0]){
+                                    if (entry._player1Deck === deckNameProper){
                                         wins = wins + 1;
                                         deckPlayers.push(entry._player1)
                                     }
-                                    if (entry._player2Deck === splitArgs[0]){
+                                    if (entry._player2Deck === deckNameProper){
                                         losses = losses + 1;
                                         deckPlayers.push(entry._player2)
                                     }
-                                    if (entry._player3Deck === splitArgs[0]){
+                                    if (entry._player3Deck === deckNameProper){
                                         losses = losses + 1;
                                         deckPlayers.push(entry._player3)
                                     }
-                                    if (entry._player4Deck === splitArgs[0]){
+                                    if (entry._player4Deck === deckNameProper){
                                         losses = losses + 1;
                                         deckPlayers.push(entry._player4)
                                     }

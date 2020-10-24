@@ -45,6 +45,20 @@ module.exports = {
         })
         .join(' ');
     },
+    findDeckToCheckStats(userInput, guild){
+        let lowerArgs = userInput.toString().toLowerCase();
+        let deckQuery = {_alias: lowerArgs, _server: guild};
+        return new Promise((resolve, reject)=>{
+            bootstrap.Deck.find(deckQuery, function(err, res){
+                if (res.length > 0){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
+            })
+        })
+    },
     /**
      * Checks if the deck a user is trying to update is valid. 
      * Helper Function to the two below updateDeckName() and updateDeckList()
