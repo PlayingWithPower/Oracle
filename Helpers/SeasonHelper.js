@@ -43,76 +43,96 @@ module.exports = {
             if (users[2] !== undefined){
                 seasonName = users[2]
             }
-
             let passingResult;
             let matchResults = [];
             let season = seasonName;
             let server = users[1];
             let personLookedUp = users[0];
-                let getWinnersQuery = {
+            let getWinnersQuery;
+          
+            if (users[2] === "all"){
+                getWinnersQuery = {
+                    _server: server,
+                    _Status: "FINISHED",
+                    $or:
+                        [
+                            {_player1: personLookedUp},
+                            {_player2: personLookedUp},
+                            {_player3: personLookedUp},
+                            {_player4: personLookedUp},
+                        ]
+                };
+            }
+            else{
+                getWinnersQuery = {
                     _server: server,
                     _season: season,
                     _Status: "FINISHED",
-                    $or: 
-                    [{_player1: personLookedUp}, 
-                    {_player2: personLookedUp},
-                    {_player3: personLookedUp},
-                    {_player4: personLookedUp},]
+                    $or:
+                        [
+                            {_player1: personLookedUp},
+                            {_player2: personLookedUp},
+                            {_player3: personLookedUp},
+                            {_player4: personLookedUp},
+                        ]
                 };
-                bootstrap.Game.find(getWinnersQuery, function(err,res){
-                    if (err){
-                        throw err;
-                    }
-                    passingResult = res;
-                }).then(function(passingResult){
-                    if (passingResult.length > 0){
-                            for (let i=0; i <passingResult.length; i++){
-                                let pasRes = passingResult[i]._player1;
-                                let exists = matchResults.find(el => el[0] === pasRes);
-                                if (passingResult[i]._player1 === personLookedUp){
-                                    if (exists) {
-                                        exists[1] += 1;
-                                    } else {
-                                        matchResults.push([pasRes, 1, 0]);
-                                    }
+            }
+            bootstrap.Game.find(getWinnersQuery, function(err,res){
+                if (err){
+                    console.log("DEBUG LOG: Season Helper: lookUpUsers function: \n\
+                    Unable to find users from 'Matches' collection using query: 'getWinnersQuery'\n\
+                    This is either a DB connection issue or a sign of !top working incorrectly")
+                }
+                passingResult = res;
+            }).then(function(passingResult){
+                if (passingResult.length > 0){
+                        for (let i=0; i <passingResult.length; i++){
+                            let pasRes = passingResult[i]._player1;
+                            let exists = matchResults.find(el => el[0] === pasRes);
+                            if (passingResult[i]._player1 === personLookedUp){
+                                if (exists) {
+                                    exists[1] += 1;
+                                } else {
+                                    matchResults.push([pasRes, 1, 0]);
                                 }
-
-                                pasRes = passingResult[i]._player2;
-                                if (passingResult[i]._player2 === personLookedUp){
-                                let exists2 = matchResults.find(el => el[0] === pasRes);
-                                if (exists2) {
-                                    exists2[2] += 1;
-                                    } else {
-                                    matchResults.push([pasRes, 0, 1]);
-                                    } 
-                                }
-
-                                pasRes = passingResult[i]._player3;
-                                if (passingResult[i]._player3 === personLookedUp){
-                                let exists3 = matchResults.find(el => el[0] === pasRes);
-                                if (exists3) {
-                                    exists3[2] += 1;
-                                    } else {
-                                    matchResults.push([pasRes, 0, 1]);
-                                    }
-                                }
-
-                                pasRes = passingResult[i]._player4;
-                                if (passingResult[i]._player4 === personLookedUp){
-                                let exists4 = matchResults.find(el => el[0] === pasRes);
-                                if (exists4) {
-                                    exists4[2] += 1;
-                                    } else {
-                                    matchResults.push([pasRes, 0, 1]);
-                                    }
                             }
+
+                            pasRes = passingResult[i]._player2;
+                            if (passingResult[i]._player2 === personLookedUp){
+                            let exists2 = matchResults.find(el => el[0] === pasRes);
+                            if (exists2) {
+                                exists2[2] += 1;
+                                } else {
+                                matchResults.push([pasRes, 0, 1]);
+                                }
+                            }
+
+                            pasRes = passingResult[i]._player3;
+                            if (passingResult[i]._player3 === personLookedUp){
+                            let exists3 = matchResults.find(el => el[0] === pasRes);
+                            if (exists3) {
+                                exists3[2] += 1;
+                                } else {
+                                matchResults.push([pasRes, 0, 1]);
+                                }
+                            }
+
+                            pasRes = passingResult[i]._player4;
+                            if (passingResult[i]._player4 === personLookedUp){
+                            let exists4 = matchResults.find(el => el[0] === pasRes);
+                            if (exists4) {
+                                exists4[2] += 1;
+                                } else {
+                                matchResults.push([pasRes, 0, 1]);
+                                }
                         }
-                    }else{
-                        resolve("Can't find deck")
-                    }  
-                }).then(function(){
-                    resolve(matchResults)
-                })
+                    }
+                }else{
+                    resolve("Can't find deck")
+                }
+            }).then(function(){
+                resolve(matchResults)
+            })
         })
     },  
 };

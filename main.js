@@ -6,7 +6,7 @@ bootstrap.Client.login(bootstrap.Env.discordKey);
 bootstrap.mongoose.connect(bootstrap.Env.mongoConnectionUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 
 /**
- * ready() - Prebuild discord function
+ * ready() - Prebuilt discord function
  * Called when the bot is turned on. Sends a debug log that the bot connected and sets the presence of the bot.
  * Commented out block gives a full list of the servers the bot is in, and the channels inside of those servers.
  *
@@ -210,9 +210,17 @@ async function processCommand(receivedMessage){
                 bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
             }
             break;
+        case "admin":
+            if (adminGet){
+                bootstrap.OracleObj.adminSet(receivedMessage, rawArguments);
+            }
+            else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
+            }
+            break;
         case "setconfig":
             if (adminGet){
-                bootstrap.OracleObj.configSet(receivedMessage, rawArguments);
+                bootstrap.OracleObj.setConfig(receivedMessage, rawArguments);
             }
             else{
                 bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
@@ -220,7 +228,7 @@ async function processCommand(receivedMessage){
             break;
         case "getconfig":
             if (adminGet){
-                bootstrap.OracleObj.configGet(receivedMessage);
+                bootstrap.OracleObj.getConfig(receivedMessage);
             }
             else{
                 bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);

@@ -1,4 +1,4 @@
-const bootstrap = require('../bootstrap')
+const bootstrap = require('../bootstrap');
 
 module.exports = {
     /**
@@ -44,6 +44,20 @@ module.exports = {
             return word[0].toUpperCase() + word.substr(1);
         })
         .join(' ');
+    },
+    findDeckToCheckStats(userInput, guild){
+        let lowerArgs = userInput.toString().toLowerCase();
+        let deckQuery = {_alias: lowerArgs, _server: guild};
+        return new Promise((resolve, reject)=>{
+            bootstrap.Deck.find(deckQuery, function(err, res){
+                if (res.length > 0){
+                    resolve(res)
+                }
+                else{
+                    resolve("Error 1")
+                }
+            })
+        })
     },
     /**
      * Checks if the deck a user is trying to update is valid. 
@@ -152,6 +166,9 @@ module.exports = {
     },
     async checkColorDictionary(input){
         let colorDictionary = {
+            colorless: "c",
+            brown: "c",
+
             white: "w",
             blue: "u",
             black: "b",
@@ -187,6 +204,12 @@ module.exports = {
             sansblue: "w, b, r, g",
             sansblack: "w, u, r, g",
             sansred: "w, u, b, g",
+
+            wubrg: "w, u, b, r, g",
+            '5color': "w, u, b, r, g",
+            '5c': "w, u, b, r, g",
+            '5-c': "w, u, b, r, g",
+            '5-color': "w, u, b, r, g",
         };
         if (colorDictionary.hasOwnProperty(input.toLowerCase())) {
             return new Promise((resolve, reject)=>{

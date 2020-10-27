@@ -18,12 +18,16 @@ module.exports = {
    isUserAdmin(receivedMessage, roleName)
    {
        // Admin check from issuer.
-       let isAdmin = receivedMessage.member.roles.cache.some(role => role.name === roleName);
-        if (!isAdmin){
-            if (receivedMessage.member.hasPermission("ADMINISTRATOR")){
-                isAdmin = true
-            }
-        }
+       let isAdmin = false
+       for (let i = 0; i < roleName.length; i++){
+           if(receivedMessage.member.roles.cache.some(r => "<@&"+r.id+">" === roleName[i])){
+               isAdmin = true
+               break;
+           }
+       }
+       if (receivedMessage.member.hasPermission("ADMINISTRATOR")){
+           isAdmin = true
+       }
        return isAdmin;
    },
    async getDeckThreshold(guild){
