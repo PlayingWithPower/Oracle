@@ -1241,7 +1241,14 @@ module.exports = {
             return
         }
         // Check to make sure the right amount of users tagged
-        if (args.length < 3 || args.length > 3) {
+        let formattedUsers = []
+        args.forEach((isUser)=>{
+            // console.log(isUser.slice(0,2))
+            if (isUser.slice(0,2) === "<@" && isUser[isUser.length - 1] == ">"){
+                formattedUsers.push(isUser)
+            }
+        })
+        if (formattedUsers.length < 3 || formattedUsers.length > 3) {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")
@@ -1253,7 +1260,7 @@ module.exports = {
         }
         // Make sure every user in message (and message sender) are different users
         let tempArr = [];
-        args.forEach((userMentionValue)=>{
+        formattedUsers.forEach((userMentionValue)=>{
             tempArr.push(userMentionValue)
         });
         let addedMentionValues = "<@!" + sanitizedString + ">";
@@ -1269,13 +1276,14 @@ module.exports = {
         // Check if User who sent the message is registered
         let someNotRegistered = false;
         let mentionValues = [];
-        let cleanedArg0 = args[0].replace(/[<@!>]/g, '');
-        let cleanedArg1 = args[1].replace(/[<@!>]/g, '');
-        let cleanedArg2 = args[2].replace(/[<@!>]/g, '');
+        let cleanedArg0 = formattedUsers[0].replace(/[<@!>]/g, '');
+        let cleanedArg1 = formattedUsers[1].replace(/[<@!>]/g, '');
+        let cleanedArg2 = formattedUsers[2].replace(/[<@!>]/g, '');
         mentionValues.push([sanitizedString, receivedMessage],
             [cleanedArg0, receivedMessage],
             [cleanedArg1, receivedMessage],
             [cleanedArg2, receivedMessage]);
+
         let registerPromiseArray = mentionValues.map(bootstrap.GameHelper.checkRegister);
 
         Promise.all(registerPromiseArray).then(results => {
@@ -1323,7 +1331,7 @@ module.exports = {
                     UserIDs.push(sanitizedString);
                     // Check if Users tagged are registered
                     let ConfirmedUsers = 0;
-                    args.forEach(loser =>{
+                    formattedUsers.forEach(loser =>{
                         loser = loser.replace(/[<@!>]/g, '');
                         UserIDs.push(loser);
                         ConfirmedUsers++;
@@ -1344,6 +1352,8 @@ module.exports = {
                                         generalChannel.send(errorMsg);
                                     }
                                     else {
+
+
                                         UserIDs.forEach(player => {
                                             let findQuery = {_mentionValue: player, _server: receivedMessage.guild.id};
                                             bootstrap.User.findOne(findQuery, function(err, res){
