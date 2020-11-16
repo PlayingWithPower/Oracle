@@ -85,6 +85,7 @@ exampleDictionary =
     setconfig: "Use this function to set the configurations for your server. This is an Admin-Only command. Default configurations for your server are provided\
     without the need for this command. This command will let you fine tune this experience in a variety of categories. These categories are:\n\n\
     'Minimum Games' - The minimum number of games before a player shows up in !top\n\
+    'Maximum Top' - The maximum number of players to show up on !top\n\
     'Minimum Decks' - The minimum number of games before a deck shows up in !deckstats\n\
     'Admin' - The Discord roles which are allowed to use admin commands.\n\n\
     Example usage: !setconfig <Config Type> | <New Value>. !setconfig Player Threshold | 10",

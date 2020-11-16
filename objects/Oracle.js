@@ -182,7 +182,7 @@ module.exports = {
         let returnArr = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id);
         if (returnArr !== "No configs"){
             let adminPrivs = returnArr._admin;
-            if (returnArr._admin === ""){
+            if (adminPrivs.length === 0){
                 adminPrivs = "None"
             }
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
@@ -312,6 +312,7 @@ module.exports = {
         !setconfig <Type> | <Value>\n\
         The types of configurations are:\n\
         'Minimum Games (A **number**)', \n\
+        'Maximum Top (A **number**)', \n\
         'Minimum Decks (A **number**)', \n\
         **Confused on what these mean? Try !help setconfig**")
                 .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
