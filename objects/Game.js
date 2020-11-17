@@ -167,12 +167,15 @@ module.exports = {
     },
     async createMatch(player1, player2, player3, player4, id, receivedMessage, callback) {
         let currentSeasonObj = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
+        let configs = await bootstrap.ConfigHelper.getThresholds(receivedMessage.guild.id);
         let currentSeasonName = currentSeasonObj._season_name;
 
         let deck1;
         let deck2;
         let deck3;
         let deck4;
+        let pointsGained;
+        let pointsLost;
 
         //Get Decks
         let promiseArr = [];
@@ -181,6 +184,17 @@ module.exports = {
         promiseArr.push(module.exports.findUserDeck(player2, receivedMessage));
         promiseArr.push(module.exports.findUserDeck(player3, receivedMessage));
         promiseArr.push(module.exports.findUserDeck(player4, receivedMessage));
+
+        if (configs._points_gained !== undefined){
+            pointsGained = configs._points_gained;
+        }else{
+           pointsGained = bootstrap.pointsGained
+        }
+        if (configs._points_lost !== undefined){
+            pointsLost = configs._points_lost;
+        }else{
+            pointsLost = bootstrap.pointsGained
+        }
 
         Promise.all(promiseArr).then(function() {
             let player1R = "None";
@@ -224,7 +238,11 @@ module.exports = {
                     _player1: player1, 
                     _player2: player2, 
                     _player3: player3, 
-                    _player4: player4, 
+                    _player4: player4,
+                    _player1Points: pointsGained,
+                    _player2Points: pointsLost,
+                    _player3Points: pointsLost,
+                    _player4Points: pointsLost,
                     _player1Deck: player1Deck, 
                     _player2Deck: player2Deck, 
                     _player3Deck: player3Deck, 

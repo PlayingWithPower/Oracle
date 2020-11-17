@@ -65,68 +65,96 @@ module.exports = {
             let conditionalQuery;
             let playerThreshold = 10;
             let deckThreshold = 10;
+            let pointsGained = 30;
+            let pointsLost = 10;
             let admin = "";
             let adminList;
-          
-            if ((splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks")){
+
+            if ((splitArgs[0]!== "points gained") &&(splitArgs[0]!== "points lost")
+                &&(splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks")) {
                 resolve("Invalid Input")
             }
-            else if (splitArgs.length === 1){
-                resolve("Invalid Input")
-            }
-            else{
-                if ((splitArgs[0] === "minimum games")){
-                    if (parseInt(splitArgs[1])){
-                        if (!isNaN(splitArgs[1])){
-                            conditionalQuery = {
-                                _server: receivedMessage.guild.id,
-                                $set:{
-                                    _player_threshold: splitArgs[1]
-                                }
-                            };
-                            playerThreshold = splitArgs[1]
-                        }
-                    }
-                }else if ((splitArgs[0] === "minimum decks")){
-                    if (parseInt(splitArgs[1])){
-                        if (!isNaN(splitArgs[1])){
-                            conditionalQuery = {
-                                _server: receivedMessage.guild.id,
-                                $set:{
-                                    _deck_threshold: splitArgs[1]
-                                }
-                            };
-                            deckThreshold = splitArgs[1]
-                        }
-                    }
-                }
-                else{
+            else {
+                if (splitArgs.length === 1) {
                     resolve("Invalid Input")
-                }
-                let newSave = {
-                    _server: receivedMessage.guild.id,
-                    _player_threshold: playerThreshold,
-                    _deck_threshold: deckThreshold,
-                };
-                bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, async function(err,res){
-                    if (res.n > 0){
-                        let savedValue = splitArgs[1];
-                        let resArr = [];
-                        resArr.push("Updated", splitArgs[0], savedValue);
-                        resolve(resArr)
+                } else {
+                    if ((splitArgs[0] === "minimum games")) {
+                        if (parseInt(splitArgs[1])) {
+                            if (!isNaN(splitArgs[1])) {
+                                conditionalQuery = {
+                                    _server: receivedMessage.guild.id,
+                                    $set: {
+                                        _player_threshold: splitArgs[1]
+                                    }
+                                };
+                                playerThreshold = splitArgs[1]
+                            }
+                        }
+                    } else if ((splitArgs[0] === "minimum decks")) {
+                        if (parseInt(splitArgs[1])) {
+                            if (!isNaN(splitArgs[1])) {
+                                conditionalQuery = {
+                                    _server: receivedMessage.guild.id,
+                                    $set: {
+                                        _deck_threshold: splitArgs[1]
+                                    }
+                                };
+                                deckThreshold = splitArgs[1]
+                            }
+                        }
+                    } else if ((splitArgs[0] === "points gained")) {
+                        if (parseInt(splitArgs[1])) {
+                            if (!isNaN(splitArgs[1])) {
+                                conditionalQuery = {
+                                    _server: receivedMessage.guild.id,
+                                    $set: {
+                                        _points_gained: splitArgs[1]
+                                    }
+                                };
+                                pointsGained = splitArgs[1]
+                            }
+                        }
+                    } else if ((splitArgs[0] === "points lost")) {
+                        if (parseInt(splitArgs[1])) {
+                            if (!isNaN(splitArgs[1])) {
+                                conditionalQuery = {
+                                    _server: receivedMessage.guild.id,
+                                    $set: {
+                                        _points_lost: splitArgs[1]
+                                    }
+                                };
+                                pointsLost = splitArgs[1]
+                            }
+                        }
+                    } else {
+                        resolve("Invalid Input")
                     }
-                    else{
-                        let newSaveRes = await bootstrap.LeagueHelper.createNewConfigs(receivedMessage, newSave);
-                        if (newSaveRes !== "Error connecting to DB"){
+                    let newSave = {
+                        _server: receivedMessage.guild.id,
+                        _player_threshold: playerThreshold,
+                        _deck_threshold: deckThreshold,
+                        _points_gained: pointsGained,
+                        _points_lost: pointsLost
+                    };
+                    bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, async function (err, res) {
+                        if (res.n > 0) {
                             let savedValue = splitArgs[1];
                             let resArr = [];
-                            resArr.push("New Save", splitArgs[0], savedValue);
+                            resArr.push("Updated", splitArgs[0], savedValue);
                             resolve(resArr)
-                        }else{
-                            resolve("Error connecting to DB")
+                        } else {
+                            let newSaveRes = await bootstrap.LeagueHelper.createNewConfigs(receivedMessage, newSave);
+                            if (newSaveRes !== "Error connecting to DB") {
+                                let savedValue = splitArgs[1];
+                                let resArr = [];
+                                resArr.push("New Save", splitArgs[0], savedValue);
+                                resolve(resArr)
+                            } else {
+                                resolve("Error connecting to DB")
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
         })
     },

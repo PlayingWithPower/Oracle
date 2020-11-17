@@ -61,18 +61,31 @@ module.exports = {
             }).then(function(passingResult){
                 if (passingResult.length > 0){
                     let matchResults = [];
+                    let matchPoints = [];
                     for (let i=0; i <passingResult.length; i++){
                         let pasRes = passingResult[i]._player1Deck;
                         if (passingResult[i]._player1Deck === "Rogue"){
                             pasRes = passingResult[i]._player1Rogue + " | Rogue"
                         }
                         if (passingResult[i]._player1 === personLookedUp){
-                            let exists = matchResults.find(el => el[0] === pasRes);
-                            if (exists) {
-                                exists[1] += 1;
-                              } else {
-                                matchResults.push([pasRes, 1, 0]);
-                              }
+                            if (passingResult[i]._player1Points !== undefined){
+                                let exists = matchResults.find(el => el[0] === pasRes);
+                                if (exists) {
+                                    exists[1] += 1;
+                                    exists[2] += parseInt(passingResult[i]._player1Points)
+                                } else {
+                                    matchResults.push([pasRes, 1, parseInt(passingResult[i]._player1Points), 0, 0]);
+                                }
+                            }
+                            else{
+                                let exists = matchResults.find(el => el[0] === pasRes);
+                                if (exists) {
+                                    exists[1] += 1;
+                                    exists[2] += bootstrap.pointsGained;
+                                } else {
+                                    matchResults.push([pasRes, 1, bootstrap.pointsGained, 0, 0]);
+                                }
+                            }
                         }
 
                         pasRes = passingResult[i]._player2Deck;
@@ -80,12 +93,24 @@ module.exports = {
                             pasRes = passingResult[i]._player2Rogue + " | Rogue"
                         }
                         if (passingResult[i]._player2 === personLookedUp){
-                        let exists2 = matchResults.find(el => el[0] === pasRes);
-                        if (exists2) {
-                            exists2[2] += 1;
-                            } else {
-                            matchResults.push([pasRes, 0, 1]);
-                            } 
+                            if (passingResult[i]._player2Points !== undefined){
+                                let exists2 = matchResults.find(el => el[0] === pasRes);
+                                if (exists2) {
+                                    exists2[3] += 1;
+                                    exists2[4] += parseInt(passingResult[i]._player2Points)
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player2Points)]);
+                                }
+                            }
+                            else{
+                                let exists2 = matchResults.find(el => el[0] === pasRes);
+                                if (exists2) {
+                                    exists2[3] += 1;
+                                    exists2[4] += bootstrap.pointsLost;
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                }
+                            }
                         }
 
                         pasRes = passingResult[i]._player3Deck;
@@ -93,11 +118,23 @@ module.exports = {
                             pasRes = passingResult[i]._player3Rogue + " | Rogue"
                         }
                         if (passingResult[i]._player3 === personLookedUp){
-                        let exists3 = matchResults.find(el => el[0] === pasRes);
-                        if (exists3) {
-                            exists3[2] += 1;
-                            } else {
-                            matchResults.push([pasRes, 0, 1]);
+                            if (passingResult[i]._player3Points !== undefined){
+                                let exists3 = matchResults.find(el => el[0] === pasRes);
+                                if (exists3) {
+                                    exists3[3] += 1;
+                                    exists3[4] += parseInt(passingResult[i]._player3Points)
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player3Points)]);
+                                }
+                            }
+                            else{
+                                let exists3 = matchResults.find(el => el[0] === pasRes);
+                                if (exists3) {
+                                    exists3[3] += 1;
+                                    exists3[4] += bootstrap.pointsLost;
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                }
                             }
                         }
 
@@ -106,15 +143,27 @@ module.exports = {
                             pasRes = passingResult[i]._player4Rogue + " | Rogue"
                         }
                         if (passingResult[i]._player4 === personLookedUp){
-                        let exists4 = matchResults.find(el => el[0] === pasRes);
-                        if (exists4) {
-                            exists4[2] += 1;
-                            } else {
-                            matchResults.push([pasRes, 0, 1]);
+                            if (passingResult[i]._player4Points !== undefined){
+                                let exists4 = matchResults.find(el => el[0] === pasRes);
+                                if (exists4) {
+                                    exists4[3] += 1;
+                                    exists4[4] += parseInt(passingResult[i]._player4Points)
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player4Points)]);
+                                }
+                            }
+                            else{
+                                let exists4 = matchResults.find(el => el[0] === pasRes);
+                                if (exists4) {
+                                    exists4[3] += 1;
+                                    exists4[4] += bootstrap.pointsLost;
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                }
                             }
                         }
                     }
-                    passedArray.push("Profile Look Up",matchResults, currentSeason, lookUpID)
+                    passedArray.push("Profile Look Up", matchResults, currentSeason, lookUpID)
                 }
                 else{
                     passedArray.push("No On-Going Season", passingResult, lookUpID)

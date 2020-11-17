@@ -35,5 +35,11 @@ module.exports = {
             let configGet = await bootstrap.LeagueObj.configGet(guild);
             resolve(configGet)
        })
-   }
+   },
+    async getThresholds(guild){
+        return new Promise (async (resolve, reject)=>{
+            let configGet = await bootstrap.LeagueObj.configGet(guild);
+            resolve(configGet)
+        })
+    }
 }

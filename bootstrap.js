@@ -38,6 +38,10 @@ const messageColorRed = "#af0000";
 const messageColorGreen = "#5fff00";
 const messageColorBlue = "#0099ff";
 
+//Points
+const pointsGained = 30;
+const pointsLost = 10;
+
 //Data
 const Data = require('./data/decklists.json');
 
@@ -81,6 +85,10 @@ exports.botListeningPrefix = botListeningPrefix;
 exports.messageColorRed = messageColorRed;
 exports.messageColorGreen = messageColorGreen;
 exports.messageColorBlue = messageColorBlue;
+
+//Points Export
+exports.pointsGained = pointsGained;
+exports.pointsLost = pointsLost;
 
 //Data Export
 exports.Data = Data;
