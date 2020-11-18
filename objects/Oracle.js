@@ -1241,14 +1241,14 @@ module.exports = {
             return
         }
         // Check to make sure the right amount of users tagged
-        let formattedUsers = []
+        let formattedUsers = [];
         args.forEach((isUser)=>{
             // console.log(isUser.slice(0,2))
             if (isUser.slice(0,2) === "<@" && isUser[isUser.length - 1] == ">"){
                 formattedUsers.push(isUser)
             }
-        })
-        if (formattedUsers.length < 3 || formattedUsers.length > 3) {
+        });
+        if(formattedUsers.length !== 3) {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")
