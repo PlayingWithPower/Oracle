@@ -643,7 +643,7 @@ module.exports = {
                     let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][3])*100);
                     let username = results[i][0][0];
                     let gamesPlayed = (results[i][0][1] + results[i][0][3]);
-                    elo = (results[i][0][2]) - (results[i][0][4]) + 1000;
+                    elo += (results[i][0][2]) - (results[i][0][4]);
                     if (allCheck){
                         unsortedResults.push([username,calculatedWinrate, results[i][0][1], results[i][0][3]]);
                     }
@@ -1612,7 +1612,7 @@ module.exports = {
                 .addFields(
                     { name: 'User', value: "<@"+returnArr[2]+">", inline: true },
                     { name: 'Current Deck', value: returnArr[4], inline: true },
-                    { name: 'Score', value: 1000, inline: true },
+                    { name: 'Score', value: bootstrap.startingElo, inline: true },
                 );
             generalChannel.send(profileEmbed);
             const matchesEmbed = new bootstrap.Discord.MessageEmbed()
