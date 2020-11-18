@@ -185,12 +185,16 @@ module.exports = {
             if (adminPrivs.length === 0){
                 adminPrivs = "None"
             }
+            let topThreshold = 10;
+            if (returnArr._top_threshold !== undefined ){
+                topThreshold = parseInt(returnArr._top_threshold)
+            }
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying information about your configurations")
                 .addFields(
                     {name: "Minimum Games (Minimum number of games to appear on !top)", value: returnArr._player_threshold},
-                    {name: "Maximum Top (Maximum number of players to appear on !top)", value: returnArr._top_threshold},
+                    {name: "Maximum Top (Maximum number of players to appear on !top)", value: topThreshold},
                     {name: "Minimum Decks (Minimum number of games on a deck to appear on !deckstats)", value: returnArr._deck_threshold},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
