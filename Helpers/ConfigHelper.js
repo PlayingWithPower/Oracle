@@ -18,10 +18,10 @@ module.exports = {
    isUserAdmin(receivedMessage, roleName)
    {
        // Admin check from issuer.
-       let isAdmin = false
+       let isAdmin = false;
        for (let i = 0; i < roleName.length; i++){
            if(receivedMessage.member.roles.cache.some(r => "<@&"+r.id+">" === roleName[i])){
-               isAdmin = true
+               isAdmin = true;
                break;
            }
        }
@@ -42,4 +42,4 @@ module.exports = {
             resolve(configGet)
         })
     }
-}
+};

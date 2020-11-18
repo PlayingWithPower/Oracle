@@ -61,7 +61,6 @@ module.exports = {
             }).then(function(passingResult){
                 if (passingResult.length > 0){
                     let matchResults = [];
-                    let matchPoints = [];
                     for (let i=0; i <passingResult.length; i++){
                         let pasRes = passingResult[i]._player1Deck;
                         if (passingResult[i]._player1Deck === "Rogue"){

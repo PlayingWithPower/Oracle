@@ -85,52 +85,98 @@ module.exports = {
                 }
                 passingResult = res;
             }).then(function(passingResult){
+                console.log(passingResult)
                 if (passingResult.length > 0){
-                        for (let i=0; i <passingResult.length; i++){
+                        for (let i=0; i <passingResult.length; i++) {
                             let pasRes = passingResult[i]._player1;
-                            let exists = matchResults.find(el => el[0] === pasRes);
                             if (passingResult[i]._player1 === personLookedUp){
-                                if (exists) {
-                                    exists[1] += 1;
-                                } else {
-                                    matchResults.push([pasRes, 1, 0]);
+                                if (passingResult[i]._player1Points !== undefined){
+                                    let exists = matchResults.find(el => el[0] === pasRes);
+                                    if (exists) {
+                                        exists[1] += 1;
+                                        exists[2] += parseInt(passingResult[i]._player1Points)
+                                    } else {
+                                        matchResults.push([pasRes, 1, parseInt(passingResult[i]._player1Points), 0, 0]);
+                                    }
+                                }
+                                else{
+                                    let exists = matchResults.find(el => el[0] === pasRes);
+                                    if (exists) {
+                                        exists[1] += 1;
+                                        exists[2] += bootstrap.pointsGained;
+                                    } else {
+                                        matchResults.push([pasRes, 1, bootstrap.pointsGained, 0, 0]);
+                                    }
                                 }
                             }
+
 
                             pasRes = passingResult[i]._player2;
-                            if (passingResult[i]._player2 === personLookedUp){
-                            let exists2 = matchResults.find(el => el[0] === pasRes);
-                            if (exists2) {
-                                exists2[2] += 1;
+                            if (passingResult[i]._player2 === personLookedUp) {
+                                if (passingResult[i]._player2Points !== undefined) {
+                                    let exists2 = matchResults.find(el => el[0] === pasRes);
+                                    if (exists2) {
+                                        exists2[3] += 1;
+                                        exists2[4] += parseInt(passingResult[i]._player2Points)
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player2Points)]);
+                                    }
                                 } else {
-                                matchResults.push([pasRes, 0, 1]);
+                                    let exists2 = matchResults.find(el => el[0] === pasRes);
+                                    if (exists2) {
+                                        exists2[3] += 1;
+                                        exists2[4] += bootstrap.pointsLost;
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                    }
                                 }
                             }
-
                             pasRes = passingResult[i]._player3;
-                            if (passingResult[i]._player3 === personLookedUp){
-                            let exists3 = matchResults.find(el => el[0] === pasRes);
-                            if (exists3) {
-                                exists3[2] += 1;
+                            if (passingResult[i]._player3 === personLookedUp) {
+                                if (passingResult[i]._player3Points !== undefined) {
+                                    let exists3 = matchResults.find(el => el[0] === pasRes);
+                                    if (exists3) {
+                                        exists3[3] += 1;
+                                        exists3[4] += parseInt(passingResult[i]._player3Points)
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player3Points)]);
+                                    }
                                 } else {
-                                matchResults.push([pasRes, 0, 1]);
+                                    let exists3 = matchResults.find(el => el[0] === pasRes);
+                                    if (exists3) {
+                                        exists3[3] += 1;
+                                        exists3[4] += bootstrap.pointsLost;
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                    }
                                 }
                             }
-
                             pasRes = passingResult[i]._player4;
-                            if (passingResult[i]._player4 === personLookedUp){
-                            let exists4 = matchResults.find(el => el[0] === pasRes);
-                            if (exists4) {
-                                exists4[2] += 1;
+                            if (passingResult[i]._player4 === personLookedUp) {
+                                if (passingResult[i]._player4Points !== undefined) {
+                                    let exists4 = matchResults.find(el => el[0] === pasRes);
+                                    if (exists4) {
+                                        exists4[3] += 1;
+                                        exists4[4] += parseInt(passingResult[i]._player4Points)
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player4Points)]);
+                                    }
                                 } else {
-                                matchResults.push([pasRes, 0, 1]);
+                                    let exists4 = matchResults.find(el => el[0] === pasRes);
+                                    if (exists4) {
+                                        exists4[3] += 1;
+                                        exists4[4] += bootstrap.pointsLost;
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                    }
                                 }
+                            }
                         }
+                    } else {
+                        resolve("Can't find deck")
                     }
-                }else{
-                    resolve("Can't find deck")
-                }
             }).then(function(){
+                console.log(matchResults)
                 resolve(matchResults)
             })
         })

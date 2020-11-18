@@ -41,6 +41,7 @@ const messageColorBlue = "#0099ff";
 //Points
 const pointsGained = 30;
 const pointsLost = 10;
+const startingElo = 1000;
 
 //Data
 const Data = require('./data/decklists.json');
@@ -89,6 +90,7 @@ exports.messageColorBlue = messageColorBlue;
 //Points Export
 exports.pointsGained = pointsGained;
 exports.pointsLost = pointsLost;
+exports.startingElo = startingElo;
 
 //Data Export
 exports.Data = Data;
