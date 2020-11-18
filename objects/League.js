@@ -67,7 +67,7 @@ module.exports = {
             let deckThreshold = 10;
             let topThreshold = 10;
           
-            if ((splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks") && (splitArgs[0]!== "maximum top")){
+            if ((splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks") && (splitArgs[0]!== "leaderboard length")){
                 resolve("Invalid Input")
             }
             else if (splitArgs.length === 1){
@@ -99,7 +99,7 @@ module.exports = {
                         }
                     }
                 }
-                else if ((splitArgs[0] === "maximum top")){
+                else if ((splitArgs[0] === "leaderboard length")){
                     if (parseInt(splitArgs[1])){
                         if (!isNaN(splitArgs[1])){
                             conditionalQuery = {

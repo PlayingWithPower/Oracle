@@ -194,7 +194,7 @@ module.exports = {
                 .setAuthor("Displaying information about your configurations")
                 .addFields(
                     {name: "Minimum Games (Minimum number of games to appear on !top)", value: returnArr._player_threshold},
-                    {name: "Maximum Top (Maximum number of players to appear on !top)", value: topThreshold},
+                    {name: "Leaderboard Length - The number of players that show up on the leaderboard (!top)", value: topThreshold},
                     {name: "Minimum Decks (Minimum number of games on a deck to appear on !deckstats)", value: returnArr._deck_threshold},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
@@ -316,7 +316,7 @@ module.exports = {
         !setconfig <Type> | <Value>\n\
         The types of configurations are:\n\
         'Minimum Games (A **number**)', \n\
-        'Maximum Top (A **number**)', \n\
+        'Leaderboard Length (A **number**)', \n\
         'Minimum Decks (A **number**)', \n\
         **Confused on what these mean? Try !help setconfig**")
                 .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
