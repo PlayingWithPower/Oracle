@@ -595,9 +595,10 @@ module.exports = {
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
         let thresholds = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
+        
         let mentionValues = [];
         let lookUpUsers;
-        let elo = bootstrap.startingElo
+        let elo = bootstrap.startingElo;
 
         let allCheck = false;
 
@@ -637,7 +638,6 @@ module.exports = {
         let unsortedResults = [];
         const resultsMsg = new bootstrap.Discord.MessageEmbed();
         Promise.all(lookUpUsers).then(results => {
-            console.log(results)
             for (let i = 0; i < results.length; i++){
                 if (results[i] !== "Can't find deck"){
                     let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][3])*100);
@@ -658,13 +658,13 @@ module.exports = {
                 return parseFloat(b[2]) - parseFloat(a[2]);
             });
 
+            const maxEmbedSize = 975;
             let sortedResults = unsortedResults;
             let gamesThreshold = 5;
             let topPlayersThreshold = 10;
             let listOfPlayers = "";
             let listOfWinrates = "";
             let listOfScores = "";
-            let maxEmbedSize = 975;
             let playersOnList = 0;
             let listOfWins = "";
 

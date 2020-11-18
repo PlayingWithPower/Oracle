@@ -85,7 +85,6 @@ module.exports = {
                 }
                 passingResult = res;
             }).then(function(passingResult){
-                console.log(passingResult)
                 if (passingResult.length > 0){
                         for (let i=0; i <passingResult.length; i++) {
                             let pasRes = passingResult[i]._player1;
@@ -176,7 +175,6 @@ module.exports = {
                         resolve("Can't find deck")
                     }
             }).then(function(){
-                console.log(matchResults)
                 resolve(matchResults)
             })
         })
