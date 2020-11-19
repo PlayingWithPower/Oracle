@@ -598,7 +598,6 @@ module.exports = {
         
         let mentionValues = [];
         let lookUpUsers;
-        let elo = bootstrap.startingElo;
 
         let allCheck = false;
 
@@ -639,6 +638,7 @@ module.exports = {
         const resultsMsg = new bootstrap.Discord.MessageEmbed();
         Promise.all(lookUpUsers).then(results => {
             for (let i = 0; i < results.length; i++){
+                let elo = bootstrap.startingElo;
                 if (results[i] !== "Can't find deck"){
                     let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][3])*100);
                     let username = results[i][0][0];
