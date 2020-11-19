@@ -185,17 +185,33 @@ module.exports = {
         let returnArr = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id);
         if (returnArr !== "No configs"){
             let adminPrivs = returnArr._admin;
-            if (adminPrivs.length === 0){
+            if (returnArr._admin.length === 0){
                 adminPrivs = "None"
+            }
+            let playerThreshold = returnArr._player_threshold;
+            if (returnArr._player_threshold == undefined){
+                playerThreshold = "10"
+            }
+            let deckThreshold = returnArr._deck_threshold;
+            if (returnArr._deck_threshold == undefined){
+                deckThreshold = "5"
+            }
+            let pointsGained = returnArr._points_gained;
+            if (returnArr._points_gained == undefined){
+                pointsGained = bootstrap.pointsGained.toString()
+            }
+            let pointsLost = returnArr._points_lost;
+            if (returnArr._points_lost == undefined){
+                pointsLost = bootstrap.pointsLost.toString()
             }
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying information about your configurations")
                 .addFields(
-                    {name: "Minimum Games (to be appear on !top)", value: returnArr._player_threshold},
-                    {name: "Minimum Decks (to appear on !deckstats)", value: returnArr._deck_threshold},
-                    {name: "Points Gained (per win)", value: returnArr._points_gained},
-                    {name: "Points Lost (per loss)", value: returnArr._points_lost},
+                    {name: "Minimum Games (to be appear on !top)", value: playerThreshold},
+                    {name: "Minimum Decks (to appear on !deckstats)", value:deckThreshold},
+                    {name: "Points Gained (per win)", value: pointsGained},
+                    {name: "Points Lost (per loss)", value: pointsLost},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
                 .setFooter("Confused by what these thresholds mean? Use !help setconfig \n\Want to edit these values? Use !setconfig");

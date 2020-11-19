@@ -19,10 +19,12 @@ module.exports = {
    {
        // Admin check from issuer.
        let isAdmin = false;
-       for (let i = 0; i < roleName.length; i++){
-           if(receivedMessage.member.roles.cache.some(r => "<@&"+r.id+">" === roleName[i])){
-               isAdmin = true;
-               break;
+       if (roleName !== undefined){
+           for (let i = 0; i < roleName.length; i++){
+               if(receivedMessage.member.roles.cache.some(r => "<@&"+r.id+">" === roleName[i])){
+                   isAdmin = true;
+                   break;
+               }
            }
        }
        if (receivedMessage.member.hasPermission("ADMINISTRATOR")){
