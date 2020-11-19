@@ -18,11 +18,13 @@ module.exports = {
    isUserAdmin(receivedMessage, roleName)
    {
        // Admin check from issuer.
-       let isAdmin = false
-       for (let i = 0; i < roleName.length; i++){
-           if(receivedMessage.member.roles.cache.some(r => "<@&"+r.id+">" === roleName[i])){
-               isAdmin = true
-               break;
+       let isAdmin = false;
+       if (roleName !== undefined){
+           for (let i = 0; i < roleName.length; i++){
+               if(receivedMessage.member.roles.cache.some(r => "<@&"+r.id+">" === roleName[i])){
+                   isAdmin = true;
+                   break;
+               }
            }
        }
        if (receivedMessage.member.hasPermission("ADMINISTRATOR")){
@@ -35,5 +37,11 @@ module.exports = {
             let configGet = await bootstrap.LeagueObj.configGet(guild);
             resolve(configGet)
        })
-   }
-}
+   },
+    async getThresholds(guild){
+        return new Promise (async (resolve, reject)=>{
+            let configGet = await bootstrap.LeagueObj.configGet(guild);
+            resolve(configGet)
+        })
+    }
+};
