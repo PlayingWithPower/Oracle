@@ -43,5 +43,5 @@ module.exports = {
             let configGet = await bootstrap.LeagueObj.configGet(guild);
             resolve(configGet)
         })
-    }
+    },
 };

@@ -86,6 +86,9 @@ exampleDictionary =
     without the need for this command. This command will let you fine tune this experience in a variety of categories. These categories are:\n\n\
     'Minimum Games' - The minimum number of games before a player shows up in !top\n\
     'Minimum Decks' - The minimum number of games before a deck shows up in !deckstats\n\
+    'Leaderboard Length' - The number of players that show up on the leaderboard (!top)\n\
+    'Points Gained' - The number of points gained per win\n\
+    'Points Lost' - The number of points lost per lose\n\
     'Admin' - The Discord roles which are allowed to use admin commands.\n\n\
     Example usage: !setconfig <Config Type> | <New Value>. !setconfig Player Threshold | 10",
 
