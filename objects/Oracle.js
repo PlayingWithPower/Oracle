@@ -185,7 +185,7 @@ module.exports = {
         let returnArr = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id);
         if (returnArr !== "No configs"){
             let adminPrivs = returnArr._admin;
-            if (returnArr._admin.length === 0){
+            if (adminPrivs.length === 0){
                 adminPrivs = "None"
             }
             let playerThreshold = returnArr._player_threshold;
@@ -204,6 +204,10 @@ module.exports = {
             if (returnArr._points_lost == undefined){
                 pointsLost = bootstrap.pointsLost.toString()
             }
+            let topThreshold = 10;
+            if (returnArr._top_threshold !== undefined ){
+                topThreshold = parseInt(returnArr._top_threshold)
+            }
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying information about your configurations")
@@ -212,6 +216,7 @@ module.exports = {
                     {name: "Minimum Decks (to appear on !deckstats)", value:deckThreshold},
                     {name: "Points Gained (per win)", value: pointsGained},
                     {name: "Points Lost (per loss)", value: pointsLost},
+                    {name: "Leaderboard Length - The number of players that show up on the leaderboard (!top)", value: topThreshold},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
                 .setFooter("Confused by what these thresholds mean? Use !help setconfig \n\Want to edit these values? Use !setconfig");
@@ -333,6 +338,9 @@ module.exports = {
         The types of configurations are:\n\
         'Minimum Games (A **number**)', \n\
         'Minimum Decks (A **number**)', \n\
+        'Leaderboard Length (A **number**)', \n\
+        'Points Gained' - The number of points gained per win\n\
+        'Points Lost' - The number of points lost per lose\n\
         **Confused on what these mean? Try !help setconfig**")
                 .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
             generalChannel.send(errorEmbed)
@@ -610,8 +618,7 @@ module.exports = {
     async top(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
-        let thresholds = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
-        
+
         let mentionValues = [];
         let lookUpUsers;
 
@@ -675,8 +682,9 @@ module.exports = {
             });
 
             const maxEmbedSize = 975;
+            let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
             let sortedResults = unsortedResults;
-            let gamesThreshold = 5;
+            let minimumGamesThreshold = 5;
             let topPlayersThreshold = 10;
             let listOfPlayers = "";
             let listOfWinrates = "";
@@ -684,16 +692,19 @@ module.exports = {
             let playersOnList = 0;
             let listOfWins = "";
 
-            if (thresholds !== "No configs"){ gamesThreshold = thresholds._player_threshold }
+            if (getDeckThreshold !== "No configs"){
+                minimumGamesThreshold = getDeckThreshold._player_threshold;
+                topPlayersThreshold = getDeckThreshold._top_threshold;
+            }
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
-                .setFooter("Note: The threshold to appear on this list is " + gamesThreshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
+                .setFooter("Note: The threshold to appear on this list is " + minimumGamesThreshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
             if (allCheck){ //When a user types !top | all
                 resultsMsg
                     .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
                 for (let i = 0; i < sortedResults.length; i++){
                     if (playersOnList >= topPlayersThreshold){break}
-                    if (sortedResults[i][3] < gamesThreshold){continue}
+                    if (sortedResults[i][3] < minimumGamesThreshold){continue}
                     if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                         break;
                     }else{
@@ -716,7 +727,7 @@ module.exports = {
                     .setAuthor("Displaying Top Players for the season name: " + splitArgs[1]);
                 for (let i = 0; i < sortedResults.length; i++){
                     if (playersOnList >= topPlayersThreshold){break}
-                    if (sortedResults[i][3] < gamesThreshold){continue}
+                    if (sortedResults[i][3] < minimumGamesThreshold){continue}
                     if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                         break;
                     }else{
@@ -734,7 +745,7 @@ module.exports = {
                   );
                 }
             }
-            resultsMsg.setFooter("Note: The threshold to appear on this list is " + gamesThreshold.toString() + " game(s)\n" +
+            resultsMsg.setFooter("Note: The threshold to appear on this list is " + minimumGamesThreshold.toString() + " game(s)\n" +
                 "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
             if (args.length === 0){
                 resultsMsg

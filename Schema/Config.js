@@ -6,6 +6,7 @@ var config = new mongoose.Schema({
     _deck_threshold: String,
     _points_lost: String,
     _points_gained: String,
+    _top_threshold: String,
     _timeout: String,
     _admin: Array
 });

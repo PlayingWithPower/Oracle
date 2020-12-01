@@ -67,11 +67,11 @@ module.exports = {
             let deckThreshold = 10;
             let pointsGained = 30;
             let pointsLost = 10;
-            let admin = "";
-            let adminList;
+            let topThreshold = 10;
 
             if ((splitArgs[0]!== "points gained") &&(splitArgs[0]!== "points lost")
-                &&(splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks")) {
+                &&(splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks")
+                && (splitArgs[0]!== "leaderboard length")) {
                 resolve("Invalid Input")
             }
             else {
@@ -126,7 +126,20 @@ module.exports = {
                                 pointsLost = splitArgs[1]
                             }
                         }
-                    } else {
+                    } else if ((splitArgs[0] === "leaderboard length")){
+                        if (parseInt(splitArgs[1])){
+                            if (!isNaN(splitArgs[1])){
+                                conditionalQuery = {
+                                    _server: receivedMessage.guild.id,
+                                    $set:{
+                                        _top_threshold: splitArgs[1]
+                                    }
+                                };
+                                topThreshold = splitArgs[1]
+                            }
+                        }
+                    }
+                    else {
                         resolve("Invalid Input")
                     }
                     let newSave = {
@@ -134,7 +147,9 @@ module.exports = {
                         _player_threshold: playerThreshold,
                         _deck_threshold: deckThreshold,
                         _points_gained: pointsGained,
-                        _points_lost: pointsLost
+                        _points_lost: pointsLost,
+                        _top_threshold: topThreshold,
+                        _admin: [],
                     };
                     bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, async function (err, res) {
                         if (res.n > 0) {
