@@ -86,6 +86,9 @@ exampleDictionary =
     without the need for this command. This command will let you fine tune this experience in a variety of categories. These categories are:\n\n\
     'Minimum Games' - The minimum number of games before a player shows up in !top\n\
     'Minimum Decks' - The minimum number of games before a deck shows up in !deckstats\n\
+    'Leaderboard Length' - The number of players that show up on the leaderboard (!top)\n\
+    'Points Gained' - The number of points gained per win\n\
+    'Points Lost' - The number of points lost per lose\n\
     'Admin' - The Discord roles which are allowed to use admin commands.\n\n\
     Example usage: !setconfig <Config Type> | <New Value>. !setconfig Player Threshold | 10",
 
@@ -119,7 +122,7 @@ exampleDictionary =
     deckinfo: "Use this function to find information about a specific deck. This command will return information on a variety of topics pertaining to the specified deck. Examples of information include: Deck Name, Commander, Color Identity, Deck List, and much more\n\
     Generic usage: !deckinfo <Deck Name>\n\
     Example usage: !deckinfo Gitrog Dredge",
-    log: "Use this command once you have started a season to record game records into the bot's system. To successfully log matches, **the winner must type the log command and mention the three losers**. Logging matches is important part of this bot and will allow you to\
+    log: "Use this command once you have started a season to record game records into the bot's system. To successfully log matches, **the winner must type the log command and mention the three losers**. Logging matches is an important part of this bot and will allow you to\
      record and review statistics about past games. All users must be **registered, using a deck and a season must be started** to successfully use this command\n\n\
     Generic usage: !log @loser1 @loser2 @loser3\n\
     Example usage: !log @Ryan @Cruz @Ben",

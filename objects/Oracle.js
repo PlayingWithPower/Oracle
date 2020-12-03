@@ -1,5 +1,8 @@
 const bootstrap = require('../bootstrap.js');
 
+const pointsGained = 30;
+const pointsLost = 10;
+
 module.exports = {
     tutorial(receivedMessage){
         const tutorialEmbed = new bootstrap.Discord.MessageEmbed()
@@ -182,15 +185,38 @@ module.exports = {
         let returnArr = await bootstrap.LeagueObj.configGet(receivedMessage.guild.id);
         if (returnArr !== "No configs"){
             let adminPrivs = returnArr._admin;
-            if (adminPrivs.length == 0){
+            if (adminPrivs.length === 0){
                 adminPrivs = "None"
+            }
+            let playerThreshold = returnArr._player_threshold;
+            if (returnArr._player_threshold == undefined){
+                playerThreshold = "10"
+            }
+            let deckThreshold = returnArr._deck_threshold;
+            if (returnArr._deck_threshold == undefined){
+                deckThreshold = "5"
+            }
+            let pointsGained = returnArr._points_gained;
+            if (returnArr._points_gained == undefined){
+                pointsGained = bootstrap.pointsGained.toString()
+            }
+            let pointsLost = returnArr._points_lost;
+            if (returnArr._points_lost == undefined){
+                pointsLost = bootstrap.pointsLost.toString()
+            }
+            let topThreshold = 10;
+            if (returnArr._top_threshold !== undefined ){
+                topThreshold = parseInt(returnArr._top_threshold)
             }
             const updatedEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying information about your configurations")
                 .addFields(
-                    {name: "Minimum Games (to be appear on !top)", value: returnArr._player_threshold},
-                    {name: "Minimum Decks (to appear on !deckstats)", value: returnArr._deck_threshold},
+                    {name: "Minimum Games (to be appear on !top)", value: playerThreshold},
+                    {name: "Minimum Decks (to appear on !deckstats)", value:deckThreshold},
+                    {name: "Points Gained (per win)", value: pointsGained},
+                    {name: "Points Lost (per loss)", value: pointsLost},
+                    {name: "Leaderboard Length - The number of players that show up on the leaderboard (!top)", value: topThreshold},
                     {name: "Admin Privileges", value: adminPrivs}
                 )
                 .setFooter("Confused by what these thresholds mean? Use !help setconfig \n\Want to edit these values? Use !setconfig");
@@ -312,6 +338,9 @@ module.exports = {
         The types of configurations are:\n\
         'Minimum Games (A **number**)', \n\
         'Minimum Decks (A **number**)', \n\
+        'Leaderboard Length (A **number**)', \n\
+        'Points Gained' - The number of points gained per win\n\
+        'Points Lost' - The number of points lost per lose\n\
         **Confused on what these mean? Try !help setconfig**")
                 .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
             generalChannel.send(errorEmbed)
@@ -589,6 +618,7 @@ module.exports = {
     async top(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
+
         let mentionValues = [];
         let lookUpUsers;
 
@@ -597,13 +627,6 @@ module.exports = {
         let argsWithCommas = args.toString();
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
         let splitArgs = argsWithSpaces.split("| ");
-
-        let topPlayersThreshold = 10;
-        let listOfPlayers = "";
-        let listOfWinrates = "";
-        let listOfScores = "";
-        let listOfWins = "";
-        let maxEmbedSize = 975;
 
         if (args.length === 0){
             returnArr.forEach(user =>{
@@ -638,13 +661,14 @@ module.exports = {
         const resultsMsg = new bootstrap.Discord.MessageEmbed();
         Promise.all(lookUpUsers).then(results => {
             for (let i = 0; i < results.length; i++){
+                let elo = bootstrap.startingElo;
                 if (results[i] !== "Can't find deck"){
-                    let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][2])*100);
-                    let elo = (30*(results[i][0][1])) - (10*(results[i][0][2])) + 1000;
+                    let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][3])*100);
                     let username = results[i][0][0];
-                    let gamesPlayed = (results[i][0][1] + results[i][0][2]);
+                    let gamesPlayed = (results[i][0][1] + results[i][0][3]);
+                    elo += (results[i][0][2]) - (results[i][0][4]);
                     if (allCheck){
-                        unsortedResults.push([username,calculatedWinrate, results[i][0][1], results[i][0][2]]);
+                        unsortedResults.push([username,calculatedWinrate, results[i][0][1], results[i][0][3]]);
                     }
                     else{
                         unsortedResults.push([username,calculatedWinrate,elo, gamesPlayed]);
@@ -657,25 +681,30 @@ module.exports = {
                 return parseFloat(b[2]) - parseFloat(a[2]);
             });
 
+            const maxEmbedSize = 975;
             let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
             let sortedResults = unsortedResults;
-            let threshold = 5;
+            let minimumGamesThreshold = 5;
             let topPlayersThreshold = 10;
             let listOfPlayers = "";
             let listOfWinrates = "";
             let listOfScores = "";
-            let maxEmbedSize = 975;
             let playersOnList = 0;
-            if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._player_threshold }
+            let listOfWins = "";
+
+            if (getDeckThreshold !== "No configs"){
+                minimumGamesThreshold = getDeckThreshold._player_threshold;
+                topPlayersThreshold = getDeckThreshold._top_threshold;
+            }
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)
-                .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
+                .setFooter("Note: The threshold to appear on this list is " + minimumGamesThreshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
             if (allCheck){ //When a user types !top | all
                 resultsMsg
                     .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
                 for (let i = 0; i < sortedResults.length; i++){
                     if (playersOnList >= topPlayersThreshold){break}
-                    if (sortedResults[i][3] < threshold){continue}
+                    if (sortedResults[i][3] < minimumGamesThreshold){continue}
                     if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                         break;
                     }else{
@@ -698,7 +727,7 @@ module.exports = {
                     .setAuthor("Displaying Top Players for the season name: " + splitArgs[1]);
                 for (let i = 0; i < sortedResults.length; i++){
                     if (playersOnList >= topPlayersThreshold){break}
-                    if (sortedResults[i][3] < threshold){continue}
+                    if (sortedResults[i][3] < minimumGamesThreshold){continue}
                     if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
                         break;
                     }else{
@@ -716,7 +745,7 @@ module.exports = {
                   );
                 }
             }
-            resultsMsg.setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\n" +
+            resultsMsg.setFooter("Note: The threshold to appear on this list is " + minimumGamesThreshold.toString() + " game(s)\n" +
                 "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
             if (args.length === 0){
                 resultsMsg
@@ -917,7 +946,7 @@ module.exports = {
             }
             usersList
                 .setColor(bootstrap.messageColorBlue)
-                .setTitle("People who've played this deck in the time frame provided.");
+                .setTitle("People who've played this deck in the season provided.");
             for (i = 0; i < returnArr[5].length; i++){
                 usersList.addFields(
                     {name: " \u200b", value: "<@!"+returnArr[5][i]+">", inline: true}
@@ -1241,7 +1270,14 @@ module.exports = {
             return
         }
         // Check to make sure the right amount of users tagged
-        if (args.length < 3 || args.length > 3) {
+        let formattedUsers = [];
+        args.forEach((isUser)=>{
+            // console.log(isUser.slice(0,2))
+            if (isUser.slice(0,2) === "<@" && isUser[isUser.length - 1] == ">"){
+                formattedUsers.push(isUser)
+            }
+        });
+        if(formattedUsers.length !== 3) {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")
@@ -1253,7 +1289,7 @@ module.exports = {
         }
         // Make sure every user in message (and message sender) are different users
         let tempArr = [];
-        args.forEach((userMentionValue)=>{
+        formattedUsers.forEach((userMentionValue)=>{
             tempArr.push(userMentionValue)
         });
         let addedMentionValues = "<@!" + sanitizedString + ">";
@@ -1269,13 +1305,14 @@ module.exports = {
         // Check if User who sent the message is registered
         let someNotRegistered = false;
         let mentionValues = [];
-        let cleanedArg0 = args[0].replace(/[<@!>]/g, '');
-        let cleanedArg1 = args[1].replace(/[<@!>]/g, '');
-        let cleanedArg2 = args[2].replace(/[<@!>]/g, '');
+        let cleanedArg0 = formattedUsers[0].replace(/[<@!>]/g, '');
+        let cleanedArg1 = formattedUsers[1].replace(/[<@!>]/g, '');
+        let cleanedArg2 = formattedUsers[2].replace(/[<@!>]/g, '');
         mentionValues.push([sanitizedString, receivedMessage],
             [cleanedArg0, receivedMessage],
             [cleanedArg1, receivedMessage],
             [cleanedArg2, receivedMessage]);
+
         let registerPromiseArray = mentionValues.map(bootstrap.GameHelper.checkRegister);
 
         Promise.all(registerPromiseArray).then(results => {
@@ -1323,7 +1360,7 @@ module.exports = {
                     UserIDs.push(sanitizedString);
                     // Check if Users tagged are registered
                     let ConfirmedUsers = 0;
-                    args.forEach(loser =>{
+                    formattedUsers.forEach(loser =>{
                         loser = loser.replace(/[<@!>]/g, '');
                         UserIDs.push(loser);
                         ConfirmedUsers++;
@@ -1344,6 +1381,8 @@ module.exports = {
                                         generalChannel.send(errorMsg);
                                     }
                                     else {
+
+
                                         UserIDs.forEach(player => {
                                             let findQuery = {_mentionValue: player, _server: receivedMessage.guild.id};
                                             bootstrap.User.findOne(findQuery, function(err, res){
@@ -1590,7 +1629,7 @@ module.exports = {
         let returnArr = await bootstrap.UserObj.profile(receivedMessage, args);
         let compareDeck = 0;
         let favDeck = "";
-        let elo = 1000;
+        let elo = bootstrap.startingElo;
         let overallWins = 0;
         let overallLosses = 0;
         let user = "<@"+receivedMessage.author+">";
@@ -1610,7 +1649,7 @@ module.exports = {
                 .addFields(
                     { name: 'User', value: "<@"+returnArr[2]+">", inline: true },
                     { name: 'Current Deck', value: returnArr[4], inline: true },
-                    { name: 'Score', value: 1000, inline: true },
+                    { name: 'Score', value: bootstrap.startingElo, inline: true },
                 );
             generalChannel.send(profileEmbed);
             const matchesEmbed = new bootstrap.Discord.MessageEmbed()
@@ -1619,13 +1658,14 @@ module.exports = {
             generalChannel.send(matchesEmbed)
         }
         else if (returnArr[0] === "Profile Look Up"){
-            let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
-            for (let i=0; i<returnArr[1].length;i++){
-                if (returnArr[1][i][1]+returnArr[1][i][2]>compareDeck) {
-                    compareDeck = returnArr[1][i][1]+returnArr[1][i][2];
-                    favDeck = returnArr[1][i][0]
+            let getThresholds = await bootstrap.ConfigHelper.getThresholds(receivedMessage.guild.id);
+            const decksAndStats = returnArr[1].map(obj => ([...obj]));
+            for (let i=0; i<decksAndStats.length;i++){
+                if (decksAndStats[i][1]+decksAndStats[i][3]>compareDeck) {
+                    compareDeck = decksAndStats[i][1]+decksAndStats[i][3];
+                    favDeck = decksAndStats[i][0]
                 }
-                elo += (30*(returnArr[1][i][1])) - (10*(returnArr[1][i][2]))
+                elo += decksAndStats[i][2] - decksAndStats[i][4]
             }
             const profileEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
@@ -1637,7 +1677,7 @@ module.exports = {
                     { name: 'Favorite Deck', value: favDeck, inline: true },
                 );
             let threshold = 5;
-            if (getDeckThreshold !== "No configs"){ threshold = getDeckThreshold._deck_threshold }
+            if (getThresholds !== "No configs"){ threshold = getThresholds._deck_threshold }
             const decksEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
                 .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
@@ -1646,15 +1686,15 @@ module.exports = {
             });
             sortedArray.forEach((deck) =>{
                 overallWins = overallWins + deck[1];
-                overallLosses = overallLosses + deck[2];
-                if (deck[1] + deck[2] < threshold){ }
+                overallLosses = overallLosses + deck[3];
+                if (deck[1] + deck[3] < threshold){ }
                 else{
                     decksEmbed
                         .addFields(
                             { name: " \u200b", value: deck[0]},
                             { name: 'Wins', value: deck[1], inline: true },
-                            { name: 'Losses', value: deck[2], inline: true },
-                            { name: 'Win Rate', value: Math.round((deck[1]/(deck[2]+deck[1])*100)) + "%", inline: true },
+                            { name: 'Losses', value: deck[3], inline: true },
+                            { name: 'Win Rate', value: Math.round((deck[1]/(deck[3]+deck[1])*100)) + "%", inline: true },
                         )
                 }
             });
