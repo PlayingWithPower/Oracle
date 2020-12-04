@@ -212,7 +212,7 @@ module.exports = {
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying information about your configurations")
                 .addFields(
-                    {name: "Minimum Games (to be appear on !top)", value: playerThreshold},
+                    {name: "Minimum Games (to appear on !top)", value: playerThreshold},
                     {name: "Minimum Decks (to appear on !deckstats)", value:deckThreshold},
                     {name: "Points Gained (per win)", value: pointsGained},
                     {name: "Points Lost (per loss)", value: pointsLost},
@@ -339,8 +339,8 @@ module.exports = {
         'Minimum Games (A **number**)', \n\
         'Minimum Decks (A **number**)', \n\
         'Leaderboard Length (A **number**)', \n\
-        'Points Gained' - The number of points gained per win\n\
-        'Points Lost' - The number of points lost per lose\n\
+        'Points Gained' - The **number** of points gained per win\n\
+        'Points Lost' - The **number** of points lost per lose\n\
         **Confused on what these mean? Try !help setconfig**")
                 .setFooter("A default set of configuration values are set for every server. Update these configs to fine tune your experience");
             generalChannel.send(errorEmbed)
@@ -693,8 +693,12 @@ module.exports = {
             let listOfWins = "";
 
             if (getDeckThreshold !== "No configs"){
-                minimumGamesThreshold = getDeckThreshold._player_threshold;
-                topPlayersThreshold = getDeckThreshold._top_threshold;
+                if (getDeckThreshold._player_threshold !== undefined){
+                    minimumGamesThreshold = getDeckThreshold._player_threshold;
+                }
+                if (getDeckThreshold._top_threshold !== undefined) {
+                    topPlayersThreshold = getDeckThreshold._top_threshold;
+                }
             }
             resultsMsg
                 .setColor(bootstrap.messageColorBlue)

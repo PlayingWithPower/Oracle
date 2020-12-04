@@ -74,6 +74,11 @@ module.exports = {
                 && (splitArgs[0]!== "leaderboard length")) {
                 resolve("Invalid Input")
             }
+            else if (!parseInt(splitArgs[1])){
+                if (isNaN(splitArgs[1])){
+                    resolve("Invalid Input")
+                }
+            }
             else {
                 if (splitArgs.length === 1) {
                     resolve("Invalid Input")
@@ -136,6 +141,8 @@ module.exports = {
                                     }
                                 };
                                 topThreshold = splitArgs[1]
+                            }else {
+                                resolve("Invalid Input")
                             }
                         }
                     }
