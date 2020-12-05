@@ -1385,8 +1385,6 @@ module.exports = {
                                         generalChannel.send(errorMsg);
                                     }
                                     else {
-
-
                                         UserIDs.forEach(player => {
                                             let findQuery = {_mentionValue: player, _server: receivedMessage.guild.id};
                                             bootstrap.User.findOne(findQuery, function(err, res){

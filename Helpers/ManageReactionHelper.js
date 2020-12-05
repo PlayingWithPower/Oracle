@@ -49,6 +49,14 @@ module.exports = {
                             bootstrap.GameObj.logMatch(grabMatchID, reaction.message).then(function(final) {
                                 bootstrap.GameObj.finishMatch(grabMatchID, reaction.message).then(async function () {
                                     const getThresholds = await bootstrap.ConfigHelper.getThresholds(channel.guild.id);
+                                    let pointsLost = 10
+                                    if (getThresholds._points_lost !== undefined){
+                                        pointsLost = getThresholds._points_lost
+                                    }
+                                    let pointsGained = 30
+                                    if (getThresholds._points_gained !== undefined){
+                                        pointsGained = getThresholds._points_gained
+                                    }
                                     const confirmMessage = new bootstrap.Discord.MessageEmbed()
                                         .setColor(bootstrap.messageColorGreen)
                                         .setAuthor("Sucessfully Logged Match: " + grabMatchID)
@@ -57,11 +65,11 @@ module.exports = {
                                         .addFields(
                                             {
                                                 name: "Winner",
-                                                value: "<@" + final[0] + "> gained " + getThresholds._points_gained + " points"
+                                                value: "<@" + final[0] + "> gained " + pointsGained + " points"
                                             },
-                                            {name: "Loser", value: "<@" + final[1] + "> lost " + getThresholds._points_lost + " points"},
-                                            {name: "Loser", value: "<@" + final[2] + "> lost " + getThresholds._points_lost + " points"},
-                                            {name: "Loser", value: "<@" + final[3] + "> lost " + getThresholds._points_lost + " points"},
+                                            {name: "Loser", value: "<@" + final[1] + "> lost " + pointsLost + " points"},
+                                            {name: "Loser", value: "<@" + final[2] + "> lost " + pointsLost + " points"},
+                                            {name: "Loser", value: "<@" + final[3] + "> lost " + pointsLost + " points"},
                                         );
                                     channel.send(confirmMessage);
                                     //console.log("Game #" + grabMatchID + " success")
