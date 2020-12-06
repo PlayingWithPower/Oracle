@@ -64,108 +64,92 @@ module.exports = {
         
         return new Promise((resolve, reject)=>{
             let conditionalQuery;
-            let playerThreshold = 10;
-            let deckThreshold = 10;
-            let pointsGained = 30;
-            let pointsLost = 10;
-            let topThreshold = 10;
+            // let playerThreshold = 10;
+            // let deckThreshold = 10;
+            // let pointsGained = bootstrap.pointsGained;
+            // let pointsLost = 10;
+            // let topThreshold = 10;
             let configToSet = splitArgs[0];
-            let userInput = splitArgs[1]
-
-            if ((configToSet!== "points gained") &&(configToSet!== "points lost")
-                &&(configToSet!== "minimum games") && (configToSet!== "minimum decks")
-                && (configToSet!== "leaderboard length")) {
+            let userInput = splitArgs[1];
+            if ((!isFinite(parseInt(userInput))) || (parseInt(userInput) < 0)){
                 resolve("Invalid Input")
             }
-            else if (!parseInt(userInput)){
-                    if (isNaN(userInput)){
-                            resolve("Invalid Input")
-                    }
-            }
-            else {
-                if (userInput < 0){
-                    resolve("Invalid Input")
-                }
-                if (splitArgs.length === 1) {
-                    resolve("Invalid Input")
-                } else {
-                    switch (configToSet) {
-                        case "minimum decks":
-                            conditionalQuery = {
-                                $set: {
-                                    _deck_threshold: userInput
-                                }
-                            };
-                            deckThreshold = userInput
-                            break;
-                        case "minimum games":
-                            conditionalQuery = {
-                                _server: receivedMessage.guild.id,
-                                $set: {
-                                    _player_threshold: userInput
-                                }
-                            };
-                            playerThreshold = userInput
-                            break;
-                        case "leaderboard length":
-                            conditionalQuery = {
-                                _server: receivedMessage.guild.id,
-                                $set: {
-                                    _top_threshold: userInput
-                                }
-                            };
-                            topThreshold = userInput
-                            break;
-                        case "points gained":
-                            conditionalQuery = {
-                                _server: receivedMessage.guild.id,
-                                $set: {
-                                    _points_gained: userInput
-                                }
-                            };
-                            pointsGained = userInput
-                            break;
-                        case "points lost":
-                            conditionalQuery = {
-                                _server: receivedMessage.guild.id,
-                                $set: {
-                                    _points_lost: userInput
-                                }
-                            };
-                            pointsLost = userInput
-                            break;
-                        default:
-                            resolve("Invalid Input")
-                }
-                    let newSave = {
+            switch (configToSet) {
+                case "minimum decks":
+                    conditionalQuery = {
                         _server: receivedMessage.guild.id,
-                        _player_threshold: playerThreshold,
-                        _deck_threshold: deckThreshold,
-                        _points_gained: pointsGained,
-                        _points_lost: pointsLost,
-                        _top_threshold: topThreshold,
-                        _admin: [],
-                    };
-                    bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, async function (err, res) {
-                        if (res.n > 0) {
-                            let savedValue = userInput;
-                            let resArr = [];
-                            resArr.push("Updated", configToSet, savedValue);
-                            resolve(resArr)
-                        } else {
-                            let newSaveRes = await bootstrap.LeagueHelper.createNewConfigs(receivedMessage, newSave);
-                            if (newSaveRes !== "Error connecting to DB") {
-                                let savedValue = userInput;
-                                let resArr = [];
-                                resArr.push("New Save", configToSet, savedValue);
-                                resolve(resArr)
-                            } else {
-                                resolve("Error connecting to DB")
-                            }
+                        $set: {
+                            _deck_threshold: userInput
                         }
-                    })
-                }
+                    };
+                    // deckThreshold = userInput
+                    break;
+                case "minimum games":
+                    conditionalQuery = {
+                        _server: receivedMessage.guild.id,
+                        $set: {
+                            _player_threshold: userInput
+                        }
+                    };
+                    // playerThreshold = userInput
+                    break;
+                case "leaderboard length":
+                    conditionalQuery = {
+                        _server: receivedMessage.guild.id,
+                        $set: {
+                            _top_threshold: userInput
+                        }
+                    };
+                    // topThreshold = userInput
+                    break;
+                case "points gained":
+                    conditionalQuery = {
+                        _server: receivedMessage.guild.id,
+                        $set: {
+                            _points_gained: userInput
+                        }
+                    };
+                    // pointsGained = userInput
+                    break;
+                case "points lost":
+                    conditionalQuery = {
+                        _server: receivedMessage.guild.id,
+                        $set: {
+                            _points_lost: userInput
+                        }
+                    };
+                    // pointsLost = userInput
+                    break;
+                default:
+                    resolve("Invalid Input")
             }
+            // let newSave = {
+            //     _server: receivedMessage.guild.id,
+            //     _player_threshold: playerThreshold,
+            //     _deck_threshold: deckThreshold,
+            //     _points_gained: pointsGained,
+            //     _points_lost: pointsLost,
+            //     _top_threshold: topThreshold,
+            //     _admin: [],
+            // };
+            bootstrap.Config.updateOne({_server: receivedMessage.guild.id}, conditionalQuery, async function (err, res) {
+                if (res.n > 0) {
+                    let savedValue = userInput;
+                    let resArr = [];
+                    resArr.push("Updated", configToSet, savedValue);
+                    resolve(resArr)
+                } else {
+                    let newSaveRes = await bootstrap.LeagueHelper.createNewConfigs(receivedMessage, newSave);
+                    if (newSaveRes !== "Error connecting to DB") {
+                        let savedValue = userInput;
+                        let resArr = [];
+                        resArr.push("New Save", configToSet, savedValue);
+                        resolve(resArr)
+                    } else {
+                        resolve("Error connecting to DB")
+                    }
+                }
+            })
         })
     },
     async adminAppend(receivedMessage, discordRoles){
