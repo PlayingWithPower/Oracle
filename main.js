@@ -56,15 +56,18 @@ bootstrap.Client.on('message', (receivedMessage) =>{
         processCommand(receivedMessage)
     }
     if (receivedMessage.content.indexOf("https://www.spelltable.com/game/") >= 0){
-        let index = receivedMessage.content.indexOf("https://www.spelltable.com/game/");
-        let urlSpectate = receivedMessage.content.slice(index+32);
-        urlSpectate = urlSpectate + "?spectate";
-        const spellTableEmbed = new bootstrap.Discord.MessageEmbed()
-            .setColor(bootstrap.messageColorBlue)
-            .addFields(
-                {name: "Click this link to spectate this game", value: "https://www.spelltable.com/game/"+urlSpectate}
-            );
-        receivedMessage.channel.send(spellTableEmbed);
+        const getUrls = require('get-urls')
+        for (let item of getUrls(receivedMessage.content)){
+            let urlSpectate = item
+            urlSpectate = urlSpectate + "?spectate=true";
+            const spellTableEmbed = new bootstrap.Discord.MessageEmbed()
+                .setColor(bootstrap.messageColorBlue)
+                .addFields(
+                    {name: "Click this link to spectate this game", value:urlSpectate}
+                );
+            receivedMessage.channel.send(spellTableEmbed);
+        }
+
     }
 });
 /**
