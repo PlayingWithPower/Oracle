@@ -671,7 +671,7 @@ module.exports = {
                         unsortedResults.push([username,calculatedWinrate, results[i][0][1], results[i][0][3]]);
                     }
                     else{
-                        unsortedResults.push([username,calculatedWinrate,elo, gamesPlayed]);
+                        unsortedResults.push([username,calculatedWinrate, elo, gamesPlayed]);
                     }
                 }
             }
@@ -713,7 +713,7 @@ module.exports = {
                         break;
                     }else{
                         listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
-                        listOfWinrates += sortedResults[i][1] + "% \n";
+                        listOfWinrates += sortedResults[i][3] + " | " + sortedResults[i][1] + "%" + "\n";
                         listOfWins += sortedResults[i][2] + "\n";
                         playersOnList += 1;
                     }
@@ -721,7 +721,7 @@ module.exports = {
                 if (!(listOfWinrates === "" || listOfPlayers === "" || listOfWins === "")){
                   resultsMsg.addFields(
                       {name: "Username", value: listOfPlayers, inline: true},
-                      {name: "Winrate", value: listOfWinrates, inline: true},
+                      {name: "Games | Winrate", value: listOfWinrates, inline: true},
                       {name: "Wins", value: listOfWins, inline: true},
                   );
                 }
@@ -736,7 +736,7 @@ module.exports = {
                         break;
                     }else{
                         listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
-                        listOfWinrates += sortedResults[i][1] + "% \n";
+                        listOfWinrates += sortedResults[i][3] + " | " + sortedResults[i][1] + "%" + "\n";
                         listOfScores += sortedResults[i][2] + "\n";
                         playersOnList += 1;
                     }
@@ -744,7 +744,7 @@ module.exports = {
                 if (!(listOfWinrates === "" || listOfPlayers === "" || listOfScores === "")){
                   resultsMsg.addFields(
                       {name: "Username", value: listOfPlayers, inline: true},
-                      {name: "Winrate", value: listOfWinrates, inline: true},
+                      {name: "Games | Winrate", value: listOfWinrates, inline: true},
                       {name: "Score", value: listOfScores, inline: true},
                   );
                 }
