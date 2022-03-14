@@ -187,8 +187,8 @@ module.exports = {
                     .setColor(bootstrap.messageColorGreen)
                     .setDescription("I have Direct Messaged you information!");
 
-                receivedMessage.author.send(exampleEmbed).then(msg =>{
-                    receivedMessage.channel.send(serverEmbed)
+                receivedMessage.author.send({embeds: [exampleEmbed]}).then(msg =>{
+                    receivedMessage.channel.send({embeds: [serverEmbed]});
                 })
             }
     },
@@ -246,16 +246,16 @@ module.exports = {
             userEmbed.addField('!' + keyVal, userDictionary[keyVal]);
         }
 
-        receivedMessage.author.send(deckEmbed)
-            .then(msg => { receivedMessage.author.send(gameEmbed)
-                .then(msg => { receivedMessage.author.send(leagueEmbed) 
-                    .then(msg => { receivedMessage.author.send(seasonEmbed) 
-                        .then(msg => { receivedMessage.author.send(userEmbed).then(async msg => { 
+        receivedMessage.author.send({embeds: [deckEmbed]})
+            .then(msg => { receivedMessage.author.send({embeds: [gameEmbed]})
+                .then(msg => { receivedMessage.author.send({embeds: [leagueEmbed]})
+                    .then(msg => { receivedMessage.author.send({embeds: [seasonEmbed]})
+                        .then(msg => { receivedMessage.author.send({embeds: [userEmbed]}).then(async msg => {
                             let adminGet = await bootstrap.ConfigHelper.checkAdminPrivs(receivedMessage);
                                 if (adminGet){
-                                    receivedMessage.author.send(adminEmbed) 
+                                    receivedMessage.author.send({embeds: [adminEmbed]})
                                 }
-                                receivedMessage.channel.send(serverEmbed)
+                                receivedMessage.channel.send({embeds: [serverEmbed]})
                             })
                         })
                     })

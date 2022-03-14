@@ -72,16 +72,16 @@ bootstrap.Client.on('message', (receivedMessage) =>{
         processCommand(receivedMessage)
     }
     if (receivedMessage.content.indexOf("https://www.spelltable.com/game/") >= 0){
-        const getUrls = require('get-urls')
+        const getUrls = require('get-urls');
         for (let item of getUrls(receivedMessage.content)){
-            let urlSpectate = item
+            let urlSpectate = item;
             urlSpectate = urlSpectate + "?spectate=true";
             const spellTableEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
                 .addFields(
                     {name: "Click this link to spectate this game", value:urlSpectate}
                 );
-            receivedMessage.channel.send(spellTableEmbed);
+            receivedMessage.channel.send({embeds: [spellTableEmbed] });
         }
 
     }
@@ -274,9 +274,9 @@ async function processCommand(receivedMessage){
             console.log("DEBUG LOG: Could not find command: '" + primaryCommand +"'")
     }
 }
-const client = new Discord.Client({
+const client = new bootstrap.Discord.Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
-})
+});
 client.on('interactionCreate', async interaction => {
     console.log(interaction);
     if (!interaction.isCommand()) return;

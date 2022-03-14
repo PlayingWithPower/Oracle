@@ -63,7 +63,7 @@ module.exports = {
                                             {name: "Loser", value: "<@" + final[2] + "> lost " + getThresholds._points_lost + " points"},
                                             {name: "Loser", value: "<@" + final[3] + "> lost " + getThresholds._points_lost + " points"},
                                         );
-                                    channel.send(confirmMessage);
+                                    channel.send({embeds: [confirmMessage]});
                                     //console.log("Game #" + grabMatchID + " success")
                                 }).catch((message) => {
                                     //console.log("Finishing Game #" + grabMatchID + " failed. ERROR:", message)
@@ -94,7 +94,7 @@ module.exports = {
                 const cancelledEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorGreen)
                     .setDescription("<@!"+grabMentionValue+">"+ " cancelled the Match Log");
-                channel.send(cancelledEmbed)
+                channel.send({embeds: [cancelledEmbed]});
             }else { }
         }
         //end of game block
@@ -168,7 +168,7 @@ module.exports = {
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Error: Cannot find this deck")
                     .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
-                channel.send(errorOnDeckFind);
+                channel.send({embeds: [errorOnDeckFind]});
                 return
             }
 
@@ -232,7 +232,7 @@ module.exports = {
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Error: Cannot find this deck")
                     .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
-                channel.send(errorOnDeckFind);
+                channel.send({embeds: [errorOnDeckFind]});
                 return
             }
 
@@ -306,7 +306,7 @@ module.exports = {
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Error: Cannot find this deck")
                     .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
-                channel.send(errorOnDeckFind);
+                channel.send({embeds: [errorOnDeckFind]});
                 return
             }
 
@@ -377,7 +377,7 @@ module.exports = {
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Error: Cannot find this deck")
                     .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
-                channel.send(errorOnDeckFind);
+                channel.send({embeds: [errorOnDeckFind]});
                 return
             }
 
@@ -441,7 +441,7 @@ module.exports = {
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Error: Cannot find this deck")
                     .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
-                channel.send(errorOnDeckFind);
+                channel.send({embeds: [errorOnDeckFind]});
                 return
             }
 
@@ -515,7 +515,7 @@ module.exports = {
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Error: Cannot find this deck")
                     .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
-                channel.send(errorOnDeckFind);
+                channel.send({embeds: [errorOnDeckFind]});
                 return
             }
 
@@ -587,7 +587,7 @@ module.exports = {
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Error: Cannot find this deck")
                     .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
-                channel.send(errorOnDeckFind);
+                channel.send({embeds: [errorOnDeckFind]});
                 return
             }
 
@@ -660,7 +660,7 @@ module.exports = {
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Error: Cannot find this deck")
                     .setDescription("If you're receiving this error, please try again. If it persists. Reach out to the developers on their discord. Type !tutorial or !setup to find a discord link");
-                channel.send(errorOnDeckFind);
+                channel.send({embeds: [errorOnDeckFind]});
                 return
             }
             const collector = new bootstrap.Discord.MessageCollector(channel, m => m.author.id === user.id, {time: 10000, max: 1 });

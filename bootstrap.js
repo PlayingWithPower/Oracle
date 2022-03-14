@@ -1,7 +1,14 @@
+const { Intents } = require('discord.js');
+
+
 // Bot Configuration
 const Env = require('./etc/env.js');
 const Discord = require('discord.js');
-const Client = new Discord.Client();
+
+const myIntents = new Intents();
+myIntents.add('GUILD_PRESENCES', 'GUILD_MEMBERS');
+
+const Client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], });
 const Mongoose = require('mongoose');
 
 //Objects

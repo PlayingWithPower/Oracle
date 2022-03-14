@@ -27,7 +27,7 @@ module.exports = {
                }
            }
        }
-       if (receivedMessage.member.hasPermission("ADMINISTRATOR")){
+       if (receivedMessage.member.roles.cache.has("ADMINISTRATOR")){
            isAdmin = true
        }
        return isAdmin;
