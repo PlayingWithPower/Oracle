@@ -979,10 +979,10 @@ module.exports = {
                 .setAuthor(bootstrap.DeckHelper.toUpper(deckName[0]) + " Deckstats")
                 .setTitle("For Season Name: " + seasonName)
                 .addFields(
-                    { name: 'Wins', value: returnArr[3], inline: true},
-                    { name: 'Losses', value: returnArr[4], inline: true},
-                    { name: 'Number of Matches', value: returnArr[6].length, inline: true},
-                    { name: 'Winrate', value: Math.round((returnArr[3]/(returnArr[3]+returnArr[4]))*100) + "%"},
+                    { name: 'Wins', value: returnArr[3].toString(), inline: true},
+                    { name: 'Losses', value: returnArr[4].toString(), inline: true},
+                    { name: 'Number of Matches', value: (returnArr[6].length).toString(), inline: true},
+                    { name: 'Winrate', value: Math.round((returnArr[3]/(returnArr[3]+returnArr[4]))*100).toString() + "%"},
                 );
             if (seasonName === "all"){
                 deckStatsEmbed
@@ -1008,10 +1008,10 @@ module.exports = {
         Looking for more info? Add ' | <Season Name> ' or ' | all ' to your query to find more information")
                 .setFooter("Looking for detailed deck breakdown? Try !profile @user to see exactly what decks this user plays.")
                 .addFields(
-                    { name: 'Wins', value: returnArr[2], inline: true},
-                    { name: 'Losses', value: returnArr[3], inline: true},
-                    { name: 'Number of Matches', value: returnArr[2] + returnArr[3], inline: true},
-                    { name: 'Winrate', value: Math.round((returnArr[2]/(returnArr[2]+returnArr[3]))*100) + "%"},
+                    { name: 'Wins', value: returnArr[2].toString(), inline: true},
+                    { name: 'Losses', value: returnArr[3].toString(), inline: true},
+                    { name: 'Number of Matches', value: (returnArr[2] + returnArr[3]).toString(), inline: true},
+                    { name: 'Winrate', value: Math.round((returnArr[2]/(returnArr[2]+returnArr[3]))*100).toString() + "%"},
                 );
             if (returnArr[4] === "all"){
                 deckStatsEmbed.setDescription("For user: "+ "<@!"+returnArr[1]+">"+ ". Across all seasons")
@@ -1045,9 +1045,9 @@ module.exports = {
             }
             if ((listOfDeckNames.length > 0) && (listOfGamesPlayed.length>0) && (listOfGamesPlayed.length>0)){
                 allDecksEmbed.addFields(
-                    {name: "Deck Name", value: listOfDeckNames, inline: true},
-                    {name: "Games Played", value: listOfGamesPlayed, inline: true},
-                    {name: "Winrate", value: listOfPercentages, inline: true},
+                    {name: "Deck Name", value: listOfDeckNames.toString(), inline: true},
+                    {name: "Games Played", value: listOfGamesPlayed.toString(), inline: true},
+                    {name: "Winrate", value: listOfPercentages.toString(), inline: true},
                 )
             }else{
                 allDecksEmbed.setDescription("No Data within your Threshold for the season named: " + returnArr[2]);
@@ -1715,10 +1715,10 @@ module.exports = {
                 .setColor(bootstrap.messageColorBlue)
                 .setFooter("Showing information about the current season. Season name: " + returnArr[2] +". \nNote: 'Overall winrate' includes the games that are under the server's set threshold")
                 .addFields(
-                    { name: 'User', value: "<@"+returnArr[3]+">", inline: true },
-                    { name: 'Current Deck', value: returnArr[5], inline: true },
-                    { name: 'Current Rating', value: elo, inline: true },
-                    { name: 'Favorite Deck', value: favDeck, inline: true },
+                    { name: 'User', value: "<@"+returnArr[3].toString()+">", inline: true },
+                    { name: 'Current Deck', value: returnArr[5].toString(), inline: true },
+                    { name: 'Current Rating', value: elo.toString(), inline: true },
+                    { name: 'Favorite Deck', value: favDeck.toString(), inline: true },
                 );
             let threshold = 5;
             if (getThresholds !== "No configs"){ threshold = getThresholds._deck_threshold }
@@ -1728,17 +1728,18 @@ module.exports = {
             let sortedArray = returnArr[1].sort(function(a, b) {
                 return parseFloat(b[1]+b[2]) - parseFloat(a[1]+a[2]);
             });
+
+
             sortedArray.forEach((deck) =>{
                 overallWins = overallWins + deck[1];
                 overallLosses = overallLosses + deck[3];
                 if (deck[1] + deck[3] < threshold){ }
                 else{
-                    decksEmbed
-                        .addFields(
-                            { name: " \u200b", value: deck[0]},
-                            { name: 'Wins', value: deck[1], inline: true },
-                            { name: 'Losses', value: deck[3], inline: true },
-                            { name: 'Win Rate', value: Math.round((deck[1]/(deck[3]+deck[1])*100)) + "%", inline: true },
+                    decksEmbed.addFields(
+                            { name: " \u200b", value: deck[0].toString()},
+                            { name: 'Wins', value: deck[1].toString(), inline: true },
+                            { name: 'Losses', value: deck[3].toString(), inline: true },
+                            { name: 'Win Rate', value: Math.round((deck[1]/(deck[3]+deck[1])*100)).toString() + "%", inline: true },
                         )
                 }
             });
