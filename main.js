@@ -1,4 +1,8 @@
 const bootstrap = require('./bootstrap.js')
+const { Intents } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
 
 //MongoDB Connection
 //Create initial mongoDB connection. If cloning this bot, create file named "env.js". File path: DiscordBot/etc/env.js. See Github Readme for more information.
@@ -21,6 +25,18 @@ bootstrap.Client.on('ready', () =>{
     //         console.log(` - ${channel.name} ${channel.type} ${channel.id}`)
     //     })
     // })
+
+    const commands = [
+        new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
+        new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
+        new SlashCommandBuilder().setName('user').setDescription('Replies with user info!'),
+    ]
+        .map(command => command.toJSON());
+    const rest = new REST({ version: '9' }).setToken(bootstrap.Env.discordKey);
+
+    rest.put(Routes.applicationGuildCommands(bootstrap.Env.clientID, '727264412963962910'), { body: commands })
+        .then(() => console.log('Successfully registered application commands.'))
+        .catch(console.error);
 });
 /**
  * guildCreate() - Prebuilt discord function
@@ -258,3 +274,20 @@ async function processCommand(receivedMessage){
             console.log("DEBUG LOG: Could not find command: '" + primaryCommand +"'")
     }
 }
+const client = new Discord.Client({
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+})
+client.on('interactionCreate', async interaction => {
+    console.log(interaction)
+    if (!interaction.isCommand()) return;
+
+    const { commandName } = interaction;
+
+    if (commandName === 'ping') {
+        await interaction.reply('Pong!');
+    } else if (commandName === 'server') {
+        await interaction.reply('Server info.');
+    } else if (commandName === 'user') {
+        await interaction.reply('User info.');
+    }
+});

@@ -623,6 +623,7 @@ module.exports = {
         let lookUpUsers;
 
         let allCheck = false;
+        let winrateCheck = false;
 
         let argsWithCommas = args.toString();
         let argsWithSpaces = argsWithCommas.replace(/,/g, ' ');
@@ -638,6 +639,12 @@ module.exports = {
                 mentionValues.push([user._mentionValue, receivedMessage.guild.id, "all"])
             });
             allCheck = true;
+        }
+        else if ((splitArgs[1] !== undefined) && splitArgs[1].toLowerCase() === "winrate"){
+            returnArr.forEach(user =>{
+                mentionValues.push([user._mentionValue, receivedMessage.guild.id])
+            });
+            winrateCheck = true;
         }
         else if (splitArgs[1] !== undefined){
             returnArr.forEach(user =>{
@@ -670,6 +677,9 @@ module.exports = {
                     if (allCheck){
                         unsortedResults.push([username,calculatedWinrate, results[i][0][1], results[i][0][3]]);
                     }
+                    if (winrateCheck) {
+                        unsortedResults.push([username,calculatedWinrate, elo, gamesPlayed]);
+                    }
                     else{
                         unsortedResults.push([username,calculatedWinrate, elo, gamesPlayed]);
                     }
@@ -677,9 +687,16 @@ module.exports = {
             }
         }).then(async function(){
 
-            unsortedResults.sort(function(a, b) {
-                return parseFloat(b[2]) - parseFloat(a[2]);
-            });
+            if (winrateCheck){
+                unsortedResults.sort(function(a, b) {
+                    return parseFloat(b[1]) - parseFloat(a[1]);
+                });
+            }
+            else{
+                unsortedResults.sort(function(a, b) {
+                    return parseFloat(b[2]) - parseFloat(a[2]);
+                });
+            }
 
             const maxEmbedSize = 975;
             let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
@@ -705,7 +722,7 @@ module.exports = {
                 .setFooter("Note: The threshold to appear on this list is " + minimumGamesThreshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
             if (allCheck){ //When a user types !top | all
                 resultsMsg
-                    .setAuthor("Displaying Top Players for the season name: " + args.join(' '));
+                    .setAuthor("Displaying Top Players across all seasons");
                 for (let i = 0; i < sortedResults.length; i++){
                     if (playersOnList >= topPlayersThreshold){break}
                     if (sortedResults[i][3] < minimumGamesThreshold){continue}
@@ -724,6 +741,29 @@ module.exports = {
                       {name: "Games | Winrate", value: listOfWinrates, inline: true},
                       {name: "Wins", value: listOfWins, inline: true},
                   );
+                }
+            }
+            else if (winrateCheck){ //When a user types !top | winrate
+                resultsMsg
+                    .setAuthor("Displaying Top Players of the current season sorted by Winrate");
+                for (let i = 0; i < sortedResults.length; i++){
+                    if (playersOnList >= topPlayersThreshold){break}
+                    if (sortedResults[i][3] < minimumGamesThreshold){continue}
+                    if ((listOfPlayers + listOfWinrates + listOfScores).length > maxEmbedSize) {
+                        break;
+                    }else{
+                        listOfPlayers += "<@"+sortedResults[i][0]+">" + "\n" ;
+                        listOfWinrates += sortedResults[i][3] + " | " + sortedResults[i][1] + "%" + "\n";
+                        listOfWins += sortedResults[i][2] + "\n";
+                        playersOnList += 1;
+                    }
+                }
+                if (!(listOfWinrates === "" || listOfPlayers === "" || listOfWins === "")) {
+                    resultsMsg.addFields(
+                        {name: "Username", value: listOfPlayers, inline: true},
+                        {name: "Games | Winrate", value: listOfWinrates, inline: true},
+                        {name: "Wins", value: listOfWins, inline: true},
+                    );
                 }
             }
             else{ //When a user specifies a season, or just types !top
