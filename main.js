@@ -1,4 +1,4 @@
-const bootstrap = require('./bootstrap.js')
+const bootstrap = require('./bootstrap.js');
 const { Intents } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
@@ -278,7 +278,7 @@ const client = new Discord.Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 })
 client.on('interactionCreate', async interaction => {
-    console.log(interaction)
+    console.log(interaction);
     if (!interaction.isCommand()) return;
 
     const { commandName } = interaction;
