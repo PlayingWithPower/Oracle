@@ -106,13 +106,13 @@ module.exports = {
                     .setColor(bootstrap.messageColorGreen)
                     .setAuthor("Successfully deleted")
                     .setDescription("<@!"+grabMentionValue+">" + " Match ID:" + grabMatchID[2] + " was deleted");
-                reaction.message.edit(successEmbed)
+                reaction.message.edit({embeds: [successEmbed]})
             }).catch((message) => {
                 const errorEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
                     .setAuthor("Error Deleting")
                     .setDescription("Match already deleted");
-                reaction.message.edit(errorEmbed)
+                reaction.message.edit({embeds: [errorEmbed]});
             })
         }
         else if ((embeds.length > 1 && embeds[5] === "delete" && reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)) {
@@ -121,7 +121,7 @@ module.exports = {
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Delete Cancelled")
                 .setDescription("<@!"+grabMentionValue+">" + " you have **cancelled** deleteting Match ID: **" + grabMatchID[2]+"**");
-            reaction.message.edit(errorEmbed);
+            reaction.message.edit({embeds: [errorEmbed]});
         }
         //End of Confirm Delete Match Block
 
@@ -132,13 +132,13 @@ module.exports = {
                 const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorGreen)
                     .setTitle("Successfully Deleted Deck");
-                reaction.message.edit(editedWarningEmbed);
+                reaction.message.edit({embeds: [editedWarningEmbed]});
             }
             else{
                 const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                     .setColor(bootstrap.messageColorRed)
                     .setTitle("Unknown Error Occurred. Please try again. Check !decks for the deck you're trying to delete.");
-                reaction.message.edit(editedWarningEmbed);
+                reaction.message.edit({embeds: [editedWarningEmbed]});
             }
         }
 
@@ -146,7 +146,7 @@ module.exports = {
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Delete Deck Cancelled");
-            reaction.message.edit(editedWarningEmbed);
+            reaction.message.edit({embeds: [editedWarningEmbed]});
         }
         //End of Remove Deck Reacts
 
@@ -177,7 +177,7 @@ module.exports = {
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Commander**. Please **type** the new Commander.");
-            reaction.message.edit(selectedEditEmbed);
+            reaction.message.edit({embeds: [selectedEditEmbed]});
 
             collector.on('collect', async(message) => {
                 let grabEmbed = reaction.message.embeds[0];
@@ -190,14 +190,14 @@ module.exports = {
                             .setAuthor("Success!")
                             .setDescription("Updated Commander of the deck: **" + promiseReturn[0] + "**  \
                             from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**");
-                        reaction.message.edit(updatedDeckEmbed);
+                        reaction.message.edit({embeds: [updatedDeckEmbed]});
                     }
                     else{
                         const errorDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("An error has occurred. Please try again.");
-                        reaction.message.edit(errorDeckEmbed);
+                        reaction.message.edit({embeds: [errorDeckEmbed]});
                     }
                 }
             });
@@ -208,7 +208,7 @@ module.exports = {
                         const editedEndingMessage = new bootstrap.Discord.MessageEmbed()
                             .setColor(bootstrap.messageColorRed)
                             .setTitle("Update Commander Timeout. Please type !updatedeck <deckname> again.");
-                        reaction.message.edit(editedEndingMessage);
+                        reaction.message.edit({embeds: [editedEndingMessage]});
                     }
                 }
                 else{   }
@@ -243,7 +243,7 @@ module.exports = {
                 .setDescription("**Selected Deck Colors**. Please **type** the new Deck Colors \
                 \nBe careful of formatting. I understand WUBRG and combinations of it or C for colorless. \
                 \n**Example Input:** UBG");
-            reaction.message.edit(selectedEditEmbed);
+            reaction.message.edit({embeds: [selectedEditEmbed]});
 
             collector.on('collect', async(message) => {
                 let grabEmbed = reaction.message.embeds[0];
@@ -256,7 +256,7 @@ module.exports = {
                             .setAuthor("Error")
                             .setDescription("You have entered a non-valid Color combination. Please try again. \
                             \nI understand WUBRG and combinations of it or C for colorless");
-                        reaction.message.edit(nonValidURLEmbed);
+                        reaction.message.edit({embeds: [nonValidURLEmbed]});
                     }
                     else if (promiseReturn){
                         const updatedDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
@@ -264,14 +264,14 @@ module.exports = {
                             .setAuthor("Success!")
                             .setDescription("Updated Deck Colors of the deck: **" + promiseReturn[0] + "**  \
                             from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**");
-                        reaction.message.edit(updatedDeckEmbed);
+                        reaction.message.edit({embeds: [updatedDeckEmbed]});
                     }
                     else{
                         const errorDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("An error has occurred. Please try again.");
-                        reaction.message.edit(errorDeckEmbed);
+                        reaction.message.edit({embeds: [errorDeckEmbed]});
                     }
                 }
             });
@@ -282,7 +282,7 @@ module.exports = {
                         const editedEndingMessage = new bootstrap.Discord.MessageEmbed()
                             .setColor(bootstrap.messageColorRed)
                             .setTitle("Update Color Timeout. Please type !updatedeck <deckname> again.");
-                        reaction.message.edit(editedEndingMessage);
+                        reaction.message.edit({embeds: [editedEndingMessage]});
                     }
                 }
                 else{   }
@@ -315,7 +315,7 @@ module.exports = {
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Deck Link**. Please **enter** the new deck link.");
-            reaction.message.edit(selectedEditEmbed);
+            reaction.message.edit({embeds: [selectedEditEmbed]});
 
             collector.on('collect', async(message) => {
                 let grabEmbed = reaction.message.embeds[0];
@@ -327,7 +327,7 @@ module.exports = {
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("You have entered a non-valid url. Please try again");
-                        reaction.message.edit(nonValidURLEmbed);
+                        reaction.message.edit({embeds: [nonValidURLEmbed]});
                     }
                     else if (promiseReturn){
                         const updatedDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
@@ -335,14 +335,14 @@ module.exports = {
                             .setAuthor("Success!")
                             .setURL(promiseReturn[0])
                             .setDescription("Updated Deck List of the deck: **" + promiseReturn[1] + "**");
-                        reaction.message.edit(updatedDeckEmbed);
+                        reaction.message.edit({embeds: [updatedDeckEmbed]});
                     }
                     else{
                         const errorDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("An error has occurred. Please try again.");
-                        reaction.message.edit(errorDeckEmbed);
+                        reaction.message.edit({embeds: [errorDeckEmbed]});
                     }
                 }
             });
@@ -353,7 +353,7 @@ module.exports = {
                         const editedEndingMessage = new bootstrap.Discord.MessageEmbed()
                             .setColor(bootstrap.messageColorRed)
                             .setTitle("Update Link Timeout. Please type !updatedeck <deckname> again.");
-                        reaction.message.edit(editedEndingMessage);
+                        reaction.message.edit({embeds: [editedEndingMessage]});
                     }
                 }
                 else{   }
@@ -387,7 +387,7 @@ module.exports = {
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Author**. Please **type** the new author(s).\n\
                 Seperate Authors with a comma. \n Example Input: Gnarwhal, PWP Bot");
-            reaction.message.edit(selectedEditEmbed);
+            reaction.message.edit({embeds: [selectedEditEmbed]});
 
             collector.on('collect', async(message) => {
                 let grabEmbed = reaction.message.embeds[0];
@@ -400,17 +400,17 @@ module.exports = {
                             .setAuthor("Success!")
                             .setDescription("Updated Author(s) of the deck: **" + promiseReturn[0] + "**  \
                             from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**");
-                        reaction.message.edit(updatedDeckEmbed);
+                        reaction.message.edit({embeds: [updatedDeckEmbed]});
                     }
                     else{
                         const errorDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("An error has occurred. Please try again.");
-                        reaction.message.edit(errorDeckEmbed);
+                        reaction.message.edit({embeds: [errorDeckEmbed]});
                     }
                 }
-            })
+            });
             collector.on('end', collected =>{
                 if (reaction.message.embeds[0].author != null){
                     let editedEmbed = reaction.message.embeds[0].author.name.toString().split(' ');
@@ -418,7 +418,7 @@ module.exports = {
                         const editedEndingMessage = new bootstrap.Discord.MessageEmbed()
                             .setColor(bootstrap.messageColorRed)
                             .setTitle("Update Author Timeout. Please type !updatedeck <deckname> again.");
-                        reaction.message.edit(editedEndingMessage);
+                        reaction.message.edit({embeds: [editedEndingMessage]});
                     }
                 }
                 else{   }
@@ -452,7 +452,7 @@ module.exports = {
                 .setDescription("**Selected Description**. Please **type** the new Description.\n\
                 **Recommendation:** Write description elsewhere and copy and paste in \n\
                 **Warning:** Character limit of 750.");
-            reaction.message.edit(selectedEditEmbed);
+            reaction.message.edit({embeds: [selectedEditEmbed]});
 
             collector.on('collect', async(message) => {
                 let grabEmbed = reaction.message.embeds[0];
@@ -466,7 +466,7 @@ module.exports = {
                         .setDescription("Your message is above the character count. \
                          Your new description had: **" + message.content.length +"** characters \n\
                          The character limit is **750**");
-                    reaction.message.edit(tooManyCharsEmbed);
+                    reaction.message.edit({embeds: [tooManyCharsEmbed]});
                     }
                     else if (promiseReturn){
                         const updatedDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
@@ -474,14 +474,14 @@ module.exports = {
                             .setAuthor("Success!")
                             .setDescription("Updated Deck Description of the deck: **" + promiseReturn[0] + "**  \n\
                             Check **!deckinfo " + promiseReturn[0] +"** to see your new description");
-                        reaction.message.edit(updatedDeckEmbed);
+                        reaction.message.edit({embeds: [updatedDeckEmbed]});
                     }
                     else{
                         const errorDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("An error has occurred. Please try again.");
-                        reaction.message.edit(errorDeckEmbed);
+                        reaction.message.edit({embeds: [errorDeckEmbed]});
                     }
                 }
             });
@@ -492,7 +492,7 @@ module.exports = {
                         const editedEndingMessage = new bootstrap.Discord.MessageEmbed()
                             .setColor(bootstrap.messageColorRed)
                             .setTitle("Update Description Timeout. Please type !updatedeck <deckname> again.");
-                        reaction.message.edit(editedEndingMessage);
+                        reaction.message.edit({embeds: [editedEndingMessage]});
                     }
                 }
                 else{   }
@@ -525,7 +525,7 @@ module.exports = {
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Deck Type**. Please **type** the new Type.\n\
                 The three types of decks are: **Proactive, Adaptive and Disruptive**");
-            reaction.message.edit(selectedEditEmbed);
+            reaction.message.edit({embeds: [selectedEditEmbed]});
 
             collector.on('collect', async(message) => {
                 let grabEmbed = reaction.message.embeds[0];
@@ -538,7 +538,7 @@ module.exports = {
                         .setAuthor("Error")
                         .setDescription("You have entered an invalid Deck Type\n\
                         The three types of decks are: **Proactive, Adaptive and Disruptive**");
-                    reaction.message.edit(tooManyCharsEmbed);
+                    reaction.message.edit({embeds: [tooManyCharsEmbed]});
                     }
                     else if (promiseReturn){
                         const updatedDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
@@ -546,14 +546,14 @@ module.exports = {
                             .setAuthor("Success!")
                             .setDescription("Updated Deck Type of the deck: **" + promiseReturn[0] + "**  \
                             from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**");
-                        reaction.message.edit(updatedDeckEmbed);
+                        reaction.message.edit({embeds: [updatedDeckEmbed]});
                     }
                     else{
                         const errorDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("An error has occurred. Please try again.");
-                        reaction.message.edit(errorDeckEmbed);
+                        reaction.message.edit({embeds: [errorDeckEmbed]});
                     }
                 }
             });
@@ -564,7 +564,7 @@ module.exports = {
                         const editedEndingMessage = new bootstrap.Discord.MessageEmbed()
                             .setColor(bootstrap.messageColorRed)
                             .setTitle("Update Link Timeout. Please type !updatedeck <deckname> again.");
-                        reaction.message.edit(editedEndingMessage);
+                        reaction.message.edit({embeds: [editedEndingMessage]});
                     }
                 }
                 else{   }
@@ -598,7 +598,7 @@ module.exports = {
                 .setDescription("**Selected Primer**. Please type **Yes** or **No**.\n\
                 Note: This category is simply to indicate whether a deck **has** a primer in the \
                 **Deck List Link** provided. It is not where you **link to** a primer.");
-            reaction.message.edit(selectedEditEmbed);
+            reaction.message.edit({embeds: [selectedEditEmbed]});
 
             collector.on('collect', async(message) => {
                 let grabEmbed = reaction.message.embeds[0];
@@ -611,7 +611,7 @@ module.exports = {
                         .setAuthor("Error")
                         .setDescription("You have entered an invalid Primer input\n\
                         The two input types are:**Yes** and **No**");
-                    reaction.message.edit(tooManyCharsEmbed);
+                    reaction.message.edit({embeds: [tooManyCharsEmbed]});
                     }
                     else if (promiseReturn){
                         const updatedDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
@@ -619,14 +619,14 @@ module.exports = {
                             .setAuthor("Success!")
                             .setDescription("Updated Deck Type of the deck: **" + promiseReturn[0] + "**  \
                             from **" + promiseReturn[1] + "** to **" + promiseReturn[2] +"**");
-                        reaction.message.edit(updatedDeckEmbed);
+                        reaction.message.edit({embeds: [updatedDeckEmbed]});
                     }
                     else{
                         const errorDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("An error has occurred. Please try again.");
-                        reaction.message.edit(errorDeckEmbed);
+                        reaction.message.edit({embeds: [errorDeckEmbed]});
                     }
                 }
             });
@@ -637,7 +637,7 @@ module.exports = {
                         const editedEndingMessage = new bootstrap.Discord.MessageEmbed()
                             .setColor(bootstrap.messageColorRed)
                             .setTitle("Update Link Timeout. Please type !updatedeck <deckname> again.");
-                        reaction.message.edit(editedEndingMessage);
+                        reaction.message.edit({embeds: [editedEndingMessage]});
                     }
                 }
                 else{   }
@@ -668,7 +668,7 @@ module.exports = {
             const selectedEditEmbed = new bootstrap.Discord.MessageEmbed(reaction.message.embeds[0])
                 .setColor(bootstrap.messageColorBlue)
                 .setDescription("**Selected Discord Link**. Please **enter** the new Discord Link.");
-            reaction.message.edit(selectedEditEmbed);
+            reaction.message.edit({embeds: [selectedEditEmbed]});
 
             collector.on('collect', async(message) => {
                 let grabEmbed = reaction.message.embeds[0];
@@ -680,7 +680,7 @@ module.exports = {
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("You have entered a non-valid url. Please try again");
-                        reaction.message.edit(nonValidURLEmbed);
+                        reaction.message.edit({embeds: [nonValidURLEmbed]});
                     }
                     else if (promiseReturn){
                         const updatedDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
@@ -688,14 +688,14 @@ module.exports = {
                             .setAuthor("Success!")
                             .setURL(promiseReturn[0])
                             .setDescription("Updated Discord Link of the deck: **" + promiseReturn[1] + "**");
-                        reaction.message.edit(updatedDeckEmbed);
+                        reaction.message.edit({embeds: [updatedDeckEmbed]});
                     }
                     else{
                         const errorDeckEmbed = new bootstrap.Discord.MessageEmbed(selectedEditEmbed)
                             .setColor(bootstrap.messageColorRed)
                             .setAuthor("Error")
                             .setDescription("An error has occurred. Please try again.");
-                        reaction.message.edit(errorDeckEmbed);
+                        reaction.message.edit({embeds: [errorDeckEmbed]});
                     }
                 }
             });
@@ -706,7 +706,7 @@ module.exports = {
                         const editedEndingMessage = new bootstrap.Discord.MessageEmbed()
                             .setColor(bootstrap.messageColorRed)
                             .setTitle("Update Link Timeout. Please type !updatedeck <deckname> again.");
-                        reaction.message.edit(editedEndingMessage);
+                        reaction.message.edit({embeds: [editedEndingMessage]});
                     }
                 }
                 else{   }
@@ -718,7 +718,7 @@ module.exports = {
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Update Deck Cancelled");
-            reaction.message.edit(editedWarningEmbed);
+            reaction.message.edit({embeds: [editedWarningEmbed]});
         }
         //End of Update Deck Block
 
@@ -729,20 +729,20 @@ module.exports = {
                 const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Error saving deck, please try again. ");
-            reaction.message.edit(editedWarningEmbed);
+            reaction.message.edit({embeds: [editedWarningEmbed]});
             }
             else{
                 const editedSuccessEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorGreen)
                 .setTitle("Successfully saved the new deck: " + promiseReturn);
-            reaction.message.edit(editedSuccessEmbed)
+            reaction.message.edit({embeds: [editedSuccessEmbed]});
             }
         }
         else if ((embeds.length > 4 && embeds[0] === "Trying"&& reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("Add Deck Cancelled");
-            reaction.message.edit(editedWarningEmbed);
+            reaction.message.edit({embeds: [editedWarningEmbed]});
         }
         //End of Add Deck Block
         //Start of End Season Block
@@ -750,6 +750,7 @@ module.exports = {
             let returnArr = await bootstrap.SeasonObj.endSeason(reaction.message);
             const successEditedEmbed = new bootstrap.Discord.MessageEmbed();
             if (returnArr[0] === "Success"){
+                console.log("test")
                 successEditedEmbed
                 .setAuthor("Successfully Ended Current Season")
                 .setColor(bootstrap.messageColorGreen)
@@ -758,14 +759,14 @@ module.exports = {
                     {name: "Season Start Date", value: returnArr[1]._season_start,inline: true},
                     {name: "Season End Date", value: returnArr[2],inline: true}
                 );
-                reaction.message.edit(successEditedEmbed);
+                reaction.message.edit({embeds: [successEditedEmbed]});
             }
         }
         else if ((embeds.length > 4 && embeds[0] === "WARNING:"&& reaction.emoji.name === '👎' && user.id !== bootstrap.Env.clientID)){
             const editedWarningEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setTitle("End Season Cancelled");
-            reaction.message.edit(editedWarningEmbed);
+            reaction.message.edit({embeds: [editedWarningEmbed]});
         }
         else {  }
 

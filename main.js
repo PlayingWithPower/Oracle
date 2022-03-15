@@ -1,5 +1,4 @@
 const bootstrap = require('./bootstrap.js');
-const { Intents } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
@@ -94,7 +93,7 @@ bootstrap.Client.on('message', (receivedMessage) =>{
  * @param {*} reaction - The received reaction and the message that the reaction is on. A discord message obj
  * @param {*} user - Information about the user sending the reaction. A discord user obj
  */
-bootstrap.Client.on('messageReactionAdd', (reaction, user) => {
+bootstrap.Client.on('messageReactionAdd', async (reaction, user) => {
     if (reaction.message.author.id === bootstrap.Env.clientID){
         bootstrap.ManageReactHelper.manageReaction(reaction, user, bootstrap.Client.channels.cache.get(reaction.message.channel.id))
     }
@@ -274,11 +273,7 @@ async function processCommand(receivedMessage){
             console.log("DEBUG LOG: Could not find command: '" + primaryCommand +"'")
     }
 }
-const client = new bootstrap.Discord.Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
-});
-client.on('interactionCreate', async interaction => {
-    console.log(interaction);
+bootstrap.Client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
 
     const { commandName } = interaction;

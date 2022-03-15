@@ -212,12 +212,12 @@ module.exports = {
                 .setColor(bootstrap.messageColorBlue)
                 .setAuthor("Displaying information about your configurations")
                 .addFields(
-                    {name: "Minimum Games (to appear on !top)", value: playerThreshold},
-                    {name: "Minimum Decks (to appear on !deckstats)", value:deckThreshold},
-                    {name: "Points Gained (per win)", value: pointsGained},
-                    {name: "Points Lost (per loss)", value: pointsLost},
-                    {name: "Leaderboard Length - The number of players that show up on the leaderboard (!top)", value: topThreshold},
-                    {name: "Admin Privileges", value: adminPrivs}
+                    {name: "Minimum Games (to appear on !top)", value: playerThreshold.toString()},
+                    {name: "Minimum Decks (to appear on !deckstats)", value:deckThreshold.toString()},
+                    {name: "Points Gained (per win)", value: pointsGained.toString()},
+                    {name: "Points Lost (per loss)", value: pointsLost.toString()},
+                    {name: "Leaderboard Length - The number of players that show up on the leaderboard (!top)", value: topThreshold.toString()},
+                    {name: "Admin Privileges", value: adminPrivs.toString()}
                 )
                 .setFooter("Confused by what these thresholds mean? Use !help setconfig \n\Want to edit these values? Use !setconfig");
             generalChannel.send({embeds: [updatedEmbed] })
@@ -477,9 +477,9 @@ module.exports = {
                     .setColor(bootstrap.messageColorGreen)
                     .setAuthor("Displaying Season Info about the Season named: " + returnArr[0]._season_name)
                     .addFields(
-                        {name: "Season Start", value: returnArr[0]._season_start, inline: true},
-                        {name: "Season End", value: returnArr[0]._season_end, inline: true},
-                        {name: "Total Matches Played", value: returnArr[2], inline: true},
+                        {name: "Season Start", value: returnArr[0]._season_start.toString(), inline: true},
+                        {name: "Season End", value: returnArr[0]._season_end.toString(), inline: true},
+                        {name: "Total Matches Played", value: returnArr[2].toString(), inline: true},
                     );
                 generalChannel.send({embeds: [seasonInfo] })
             }
@@ -492,8 +492,8 @@ module.exports = {
                         .setColor(bootstrap.messageColorGreen)
                         .setAuthor("Displaying Season Info about the Season named: " + season._season_name)
                         .addFields(
-                            {name: "Season Start", value: season._season_start, inline: true},
-                            {name: "Season End", value: season._season_end, inline: true},
+                            {name: "Season Start", value: season._season_start.toString(), inline: true},
+                            {name: "Season End", value: season._season_end.toString(), inline: true},
                         );
                     generalChannel.send({embeds: [seasonInfo] })
                 })
@@ -520,9 +520,9 @@ module.exports = {
                     .setColor(bootstrap.messageColorGreen)
                     .setAuthor("Displaying Season Info about the Season named: " + returnArr[0][0]._season_name)
                     .addFields(
-                        {name: "Season Start", value: returnArr[0][0]._season_start, inline: true},
-                        {name: "Season End", value: returnArr[0][0]._season_end, inline: true},
-                        {name: "Total Matches Played", value: returnArr[2], inline: true},
+                        {name: "Season Start", value: returnArr[0][0]._season_start.toString(), inline: true},
+                        {name: "Season End", value: returnArr[0][0]._season_end.toString(), inline: true},
+                        {name: "Total Matches Played", value: returnArr[2].toString(), inline: true},
                     );
                 generalChannel.send({embeds: [seasonInfo] })
             }
@@ -558,7 +558,7 @@ module.exports = {
                 }
                 confirmEndSeason
                     .addFields(
-                        {name: "Pending Matches Remaining", value: leftPending}
+                        {name: "Pending Matches Remaining", value: leftPending.toString()}
                     )
             }
             generalChannel.send({embeds: [confirmEndSeason] })
@@ -1434,7 +1434,7 @@ module.exports = {
                                                     .setAuthor("Game ID: " + id)
                                                     .setColor(bootstrap.messageColorBlue)
                                                     .setDescription("<@!" + res._mentionValue +">" + " used **" + res._currentDeck + "** \n **Upvote** to confirm \n **Downvote** to contest");
-                                                generalChannel.send({embeds: ["<@!"+res._mentionValue+">", userUpvoteEmbed] })
+                                                generalChannel.send({embeds: [userUpvoteEmbed] })
                                                     .then(function (message){
                                                         message.react("👍");
                                                         message.react("👎")
@@ -1935,9 +1935,9 @@ module.exports = {
     helpCommand(receivedMessage, arguments){
         if (arguments.length === 0){
             // Call FunctionHelper to with our message.
-            bootstrap.FunctionHelper.showEmbedHelpForAllCommands(receivedMessage)
+            bootstrap.CommandHelper.showEmbedHelpForAllCommands(receivedMessage)
         } else{
-            bootstrap.FunctionHelper.showEmbedHelpForCommand(receivedMessage, arguments);
+            bootstrap.CommandHelper.showEmbedHelpForCommand(receivedMessage, arguments);
         }
     },
     credits(argument, receivedMessage){

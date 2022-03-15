@@ -5,10 +5,11 @@ const { Intents } = require('discord.js');
 const Env = require('./etc/env.js');
 const Discord = require('discord.js');
 
-const myIntents = new Intents();
-myIntents.add('GUILD_PRESENCES', 'GUILD_MEMBERS');
 
-const Client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], });
+const Client = new Discord.Client({
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
+    partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
+});
 const Mongoose = require('mongoose');
 
 //Objects
@@ -28,7 +29,7 @@ const Season = require('./Schema/Seasons');
 const Alias = require('./Schema/Alias');
 
 //Helper files
-const FunctionHelper = require('./Helpers/FunctionHelper');
+const CommandHelper = require('./Helpers/CommandHelper');
 const DeckHelper = require('./Helpers/DeckHelper');
 const ManageReactHelper = require('./Helpers/ManageReactionHelper');
 const SeasonHelper = require('./Helpers/SeasonHelper');
@@ -77,7 +78,7 @@ exports.Alias = Alias;
 
 
 //Helper Export
-exports.FunctionHelper = FunctionHelper;
+exports.CommandHelper = CommandHelper;
 exports.DeckHelper = DeckHelper;
 exports.ManageReactHelper = ManageReactHelper;
 exports.SeasonHelper = SeasonHelper;
