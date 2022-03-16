@@ -2,6 +2,8 @@ const bootstrap = require('./bootstrap.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
+const { MessageActionRow, MessageSelectMenu } = require('discord.js');
+
 
 //MongoDB Connection
 //Create initial mongoDB connection. If cloning this bot, create file named "env.js". File path: DiscordBot/etc/env.js. See Github Readme for more information.
@@ -29,8 +31,11 @@ bootstrap.Client.on('ready', () =>{
         new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
         new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
         new SlashCommandBuilder().setName('user').setDescription('Replies with user info!'),
-    ]
-        .map(command => command.toJSON());
+        new SlashCommandBuilder().setName('profile').setDescription('Profile info')
+            .addUserOption(option => option.setName('target').setDescription('The user'))
+
+
+    ].map(command => command.toJSON());
     const rest = new REST({ version: '9' }).setToken(bootstrap.Env.discordKey);
 
     rest.put(Routes.applicationGuildCommands(bootstrap.Env.clientID, '727264412963962910'), { body: commands })
@@ -277,12 +282,48 @@ bootstrap.Client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
 
     const { commandName } = interaction;
+    if (interaction.commandName === 'ping') {
+        const row = new MessageActionRow()
+            .addComponents(
+                new MessageSelectMenu()
+                    .setCustomId('select')
+                    .setPlaceholder('Nothing selected')
+                    .setMinValues(2)
+                    .setMaxValues(3)
+                    .addOptions([
+                        {
+                            label: 'Select me',
+                            description: 'This is a description',
+                            value: 'first_option',
+                        },
+                        {
+                            label: 'You can select me too',
+                            description: 'This is also a description',
+                            value: 'second_option',
+                        },
+                        {
+                            label: 'I am also an option',
+                            description: 'This is a description as well',
+                            value: 'third_option',
+                        },
+                    ]),
+            );
 
-    if (commandName === 'ping') {
-        await interaction.reply('Pong!');
+        await interaction.reply({ content: 'Pong!', components: [row] });
     } else if (commandName === 'server') {
         await interaction.reply('Server info.');
     } else if (commandName === 'user') {
-        await interaction.reply('User info.');
+        await interaction.reply('User Data.');
+    }
+    else if (commandName === '123123') {
+        await interaction.reply('User Data.');
+    }
+    else if (commandName === 'profile'){
+        // await interaction.reply({ content: 'Pong!', components: [row] });
+        // await interaction.followUp('Pong again!');
+        const oracleResponse = await bootstrap.OracleObj.profileSlash(interaction, interaction.options._hoistedOptions[0].value.toString());
+        console.log(oracleResponse)
+        await interaction.reply({embeds: [oracleResponse] })
     }
 });
+

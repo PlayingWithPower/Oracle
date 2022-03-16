@@ -31,9 +31,9 @@ module.exports = {
             //Query
             if (args[0] === "Not Defined"){
                 personLookedUp = receivedMessage.author.id;
-                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or: 
+                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or:
                     [
-                    {_player1: receivedMessage.author.id}, 
+                    {_player1: receivedMessage.author.id},
                     {_player2: receivedMessage.author.id},
                     {_player3: receivedMessage.author.id},
                     {_player4: receivedMessage.author.id},
@@ -42,9 +42,9 @@ module.exports = {
             }
             else{
                 personLookedUp = args[0].replace(/[<@!>]/g, '');
-                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or: 
+                conditionalQuery = {_server: receivedMessage.guild.id, _season: currentSeason, _Status: "FINISHED", $or:
                     [
-                    {_player1: args[0].replace(/[<@!>]/g, '')}, 
+                    {_player1: args[0].replace(/[<@!>]/g, '')},
                     {_player2: args[0].replace(/[<@!>]/g, '')},
                     {_player3: args[0].replace(/[<@!>]/g, '')},
                     {_player4: args[0].replace(/[<@!>]/g, '')},
@@ -169,6 +169,156 @@ module.exports = {
                 }
             }).then(function(){
                 let query = {_server: receivedMessage.guild.id, _mentionValue: lookUpID};
+                bootstrap.User.findOne(query,function(err, res){
+                    if (res){
+                        passedArray.push(res._elo, res._currentDeck);
+                        resolve(passedArray)
+                    }
+                    else{
+                        resolve("Can't find user")
+                    }
+                })
+            })
+        })
+    },
+    async profileSlash(interaction, args) {
+        let currentSeasonObj = await bootstrap.SeasonHelper.getCurrentSeason(interaction.guildId);
+        let currentSeason = currentSeasonObj._season_name;
+        let lookUpID = interaction.user.id;
+        return new Promise((resolve, reject)=>{
+            let conditionalQuery;
+            let passingResult;
+            let personLookedUp = "";
+            let passedArray = [];
+
+            //Query
+                personLookedUp = interaction.user.id;
+                conditionalQuery = {_server: interaction.guildId, _season: currentSeason, _Status: "FINISHED", $or:
+                        [
+                            {_player1: interaction.user.id},
+                            {_player2: interaction.user.id},
+                            {_player3: interaction.user.id},
+                            {_player4: interaction.user.id},
+                        ]
+                };
+            bootstrap.Game.find(conditionalQuery, function(err, res){
+                if (res){
+                    passingResult = res
+                }
+                else{
+                    resolve("Error 1")
+                }
+            }).then(function(passingResult){
+                if (passingResult.length > 0){
+                    let matchResults = [];
+                    for (let i=0; i <passingResult.length; i++){
+                        let pasRes = passingResult[i]._player1Deck;
+                        if (passingResult[i]._player1Deck === "Rogue"){
+                            pasRes = passingResult[i]._player1Rogue + " | Rogue"
+                        }
+                        if (passingResult[i]._player1 === personLookedUp){
+                            if (passingResult[i]._player1Points !== undefined){
+                                let exists = matchResults.find(el => el[0] === pasRes);
+                                if (exists) {
+                                    exists[1] += 1;
+                                    exists[2] += parseInt(passingResult[i]._player1Points)
+                                } else {
+                                    matchResults.push([pasRes, 1, parseInt(passingResult[i]._player1Points), 0, 0]);
+                                }
+                            }
+                            else{
+                                let exists = matchResults.find(el => el[0] === pasRes);
+                                if (exists) {
+                                    exists[1] += 1;
+                                    exists[2] += bootstrap.pointsGained;
+                                } else {
+                                    matchResults.push([pasRes, 1, bootstrap.pointsGained, 0, 0]);
+                                }
+                            }
+                        }
+
+                        pasRes = passingResult[i]._player2Deck;
+                        if (passingResult[i]._player2Deck === "Rogue"){
+                            pasRes = passingResult[i]._player2Rogue + " | Rogue"
+                        }
+                        if (passingResult[i]._player2 === personLookedUp){
+                            if (passingResult[i]._player2Points !== undefined){
+                                let exists2 = matchResults.find(el => el[0] === pasRes);
+                                if (exists2) {
+                                    exists2[3] += 1;
+                                    exists2[4] += parseInt(passingResult[i]._player2Points)
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player2Points)]);
+                                }
+                            }
+                            else{
+                                let exists2 = matchResults.find(el => el[0] === pasRes);
+                                if (exists2) {
+                                    exists2[3] += 1;
+                                    exists2[4] += bootstrap.pointsLost;
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                }
+                            }
+                        }
+
+                        pasRes = passingResult[i]._player3Deck;
+                        if (passingResult[i]._player3Deck === "Rogue"){
+                            pasRes = passingResult[i]._player3Rogue + " | Rogue"
+                        }
+                        if (passingResult[i]._player3 === personLookedUp){
+                            if (passingResult[i]._player3Points !== undefined){
+                                let exists3 = matchResults.find(el => el[0] === pasRes);
+                                if (exists3) {
+                                    exists3[3] += 1;
+                                    exists3[4] += parseInt(passingResult[i]._player3Points)
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player3Points)]);
+                                }
+                            }
+                            else{
+                                let exists3 = matchResults.find(el => el[0] === pasRes);
+                                if (exists3) {
+                                    exists3[3] += 1;
+                                    exists3[4] += bootstrap.pointsLost;
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                }
+                            }
+                        }
+
+                        pasRes = passingResult[i]._player4Deck;
+                        if (passingResult[i]._player4Deck === "Rogue"){
+                            pasRes = passingResult[i]._player4Rogue + " | Rogue"
+                        }
+                        if (passingResult[i]._player4 === personLookedUp){
+                            if (passingResult[i]._player4Points !== undefined){
+                                let exists4 = matchResults.find(el => el[0] === pasRes);
+                                if (exists4) {
+                                    exists4[3] += 1;
+                                    exists4[4] += parseInt(passingResult[i]._player4Points)
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player4Points)]);
+                                }
+                            }
+                            else{
+                                let exists4 = matchResults.find(el => el[0] === pasRes);
+                                if (exists4) {
+                                    exists4[3] += 1;
+                                    exists4[4] += bootstrap.pointsLost;
+                                } else {
+                                    matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                }
+                            }
+                        }
+                    }
+                    passedArray.push("Profile Look Up", matchResults, currentSeason, lookUpID)
+                }
+                else{
+                    passedArray.push("No On-Going Season", passingResult, lookUpID)
+                }
+            }).then(function(){
+                let query = {_server: interaction.guildId, _mentionValue: lookUpID};
                 bootstrap.User.findOne(query,function(err, res){
                     if (res){
                         passedArray.push(res._elo, res._currentDeck);

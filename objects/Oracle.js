@@ -1669,6 +1669,8 @@ module.exports = {
         }
     },
     async profile(receivedMessage, args){
+        console.log(args)
+
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.UserObj.profile(receivedMessage, args);
         let compareDeck = 0;
@@ -1691,9 +1693,9 @@ module.exports = {
             const profileEmbed = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorBlue)
                 .addFields(
-                    { name: 'User', value: "<@"+returnArr[2]+">", inline: true },
-                    { name: 'Current Deck', value: returnArr[4], inline: true },
-                    { name: 'Score', value: bootstrap.startingElo, inline: true },
+                    { name: 'User', value: "<@"+returnArr[2]+">".toString(), inline: true },
+                    { name: 'Current Deck', value: returnArr[4].toString(), inline: true },
+                    { name: 'Score', value: bootstrap.startingElo.toString(), inline: true },
                 );
             generalChannel.send({embeds: [profileEmbed] });
             const matchesEmbed = new bootstrap.Discord.MessageEmbed()
@@ -1750,6 +1752,74 @@ module.exports = {
             generalChannel.send({embeds: [profileEmbed] });
             generalChannel.send({embeds: [decksEmbed] });
         }
+    },
+    async profileSlash(interaction, args){
+        return new Promise(async (resolve, reject) => {
+            let returnArr = await bootstrap.UserObj.profileSlash(interaction, args);
+            let compareDeck = 0;
+            let favDeck = "";
+            let elo = bootstrap.startingElo;
+            let overallWins = 0;
+            let overallLosses = 0;
+            let user = "<@"+interaction.user.id+">";
+            let getThresholds = await bootstrap.ConfigHelper.getThresholds(interaction.guildId);
+            console.log(returnArr)
+            const decksAndStats = returnArr[1].map(obj => ([...obj]));
+            for (let i = 0; i < decksAndStats.length; i++) {
+                if (decksAndStats[i][1] + decksAndStats[i][3] > compareDeck) {
+                    compareDeck = decksAndStats[i][1] + decksAndStats[i][3];
+                    favDeck = decksAndStats[i][0]
+                }
+                elo += decksAndStats[i][2] - decksAndStats[i][4]
+            }
+            const profileEmbed = new bootstrap.Discord.MessageEmbed()
+                .setColor(bootstrap.messageColorBlue)
+                .setFooter("Showing information about the current season. Season name: " + returnArr[2] + ". \nNote: 'Overall winrate' includes the games that are under the server's set threshold")
+                .addFields(
+                    {name: 'User', value: "<@" + returnArr[3].toString() + ">", inline: true},
+                    {name: 'Current Deck', value: returnArr[5].toString(), inline: true},
+                    {name: 'Current Rating', value: elo.toString(), inline: true},
+                    {name: 'Favorite Deck', value: favDeck.toString(), inline: true},
+                );
+            let threshold = 5;
+            if (getThresholds !== "No configs") {
+                threshold = getThresholds._deck_threshold
+            }
+            const decksEmbed = new bootstrap.Discord.MessageEmbed()
+                .setColor(bootstrap.messageColorBlue)
+                .setFooter("Note: The threshold to appear on this list is " + threshold.toString() + " game(s)\nAdmins can configure this using !setconfig");
+            let sortedArray = returnArr[1].sort(function (a, b) {
+                return parseFloat(b[1] + b[2]) - parseFloat(a[1] + a[2]);
+            });
+
+
+            sortedArray.forEach((deck) => {
+                overallWins = overallWins + deck[1];
+                overallLosses = overallLosses + deck[3];
+                if (deck[1] + deck[3] < threshold) {
+                } else {
+                    decksEmbed.addFields(
+                        {name: " \u200b", value: deck[0].toString()},
+                        {name: 'Wins', value: deck[1].toString(), inline: true},
+                        {name: 'Losses', value: deck[3].toString(), inline: true},
+                        {
+                            name: 'Win Rate',
+                            value: Math.round((deck[1] / (deck[3] + deck[1]) * 100)).toString() + "%",
+                            inline: true
+                        },
+                    )
+                }
+            });
+            profileEmbed
+                .addFields(
+                    {
+                        name: "Overall Winrate",
+                        value: Math.round((overallWins / (overallLosses + overallWins) * 100)) + "%",
+                        inline: true
+                    }
+                );
+            resolve(profileEmbed)
+        })
     },
     async remindMatch(receivedMessage, args) {
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
