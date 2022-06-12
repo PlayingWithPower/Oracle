@@ -43,7 +43,7 @@ module.exports = {
 
     logMatch(id, receivedMessage) {
         let promises = [];
-        let out = [];
+        let players_out = [];
 
         return new Promise((resolve, reject) => {
             let findQuery = {_match_id: id, _Status: "STARTED"};
@@ -55,9 +55,9 @@ module.exports = {
                     promises.push(module.exports.logLoser(res._player4, receivedMessage));
                     Promise.all(promises).then(function() {
                         arguments[0].forEach(arg => {
-                            out.push(arg)
+                            players_out.push(arg)
                         });
-                        resolve(out)
+                        resolve([players_out, res._Draw])
                     }, function(err) {
                         //console.log(err)
                     });
@@ -165,7 +165,7 @@ module.exports = {
             })
         })
     },
-    async createMatch(player1, player2, player3, player4, id, receivedMessage, callback) {
+    async createMatch(player1, player2, player3, player4, id, draw, receivedMessage, callback) {
         let currentSeasonObj = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
         let configs = await bootstrap.ConfigHelper.getThresholds(receivedMessage.guild.id);
         let currentSeasonName = currentSeasonObj._season_name;
@@ -195,7 +195,13 @@ module.exports = {
         }else{
             pointsLost = bootstrap.pointsGained
         }
-
+        if (draw) {
+            if (configs._points_draw !== undefined) {
+                pointsGained = pointsLost = configs._points_draw;
+            } else {
+                pointsGained = pointsLost = bootstrap.pointsDraw;
+            }
+        }
         Promise.all(promiseArr).then(function() {
             let player1R = "None";
             let player2R = "None";
@@ -247,7 +253,8 @@ module.exports = {
                     _player2Deck: player2Deck, 
                     _player3Deck: player3Deck, 
                     _player4Deck: player4Deck, 
-                    _Status: "STARTED", 
+                    _Status: "STARTED",
+                    _Draw: draw,
                     _player1Confirmed: "N", 
                     _player2Confirmed: "N", 
                     _player3Confirmed: "N", 

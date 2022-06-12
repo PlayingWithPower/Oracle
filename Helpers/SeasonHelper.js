@@ -92,19 +92,37 @@ module.exports = {
                                 if (passingResult[i]._player1Points !== undefined){
                                     let exists = matchResults.find(el => el[0] === pasRes);
                                     if (exists) {
-                                        exists[1] += 1;
-                                        exists[2] += parseInt(passingResult[i]._player1Points)
+                                        if (passingResult[i]._Draw) {
+                                            exists[3] += 1;
+                                            exists[2] += parseInt(passingResult[i]._player1Points);
+                                        } else {
+                                            exists[1] += 1;
+                                            exists[2] += parseInt(passingResult[i]._player1Points);
+                                        }
                                     } else {
-                                        matchResults.push([pasRes, 1, parseInt(passingResult[i]._player1Points), 0, 0]);
+                                        if (passingResult[i]._Draw) {
+                                            matchResults.push([pasRes, 0, parseInt(passingResult[i]._player1Points), 1, 0]);
+                                        } else {
+                                            matchResults.push([pasRes, 1, parseInt(passingResult[i]._player1Points), 0, 0]);
+                                        }
                                     }
                                 }
                                 else{
                                     let exists = matchResults.find(el => el[0] === pasRes);
                                     if (exists) {
-                                        exists[1] += 1;
-                                        exists[2] += bootstrap.pointsGained;
+                                        if (passingResult[i]._Draw) {
+                                            exists[3] += 1;
+                                            exists[2] += bootstrap.pointsDraw;
+                                        } else {
+                                            exists[1] += 1;
+                                            exists[2] += bootstrap.pointsGained;
+                                        }
                                     } else {
-                                        matchResults.push([pasRes, 1, bootstrap.pointsGained, 0, 0]);
+                                        if (passingResult[i]._Draw) {
+                                            matchResults.push([pasRes, 0, bootstrap.pointsDraw, 1, 0]);
+                                        } else {
+                                            matchResults.push([pasRes, 1, bootstrap.pointsGained, 0, 0]);
+                                        }
                                     }
                                 }
                             }

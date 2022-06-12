@@ -41,6 +41,7 @@ const messageColorBlue = "#0099ff";
 //Points
 const pointsGained = 30;
 const pointsLost = 10;
+const pointsDraw = 0;
 const startingElo = 1000;
 
 //Data
@@ -90,6 +91,7 @@ exports.messageColorBlue = messageColorBlue;
 //Points Export
 exports.pointsGained = pointsGained;
 exports.pointsLost = pointsLost;
+exports.pointsDraw = pointsDraw;
 exports.startingElo = startingElo;
 
 //Data Export

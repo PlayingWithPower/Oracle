@@ -113,6 +113,9 @@ async function processCommand(receivedMessage){
         case "log":
             bootstrap.OracleObj.startMatch(receivedMessage, arguments);
             break;
+        case "draw":
+            bootstrap.OracleObj.startMatch(receivedMessage, arguments, true);
+            break;
         // case "remind":
         //     remindMatch(receivedMessage, arguments)
         //     break;
