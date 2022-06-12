@@ -681,9 +681,9 @@ module.exports = {
             for (let i = 0; i < results.length; i++){
                 let elo = bootstrap.startingElo;
                 if (results[i] !== "Can't find deck"){
-                    let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][3])*100);
+                    let calculatedWinrate = Math.round(results[i][0][1]/(results[i][0][1]+results[i][0][3]+results[i][0][5])*100);
                     let username = results[i][0][0];
-                    let gamesPlayed = (results[i][0][1] + results[i][0][3]);
+                    let gamesPlayed = (results[i][0][1] + results[i][0][3] + results[i][0][5]);
                     elo += (results[i][0][2]) - (results[i][0][4]);
                     if (allCheck){
                         unsortedResults.push([username,calculatedWinrate, results[i][0][1], results[i][0][3]]);
@@ -1647,11 +1647,13 @@ module.exports = {
     async profile(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.UserObj.profile(receivedMessage, args);
+        console.log(returnArr);
         let compareDeck = 0;
         let favDeck = "";
         let elo = bootstrap.startingElo;
         let overallWins = 0;
         let overallLosses = 0;
+        let overallDraw = 0;
         let user = "<@"+receivedMessage.author+">";
         if (args[0] !== "Not Defined"){
             user = args[0]
@@ -1707,6 +1709,7 @@ module.exports = {
             sortedArray.forEach((deck) =>{
                 overallWins = overallWins + deck[1];
                 overallLosses = overallLosses + deck[3];
+                overallDraw = overallDraw + deck[5];
                 if (deck[1] + deck[3] < threshold){ }
                 else{
                     decksEmbed
@@ -1714,13 +1717,14 @@ module.exports = {
                             { name: " \u200b", value: deck[0]},
                             { name: 'Wins', value: deck[1], inline: true },
                             { name: 'Losses', value: deck[3], inline: true },
-                            { name: 'Win Rate', value: Math.round((deck[1]/(deck[3]+deck[1])*100)) + "%", inline: true },
+                            { name: 'Draws', value: deck[5], inline: true },
+                            { name: 'Win Rate', value: Math.round((deck[1]/(deck[3]+deck[1]+deck[5])*100)) + "%", inline: true },
                         )
                 }
             });
             profileEmbed
                 .addFields(
-                    {name: "Overall Winrate", value: Math.round((overallWins/(overallLosses+overallWins)*100)) + "%", inline: true}
+                    {name: "Overall Winrate", value: Math.round((overallWins/(overallLosses+overallWins+overallDraw)*100)) + "%", inline: true}
                 );
             generalChannel.send(profileEmbed);
             generalChannel.send(decksEmbed);

@@ -70,19 +70,21 @@ module.exports = {
                             if (passingResult[i]._player1Points !== undefined){
                                 let exists = matchResults.find(el => el[0] === pasRes);
                                 if (exists) {
-                                    exists[1] += 1;
+                                    exists[1] += (passingResult[i]._Draw ? 0 : 1);
                                     exists[2] += parseInt(passingResult[i]._player1Points)
+                                    exists[5] += (passingResult[i]._Draw ? 1 : 0);
                                 } else {
-                                    matchResults.push([pasRes, 1, parseInt(passingResult[i]._player1Points), 0, 0]);
+                                    matchResults.push([pasRes, (passingResult[i]._Draw ? 0 : 1), parseInt(passingResult[i]._player1Points), 0, 0, (passingResult[i]._Draw ? 1 : 0)]);
                                 }
                             }
                             else{
                                 let exists = matchResults.find(el => el[0] === pasRes);
                                 if (exists) {
-                                    exists[1] += 1;
-                                    exists[2] += bootstrap.pointsGained;
+                                    exists[1] += (passingResult[i]._Draw ? 0 : 1);
+                                    exists[2] += (passingResult[i]._Draw ? bootstrap.pointsDraw : bootstrap.pointsGained);
+                                    exists[5] += (passingResult[i]._Draw ? 1 : 0);
                                 } else {
-                                    matchResults.push([pasRes, 1, bootstrap.pointsGained, 0, 0]);
+                                    matchResults.push([pasRes, (passingResult[i]._Draw ? 0 : 1), (passingResult[i]._Draw ? bootstrap.pointsDraw : bootstrap.pointsGained), 0, 0, (passingResult[i]._Draw ? 1 : 0)]);
                                 }
                             }
                         }
@@ -95,19 +97,37 @@ module.exports = {
                             if (passingResult[i]._player2Points !== undefined){
                                 let exists2 = matchResults.find(el => el[0] === pasRes);
                                 if (exists2) {
-                                    exists2[3] += 1;
-                                    exists2[4] += parseInt(passingResult[i]._player2Points)
+                                    if (passingResult[i]._Draw) {
+                                        exists2[2] += parseInt(passingResult[i]._player2Points);
+                                        exists2[5] += 1;
+                                    } else {
+                                        exists2[3] += 1;
+                                        exists2[4] += parseInt(passingResult[i]._player2Points);
+                                    }
                                 } else {
-                                    matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player2Points)]);
+                                    if (passingResult[i]._Draw) {
+                                        matchResults.push([pasRes, 0, parseInt(passingResult[i]._player2Points), 0, 0, 1]);
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player2Points), 0]);
+                                    }
                                 }
                             }
                             else{
                                 let exists2 = matchResults.find(el => el[0] === pasRes);
                                 if (exists2) {
-                                    exists2[3] += 1;
-                                    exists2[4] += bootstrap.pointsLost;
+                                    if (passingResult[i]._Draw) {
+                                        exists2[2] += bootstrap.pointsDraw;
+                                        exists2[5] += 1;
+                                    } else {
+                                        exists2[3] += 1;
+                                        exists2[4] += bootstrap.pointsLost;
+                                    }
                                 } else {
-                                    matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                    if (passingResult[i]._Draw) {
+                                        matchResults.push([pasRes, 0, bootstrap.pointsDraw, 1, 0, 1]);
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost, 0]);
+                                    }
                                 }
                             }
                         }
@@ -120,19 +140,37 @@ module.exports = {
                             if (passingResult[i]._player3Points !== undefined){
                                 let exists3 = matchResults.find(el => el[0] === pasRes);
                                 if (exists3) {
-                                    exists3[3] += 1;
-                                    exists3[4] += parseInt(passingResult[i]._player3Points)
+                                    if (passingResult[i]._Draw) {
+                                        exists3[2] += parseInt(passingResult[i]._player3Points);
+                                        exists3[5] += 1;
+                                    } else {
+                                        exists3[3] += 1;
+                                        exists3[4] += parseInt(passingResult[i]._player3Points);
+                                    }
                                 } else {
-                                    matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player3Points)]);
+                                    if (passingResult[i]._Draw) {
+                                        matchResults.push([pasRes, 0, parseInt(passingResult[i]._player3Points), 0, 0, 1]);
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player3Points), 0]);
+                                    }
                                 }
                             }
                             else{
                                 let exists3 = matchResults.find(el => el[0] === pasRes);
                                 if (exists3) {
-                                    exists3[3] += 1;
-                                    exists3[4] += bootstrap.pointsLost;
+                                    if (passingResult[i]._Draw) {
+                                        exists3[2] += bootstrap.pointsDraw;
+                                        exists3[5] += 1;
+                                    } else {
+                                        exists3[3] += 1;
+                                        exists3[4] += bootstrap.pointsLost;
+                                    }
                                 } else {
-                                    matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                    if (passingResult[i]._Draw) {
+                                        matchResults.push([pasRes, 0, bootstrap.pointsDraw, 1, 0, 1]);
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost, 0]);
+                                    }
                                 }
                             }
                         }
@@ -145,19 +183,37 @@ module.exports = {
                             if (passingResult[i]._player4Points !== undefined){
                                 let exists4 = matchResults.find(el => el[0] === pasRes);
                                 if (exists4) {
-                                    exists4[3] += 1;
-                                    exists4[4] += parseInt(passingResult[i]._player4Points)
+                                    if (passingResult[i]._Draw) {
+                                        exists4[2] += parseInt(passingResult[i]._player4Points);
+                                        exists4[5] += 1;
+                                    } else {
+                                        exists4[3] += 1;
+                                        exists4[4] += parseInt(passingResult[i]._player4Points);
+                                    }
                                 } else {
-                                    matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player4Points)]);
+                                    if (passingResult[i]._Draw) {
+                                        matchResults.push([pasRes, 0, parseInt(passingResult[i]._player4Points), 0, 0, 1]);
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, parseInt(passingResult[i]._player4Points), 0]);
+                                    }
                                 }
                             }
                             else{
                                 let exists4 = matchResults.find(el => el[0] === pasRes);
                                 if (exists4) {
-                                    exists4[3] += 1;
-                                    exists4[4] += bootstrap.pointsLost;
+                                    if (passingResult[i]._Draw) {
+                                        exists4[2] += bootstrap.pointsDraw;
+                                        exists4[5] += 1;
+                                    } else {
+                                        exists4[3] += 1;
+                                        exists4[4] += bootstrap.pointsLost;
+                                    }
                                 } else {
-                                    matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost]);
+                                    if (passingResult[i]._Draw) {
+                                        matchResults.push([pasRes, 0, bootstrap.pointsDraw, 1, 0, 1]);
+                                    } else {
+                                        matchResults.push([pasRes, 0, 0, 1, bootstrap.pointsLost, 0]);
+                                    }
                                 }
                             }
                         }
