@@ -49,7 +49,7 @@ module.exports = {
                             bootstrap.GameObj.logMatch(grabMatchID, reaction.message).then(function([final, is_draw]) {
                                 bootstrap.GameObj.finishMatch(grabMatchID, reaction.message).then(async function () {
                                     const getThresholds = await bootstrap.ConfigHelper.getThresholds(channel.guild.id);
-                                    let confirmMessage = 'TEST';
+                                    let confirmMessage = '';
                                     if (is_draw) {
                                         confirmMessage = new bootstrap.Discord.MessageEmbed()
                                             .setColor(bootstrap.messageColorGreen)
