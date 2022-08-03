@@ -1286,7 +1286,7 @@ module.exports = {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("No On-Going Season")
-                .setDescription("LOL. There is no on-going season. Please start a season before logging matches")
+                .setDescription("There is no on-going season. Please start a season before logging matches")
                 .setFooter("Admins can use !startseason");
             generalChannel.send(errorMsg);
             return
@@ -1647,7 +1647,6 @@ module.exports = {
     async profile(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.UserObj.profile(receivedMessage, args);
-        console.log(returnArr);
         let compareDeck = 0;
         let favDeck = "";
         let elo = bootstrap.startingElo;
