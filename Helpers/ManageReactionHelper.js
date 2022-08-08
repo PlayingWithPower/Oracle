@@ -59,11 +59,11 @@ module.exports = {
                                             .addFields(
                                                 {
                                                     name: "Draw",
-                                                    value: "<@" + final[0] + "> gained " + getThresholds._points_draw + " points"
+                                                    value: "<@" + final[0] + "> gained " + (getThresholds._points_draw ?? bootstrap.pointsDraw) + " points"
                                                 },
-                                                {name: "Draw", value: "<@" + final[1] + "> gained " + getThresholds._points_draw + " points"},
-                                                {name: "Draw", value: "<@" + final[2] + "> gained " + getThresholds._points_draw + " points"},
-                                                {name: "Draw", value: "<@" + final[3] + "> gained " + getThresholds._points_draw + " points"},
+                                                {name: "Draw", value: "<@" + final[1] + "> gained " + (getThresholds._points_draw ?? bootstrap.pointsDraw) + " points"},
+                                                {name: "Draw", value: "<@" + final[2] + "> gained " + (getThresholds._points_draw ?? bootstrap.pointsDraw) + " points"},
+                                                {name: "Draw", value: "<@" + final[3] + "> gained " + (getThresholds._points_draw ?? bootstrap.pointsDraw) + " points"},
                                             );
                                     } else {
                                         confirmMessage = new bootstrap.Discord.MessageEmbed()

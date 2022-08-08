@@ -1303,7 +1303,7 @@ module.exports = {
             const errorMsg = new bootstrap.Discord.MessageEmbed()
                 .setColor(bootstrap.messageColorRed)
                 .setAuthor("Improper input")
-                .setDescription("Please submit only the **3 players** who lost in the pod")
+                .setDescription("Please submit only the **3 players** who lost or drew in the pod")
                 .setFooter("Example: !log @user @user @user \n" +
                     "Tip: Have one space between each @use tag");
             generalChannel.send(errorMsg);
