@@ -67,11 +67,14 @@ module.exports = {
             let deckThreshold = 10;
             let pointsGained = 30;
             let pointsLost = 10;
+            let pointsDraw = 0;
             let topThreshold = 10;
 
-            if ((splitArgs[0]!== "points gained") &&(splitArgs[0]!== "points lost")
-                &&(splitArgs[0]!== "minimum games") && (splitArgs[0]!== "minimum decks")
-                && (splitArgs[0]!== "leaderboard length")) {
+            if (
+                (splitArgs[0]!== "points gained") &&(splitArgs[0]!== "points lost")
+                &&(splitArgs[0]!== "points draw") &&(splitArgs[0]!== "minimum games")
+                && (splitArgs[0]!== "minimum decks") && (splitArgs[0]!== "leaderboard length")
+            ) {
                 resolve("Invalid Input")
             }
             else if (!parseInt(splitArgs[1])){
@@ -131,6 +134,18 @@ module.exports = {
                                 pointsLost = splitArgs[1]
                             }
                         }
+                    } else if ((splitArgs[0] === "points draw")) {
+                        if (parseInt(splitArgs[1])) {
+                            if (!isNaN(splitArgs[1])) {
+                                conditionalQuery = {
+                                    _server: receivedMessage.guild.id,
+                                    $set: {
+                                        _points_draw: splitArgs[1]
+                                    }
+                                };
+                                pointsDraw = splitArgs[1]
+                            }
+                        }
                     } else if ((splitArgs[0] === "leaderboard length")){
                         if (parseInt(splitArgs[1])){
                             if (!isNaN(splitArgs[1])){
@@ -155,6 +170,7 @@ module.exports = {
                         _deck_threshold: deckThreshold,
                         _points_gained: pointsGained,
                         _points_lost: pointsLost,
+                        _points_draw: pointsDraw,
                         _top_threshold: topThreshold,
                         _admin: [],
                     };

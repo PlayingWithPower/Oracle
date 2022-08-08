@@ -17,6 +17,7 @@ var match = new mongoose.Schema({
     _player3Deck: String,
     _player4Deck: String,
     _Status: String,
+    _Draw: Boolean,
     _player1Confirmed: String,
     _player2Confirmed: String,
     _player3Confirmed: String,

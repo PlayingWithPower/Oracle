@@ -46,23 +46,41 @@ module.exports = {
             bootstrap.GameObj.confirmMatch(grabMatchID, sanitizedString).then(function() {
                     bootstrap.GameObj.checkMatch(grabMatchID).then(function(next) {
                         if (next === "SUCCESS") {
-                            bootstrap.GameObj.logMatch(grabMatchID, reaction.message).then(function(final) {
+                            bootstrap.GameObj.logMatch(grabMatchID, reaction.message).then(function([final, is_draw]) {
                                 bootstrap.GameObj.finishMatch(grabMatchID, reaction.message).then(async function () {
                                     const getThresholds = await bootstrap.ConfigHelper.getThresholds(channel.guild.id);
-                                    const confirmMessage = new bootstrap.Discord.MessageEmbed()
-                                        .setColor(bootstrap.messageColorGreen)
-                                        .setAuthor("Sucessfully Logged Match: " + grabMatchID)
-                                        .setDescription("Type **!profile** to see changes to your score\n\
-                                        Type **!top** to see changes to this season's leaderboard")
-                                        .addFields(
-                                            {
-                                                name: "Winner",
-                                                value: "<@" + final[0] + "> gained " + getThresholds._points_gained + " points"
-                                            },
-                                            {name: "Loser", value: "<@" + final[1] + "> lost " + getThresholds._points_lost + " points"},
-                                            {name: "Loser", value: "<@" + final[2] + "> lost " + getThresholds._points_lost + " points"},
-                                            {name: "Loser", value: "<@" + final[3] + "> lost " + getThresholds._points_lost + " points"},
-                                        );
+                                    let confirmMessage = '';
+                                    if (is_draw) {
+                                        confirmMessage = new bootstrap.Discord.MessageEmbed()
+                                            .setColor(bootstrap.messageColorGreen)
+                                            .setAuthor("Sucessfully Logged Match: " + grabMatchID)
+                                            .setDescription("Type **!profile** to see changes to your score\n\
+                                            Type **!top** to see changes to this season's leaderboard")
+                                            .addFields(
+                                                {
+                                                    name: "Draw",
+                                                    value: "<@" + final[0] + "> gained " + (getThresholds._points_draw ?? bootstrap.pointsDraw) + " points"
+                                                },
+                                                {name: "Draw", value: "<@" + final[1] + "> gained " + (getThresholds._points_draw ?? bootstrap.pointsDraw) + " points"},
+                                                {name: "Draw", value: "<@" + final[2] + "> gained " + (getThresholds._points_draw ?? bootstrap.pointsDraw) + " points"},
+                                                {name: "Draw", value: "<@" + final[3] + "> gained " + (getThresholds._points_draw ?? bootstrap.pointsDraw) + " points"},
+                                            );
+                                    } else {
+                                        confirmMessage = new bootstrap.Discord.MessageEmbed()
+                                            .setColor(bootstrap.messageColorGreen)
+                                            .setAuthor("Sucessfully Logged Match: " + grabMatchID)
+                                            .setDescription("Type **!profile** to see changes to your score\n\
+                                            Type **!top** to see changes to this season's leaderboard")
+                                            .addFields(
+                                                {
+                                                    name: "Winner",
+                                                    value: "<@" + final[0] + "> gained " + getThresholds._points_gained + " points"
+                                                },
+                                                {name: "Loser", value: "<@" + final[1] + "> lost " + getThresholds._points_lost + " points"},
+                                                {name: "Loser", value: "<@" + final[2] + "> lost " + getThresholds._points_lost + " points"},
+                                                {name: "Loser", value: "<@" + final[3] + "> lost " + getThresholds._points_lost + " points"},
+                                            );
+                                    }
                                     channel.send(confirmMessage);
                                     //console.log("Game #" + grabMatchID + " success")
                                 }).catch((message) => {
