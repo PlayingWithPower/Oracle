@@ -195,14 +195,14 @@ module.exports = {
     leaderBoard(receivedMessage) {
         let userQuery = {_server: receivedMessage.guild.id};
         return new Promise(async (resolve,reject)=>{
-            bootstrap.User.find(userQuery, function(err, res){
-                if (res){
-                    resolve(res)
-                }
-                else{
-                    resolve("Error 1")
-                }
-            })
+            const sort = {_points: -1}
+            const getThresholds = await bootstrap.ConfigHelper.getThresholds(receivedMessage.guild.id);
+            const sanitizedLookup =
+                bootstrap.Leaderboard
+                    .find(userQuery)
+                    .sort(sort)
+                    .limit(parseInt(getThresholds._top_threshold));
+            resolve(sanitizedLookup)
         })
 
     },

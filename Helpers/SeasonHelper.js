@@ -178,5 +178,5 @@ module.exports = {
                 resolve(matchResults)
             })
         })
-    },  
+    },
 };

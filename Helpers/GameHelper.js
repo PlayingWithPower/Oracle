@@ -67,8 +67,28 @@ module.exports = {
         })
     },
     async hasDuplicates(enteredUsers){
-
         let unique = enteredUsers.filter((item, i, ar) => ar.indexOf(item) === i);
         return unique.length !== 4;
-    }
+    },
+    async sendLeaderboardUpdate(isWinner, player, receivedMessage){
+        let currentSeasonObj = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
+        const getThresholds = await bootstrap.ConfigHelper.getThresholds(receivedMessage.guild.id);
+        if (isWinner){
+            bootstrap.Leaderboard.updateOne(
+                {_player: player, _server: receivedMessage.guild.id, _season: currentSeasonObj._season_name},
+                {$inc: {_games: 1, _wins: 1, _losses: 0, _points: getThresholds._points_gained } },
+                {upsert: true},
+                function(result, err){
+                })
+
+        }else{
+            bootstrap.Leaderboard.updateOne(
+                {_player: player, _server: receivedMessage.guild.id, _season: currentSeasonObj._season_name},
+                {$inc: {_games: 1, _wins: 0, _losses: 1, _points: -(getThresholds._points_lost) } },
+                {upsert: true},
+                function(result, err){
+                })
+        }
+
+    },
 };

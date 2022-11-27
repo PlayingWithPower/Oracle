@@ -501,5 +501,16 @@ module.exports = {
         })
         
     },
+    async updateLeaderboard(matchID, receivedMessage, players){
+        let winner = true
+        players.forEach(player => {
+            if (winner === true){
+                bootstrap.GameHelper.sendLeaderboardUpdate(true, player, receivedMessage)
+            }else{
+                bootstrap.GameHelper.sendLeaderboardUpdate(false, player, receivedMessage)
+            }
+            winner = false
+        })
+    }
 
 };
