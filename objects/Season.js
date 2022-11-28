@@ -192,8 +192,9 @@ module.exports = {
      * Get leaderboard info for a number of different data points
      * Top games, score, winrate
      */
-    leaderBoard(receivedMessage) {
-        let userQuery = {_server: receivedMessage.guild.id};
+    async leaderBoard(receivedMessage) {
+        let currentSeasonObj = await bootstrap.SeasonHelper.getCurrentSeason(receivedMessage.guild.id);
+        let userQuery = {_server: receivedMessage.guild.id, _season: currentSeasonObj._season_name};
         return new Promise(async (resolve,reject)=>{
             const sort = {_points: -1}
             const getThresholds = await bootstrap.ConfigHelper.getThresholds(receivedMessage.guild.id);
