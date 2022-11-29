@@ -170,7 +170,7 @@ async function processCommand(receivedMessage){
             }
             break;
         case "top":
-            bootstrap.OracleObj.top(receivedMessage, rawArguments);
+            bootstrap.OracleObj.newTop(receivedMessage, rawArguments);
             break;
         case "startseason":
             if (adminGet){

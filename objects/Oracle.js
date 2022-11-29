@@ -615,6 +615,27 @@ module.exports = {
             generalChannel.send(startSeason)
         }
     },
+    async newTop(receivedMessage, args){
+        let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        let getLeaderboardUsers = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
+
+        const resultsMsg = new bootstrap.Discord.MessageEmbed();
+        let listOfPlayers = "";
+        let listOfWinrates = "";
+        let listOfScores = "";
+        getLeaderboardUsers.forEach(user=>{
+            listOfPlayers += "<@"+user._player+">"+"\n";
+            listOfWinrates += user._games + " | " + Math.round(((user._wins/user._losses)*100)) + "%" + "\n";
+            listOfScores += user._points +"\n";
+        })
+        resultsMsg.addFields(
+            {name: "Username", value: listOfPlayers, inline: true},
+            {name: "Games | Winrate", value: listOfWinrates, inline: true},
+            {name: "Score", value: listOfScores, inline: true},
+        );
+        generalChannel.send(resultsMsg)
+
+    },
     async top(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
         let returnArr = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
@@ -656,6 +677,7 @@ module.exports = {
             return
         }
         lookUpUsers = await mentionValues.map(bootstrap.SeasonHelper.lookUpUsers);
+
 
         let unsortedResults = [];
         const resultsMsg = new bootstrap.Discord.MessageEmbed();
@@ -1385,8 +1407,6 @@ module.exports = {
                                         generalChannel.send(errorMsg);
                                     }
                                     else {
-
-
                                         UserIDs.forEach(player => {
                                             let findQuery = {_mentionValue: player, _server: receivedMessage.guild.id};
                                             bootstrap.User.findOne(findQuery, function(err, res){

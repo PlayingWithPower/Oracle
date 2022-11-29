@@ -19,6 +19,7 @@ const Game = require('./Schema/Games');
 const Config = require('./Schema/Config');
 const Season = require('./Schema/Seasons');
 const Alias = require('./Schema/Alias');
+const Leaderboard = require('./Schema/Leaderboard')
 
 //Helper files
 const FunctionHelper = require('./Helpers/FunctionHelper');
@@ -67,6 +68,7 @@ exports.Game = Game;
 exports.Config = Config;
 exports.Season = Season;
 exports.Alias = Alias;
+exports.Leaderboard = Leaderboard;
 
 
 //Helper Export

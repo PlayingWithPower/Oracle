@@ -48,23 +48,28 @@ module.exports = {
                         if (next === "SUCCESS") {
                             bootstrap.GameObj.logMatch(grabMatchID, reaction.message).then(function(final) {
                                 bootstrap.GameObj.finishMatch(grabMatchID, reaction.message).then(async function () {
-                                    const getThresholds = await bootstrap.ConfigHelper.getThresholds(channel.guild.id);
-                                    const confirmMessage = new bootstrap.Discord.MessageEmbed()
-                                        .setColor(bootstrap.messageColorGreen)
-                                        .setAuthor("Sucessfully Logged Match: " + grabMatchID)
-                                        .setDescription("Type **!profile** to see changes to your score\n\
+                                    bootstrap.GameObj.updateLeaderboard(grabMatchID, reaction.message, final).then(async function (){
+                                        const getThresholds = await bootstrap.ConfigHelper.getThresholds(channel.guild.id);
+                                        const confirmMessage = new bootstrap.Discord.MessageEmbed()
+                                            .setColor(bootstrap.messageColorGreen)
+                                            .setAuthor("Sucessfully Logged Match: " + grabMatchID)
+                                            .setDescription("Type **!profile** to see changes to your score\n\
                                         Type **!top** to see changes to this season's leaderboard")
-                                        .addFields(
-                                            {
-                                                name: "Winner",
-                                                value: "<@" + final[0] + "> gained " + getThresholds._points_gained + " points"
-                                            },
-                                            {name: "Loser", value: "<@" + final[1] + "> lost " + getThresholds._points_lost + " points"},
-                                            {name: "Loser", value: "<@" + final[2] + "> lost " + getThresholds._points_lost + " points"},
-                                            {name: "Loser", value: "<@" + final[3] + "> lost " + getThresholds._points_lost + " points"},
-                                        );
-                                    channel.send(confirmMessage);
-                                    //console.log("Game #" + grabMatchID + " success")
+                                            .addFields(
+                                                {
+                                                    name: "Winner",
+                                                    value: "<@" + final[0] + "> gained " + getThresholds._points_gained + " points"
+                                                },
+                                                {name: "Loser", value: "<@" + final[1] + "> lost " + getThresholds._points_lost + " points"},
+                                                {name: "Loser", value: "<@" + final[2] + "> lost " + getThresholds._points_lost + " points"},
+                                                {name: "Loser", value: "<@" + final[3] + "> lost " + getThresholds._points_lost + " points"},
+                                            );
+                                        channel.send(confirmMessage);
+                                        //console.log("Game #" + grabMatchID + " success")
+                                    }).catch((message) => {
+                                        //console.log("ERROR:", message)
+                                    })
+
                                 }).catch((message) => {
                                     //console.log("Finishing Game #" + grabMatchID + " failed. ERROR:", message)
                                     })
