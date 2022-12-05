@@ -617,22 +617,42 @@ module.exports = {
     },
     async newTop(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
         let getLeaderboardUsers = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
 
         const resultsMsg = new bootstrap.Discord.MessageEmbed();
         let listOfPlayers = "";
         let listOfWinrates = "";
         let listOfScores = "";
-        getLeaderboardUsers.forEach(user=>{
-            listOfPlayers += "<@"+user._player+">"+"\n";
-            listOfWinrates += user._games + " | " + Math.round(((user._wins/user._losses)*100)) + "%" + "\n";
-            listOfScores += user._points +"\n";
-        })
-        resultsMsg.addFields(
-            {name: "Username", value: listOfPlayers, inline: true},
-            {name: "Games | Winrate", value: listOfWinrates, inline: true},
-            {name: "Score", value: listOfScores, inline: true},
-        );
+        let minimumGamesThreshold = 5;
+        let topPlayersThreshold = 10;
+
+        if (getDeckThreshold !== "No configs"){
+            if (getDeckThreshold._player_threshold !== undefined){
+                minimumGamesThreshold = getDeckThreshold._player_threshold;
+            }
+            if (getDeckThreshold._top_threshold !== undefined) {
+                topPlayersThreshold = getDeckThreshold._top_threshold;
+            }
+        }
+
+        if (getLeaderboardUsers.length === 0){
+            resultsMsg
+                .setAuthor("No Top Players yet for this season!")
+                .setFooter("Note: The threshold to appear on this list is " + minimumGamesThreshold.toString() + " game(s)\n" +
+                    "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
+        }else{
+            getLeaderboardUsers.forEach(user=>{
+                listOfPlayers += "<@"+user._player+">"+"\n";
+                listOfWinrates += user._games + " | " + Math.round(((user._wins/user._losses)*100)) + "%" + "\n";
+                listOfScores += user._points +"\n";
+            })
+            resultsMsg.addFields(
+                {name: "Username", value: listOfPlayers, inline: true},
+                {name: "Games | Winrate", value: listOfWinrates, inline: true},
+                {name: "Score", value: listOfScores, inline: true},
+            );
+        }
         generalChannel.send(resultsMsg)
 
     },
