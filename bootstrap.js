@@ -1,4 +1,4 @@
-const { Intents } = require('discord.js');
+const { Client, GatewayIntentBits } = require('discord.js');
 
 
 // Bot Configuration
@@ -6,10 +6,14 @@ const Env = require('./etc/env.js');
 const Discord = require('discord.js');
 
 
-const Client = new Discord.Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
-    partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions
+    ]
 });
+
 const Mongoose = require('mongoose');
 
 //Objects
@@ -57,7 +61,7 @@ const Data = require('./data/decklists.json');
 //Bot Config Export
 exports.Env = Env;
 exports.Discord = Discord;
-exports.Client = Client;
+exports.Client = client;
 exports.mongoose = Mongoose;
 
 //Objects Export

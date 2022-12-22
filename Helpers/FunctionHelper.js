@@ -16,6 +16,7 @@ deckDictionary = {
 };
 gameDictionary = {
     log: "Logs a game to this server's league",
+    //remind: "Reminds users to confirm logged matches",
     pending: "Lists all unfinished matches",
     disputed: "Lists all disputed matches",
     info: "Provides information on a match",
@@ -65,7 +66,7 @@ exampleDictionary =
     Add as many or as few decks as you want. We recommend adding a deck to your server once more than a few people play it. Users can track stats on their custom lists with the !use <Deck Name> | Rogue functionality,\
     so it is not necessary to add every deck users play.\n\n\
     !add Deck Alias | Commander | Color | Deck Link | Author | Deck Description | Deck Type | Has Primer? (Yes/No) | Discord Link.\n\n\
-    Example usage: !add Sphinx Control | Unesh, Criosphinx Sovereign | https://www.google.com | Gnarwhal | This is a control deck that seeks to win through isochron scepter | Disruptive | No | https://discord.gg/12345 | ",
+    Example usagenode : !add Sphinx Control | Unesh, Criosphinx Sovereign | https://www.google.com | Gnarwhal | This is a control deck that seeks to win through isochron scepter | Disruptive | No | https://discord.gg/12345 | ",
     removedeck: "Use this function to remove a deck from your server's list of decks.  This will remove the list, but will not remove stats about this deck from your server.\
     This is an Admin-Only command to remove old and outdecked deck. Or ones that are simply not used on your server. Curating your decklist is entirely optional\n\n\
     Example usage: !removedeck <Deck Name>",
@@ -170,28 +171,25 @@ module.exports = {
      * 
      * Retrieves info from the help dictionary about a specific command. 
      */
-    showEmbedHelpForCommand(interaction, arguments)
+    showEmbedHelpForCommand(receivedMessage, arguments)
     {
-        const exampleEmbed = new bootstrap.Discord.EmbedBuilder()
-        .setColor(bootstrap.messageColorBlue);
+        const exampleEmbed = new bootstrap.Discord.MessageEmbed()
+        .setColor(bootstrap.messageColorBlue)
             exampleEmbed
-            .setAuthor({name:"Displaying information about the command: !" + arguments});
+            .setAuthor("Displaying information about the command: !" + [arguments]);
             if (exampleDictionary[arguments] !== undefined){
                 exampleEmbed
                 .addFields(
                     { name: "Command Details", value: exampleDictionary[arguments] },
                 );
-                const serverEmbed = new bootstrap.Discord.EmbedBuilder()
-                    .setAuthor({name:"Message sent to your inbox!"})
+                const serverEmbed = new bootstrap.Discord.MessageEmbed()
+                    .setAuthor("Message sent to your inbox!")
                     .setColor(bootstrap.messageColorGreen)
                     .setDescription("I have Direct Messaged you information!");
 
-                return new Promise((resolve, reject)=>{
-                    interaction.user.send({embeds: [exampleEmbed]}).then(msg =>{
-                        resolve(serverEmbed)
-                    })
+                receivedMessage.author.send(exampleEmbed).then(msg =>{
+                    receivedMessage.channel.send(serverEmbed)
                 })
-
             }
     },
 
@@ -204,26 +202,26 @@ module.exports = {
      */
     async showEmbedHelpForAllCommands(receivedMessage)
     {
-        const deckEmbed = new bootstrap.Discord.EmbedBuilder()
-            .setAuthor({name:"Deck Commands"})
+        const deckEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("Deck Commands")
             .setColor(bootstrap.messageColorBlue);
-        const gameEmbed = new bootstrap.Discord.EmbedBuilder()
-            .setAuthor({name:"Game Commands"})
+        const gameEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("Game Commands")
             .setColor(bootstrap.messageColorBlue);
-        const leagueEmbed = new bootstrap.Discord.EmbedBuilder()
-            .setAuthor({name:"League Commands"})
+        const leagueEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("League Commands")
             .setColor(bootstrap.messageColorBlue);
-        const seasonEmbed = new bootstrap.Discord.EmbedBuilder()
-            .setAuthor({name:"Season Commands"})
+        const seasonEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("Season Commands")
             .setColor(bootstrap.messageColorBlue);
-        const userEmbed = new bootstrap.Discord.EmbedBuilder()
-            .setAuthor({name:"User Commands"})
+        const userEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("User Commands")
             .setColor(bootstrap.messageColorBlue);
-        const adminEmbed = new bootstrap.Discord.EmbedBuilder()
-            .setAuthor({name:"Admin Commands"})
+        const adminEmbed = new bootstrap.Discord.MessageEmbed()
+            .setAuthor("Admin Commands")
             .setColor(bootstrap.messageColorBlue);
 
-        const serverEmbed = new bootstrap.Discord.EmbedBuilder()
+        const serverEmbed = new bootstrap.Discord.MessageEmbed()
         .setAuthor("Messages sent to your inbox!")
         .setColor(bootstrap.messageColorGreen)
         .setDescription("I have Direct Messaged you the help commands. Please type !help <Command> for more information about a specific command\n\n\
@@ -248,24 +246,21 @@ module.exports = {
             userEmbed.addField('!' + keyVal, userDictionary[keyVal]);
         }
 
-        return new Promise((resolve, reject) =>{
-            receivedMessage.author.send({embeds: [deckEmbed]})
-                .then(msg => { receivedMessage.author.send({embeds: [gameEmbed]})
-                    .then(msg => { receivedMessage.author.send({embeds: [leagueEmbed]})
-                        .then(msg => { receivedMessage.author.send({embeds: [seasonEmbed]})
-                            .then(msg => { receivedMessage.author.send({embeds: [userEmbed]}).then(async msg => {
-                                let adminGet = await bootstrap.ConfigHelper.checkAdminPrivs(receivedMessage);
+        receivedMessage.author.send(deckEmbed)
+            .then(msg => { receivedMessage.author.send(gameEmbed)
+                .then(msg => { receivedMessage.author.send(leagueEmbed) 
+                    .then(msg => { receivedMessage.author.send(seasonEmbed) 
+                        .then(msg => { receivedMessage.author.send(userEmbed).then(async msg => { 
+                            let adminGet = await bootstrap.ConfigHelper.checkAdminPrivs(receivedMessage);
                                 if (adminGet){
-                                    resolve(adminEmbed)
+                                    receivedMessage.author.send(adminEmbed) 
                                 }
-                                resolve(serverEmbed)
-                            })
+                                receivedMessage.channel.send(serverEmbed)
                             })
                         })
                     })
-                }).catch(() => receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"));
-
-        })
-
+                })
+            }).catch(() => receivedMessage.reply("I don't have permission to send you messages! Please change your settings under this server's *Privacy Settings* section"));
+        
     }
 };

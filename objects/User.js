@@ -59,6 +59,7 @@ module.exports = {
                     resolve("Error 1")
                 }
             }).then(function(passingResult){
+                console.log("Passing Result: " + passingResult)
                 if (passingResult.length > 0){
                     let matchResults = [];
                     for (let i=0; i <passingResult.length; i++){
@@ -184,7 +185,7 @@ module.exports = {
     async profileSlash(interaction, args) {
         let currentSeasonObj = await bootstrap.SeasonHelper.getCurrentSeason(interaction.guildId);
         let currentSeason = currentSeasonObj._season_name;
-        let lookUpID = interaction.user.id;
+        let lookUpID = args;
         return new Promise((resolve, reject)=>{
             let conditionalQuery;
             let passingResult;
@@ -192,13 +193,13 @@ module.exports = {
             let passedArray = [];
 
             //Query
-                personLookedUp = interaction.user.id;
+                personLookedUp = args;
                 conditionalQuery = {_server: interaction.guildId, _season: currentSeason, _Status: "FINISHED", $or:
                         [
-                            {_player1: interaction.user.id},
-                            {_player2: interaction.user.id},
-                            {_player3: interaction.user.id},
-                            {_player4: interaction.user.id},
+                            {_player1: personLookedUp},
+                            {_player2: personLookedUp},
+                            {_player3: personLookedUp},
+                            {_player4: personLookedUp},
                         ]
                 };
             bootstrap.Game.find(conditionalQuery, function(err, res){
@@ -208,6 +209,7 @@ module.exports = {
                 else{
                     resolve("Error 1")
                 }
+
             }).then(function(passingResult){
                 if (passingResult.length > 0){
                     let matchResults = [];

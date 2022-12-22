@@ -2,7 +2,8 @@ const bootstrap = require('./bootstrap.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { MessageActionRow, MessageSelectMenu } = require('discord.js');
+const { Events, ActionRowBuilder, StringSelectMenuBuilder, SelectMenuOptionBuilder } = require('discord.js');
+
 
 
 //MongoDB Connection
@@ -28,13 +29,11 @@ bootstrap.Client.on('ready', () =>{
     // })
 
     const commands = [
-        new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
+        new SlashCommandBuilder().setName('help').setDescription('Get info about other commands'),
         new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
         new SlashCommandBuilder().setName('user').setDescription('Replies with user info!'),
-        new SlashCommandBuilder().setName('profile').setDescription('Profile info')
-            .addUserOption(option => option.setName('target').setDescription('The user'))
-
-
+        new SlashCommandBuilder().setName('profile').setDescription('Profile info').addUserOption(option => option.setName("user").setDescription("Who to look up")),
+        new SlashCommandBuilder().setName('top').setDescription('tset'),
     ].map(command => command.toJSON());
     const rest = new REST({ version: '9' }).setToken(bootstrap.Env.discordKey);
 
@@ -133,9 +132,6 @@ async function processCommand(receivedMessage){
         case "log":
             bootstrap.OracleObj.startMatch(receivedMessage, arguments);
             break;
-        // case "remind":
-        //     remindMatch(receivedMessage, arguments)
-        //     break;
         case "deletematch":
             if (adminGet){
                 bootstrap.OracleObj.deleteMatch(receivedMessage, arguments);
@@ -278,52 +274,80 @@ async function processCommand(receivedMessage){
             console.log("DEBUG LOG: Could not find command: '" + primaryCommand +"'")
     }
 }
-bootstrap.Client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
+bootstrap.Client.on(Events.InteractionCreate, async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
 
-    const { commandName } = interaction;
-    if (interaction.commandName === 'ping') {
-        const row = new MessageActionRow()
-            .addComponents(
-                new MessageSelectMenu()
-                    .setCustomId('select')
-                    .setPlaceholder('Nothing selected')
-                    .setMinValues(2)
-                    .setMaxValues(3)
-                    .addOptions([
-                        {
-                            label: 'Select me',
-                            description: 'This is a description',
-                            value: 'first_option',
-                        },
-                        {
-                            label: 'You can select me too',
-                            description: 'This is also a description',
-                            value: 'second_option',
-                        },
-                        {
-                            label: 'I am also an option',
-                            description: 'This is a description as well',
-                            value: 'third_option',
-                        },
-                    ]),
-            );
+    if (interaction.commandName === 'help') {
+        const menu = new ActionRowBuilder().setComponents(
+            new StringSelectMenuBuilder()
+            .setCustomId('select')
+            .setPlaceholder('Click Me')
+            .setMinValues(1)
+            .setMaxValues(1)
+            .setOptions([
+                {
+                    label: 'Decks',
+                    description: "Lists all available decks",
+                    value: 'decks',
+                },
+                {
+                    label: 'Deckstats',
+                    description: "Lists stats information about decks",
+                    value: 'deckstats',
+                },
+                {
+                    label: 'Deckinfo',
+                    description: "Provides detailed information about a deck",
+                    value: 'deckinfo',
+                },
+                {
+                    label: 'Log',
+                    description: "Logs a game to this server's league",
+                    value: 'log',
+                },
+                {
+                    label: 'Pending',
+                    description: "Lists all unfinished matches",
+                    value: 'pending',
+                },
+                {
+                    label: 'Disputed',
+                    description: "Lists all disputed matches",
+                    value: 'disputed',
+                },
+                {
+                    label: 'Info',
+                    description: "Provides detailed information on a match",
+                    value: 'info',
+                },
+            ])
+        );
 
-        await interaction.reply({ content: 'Pong!', components: [row] });
-    } else if (commandName === 'server') {
-        await interaction.reply('Server info.');
-    } else if (commandName === 'user') {
-        await interaction.reply('User Data.');
+        await interaction.reply({components: [menu]})
     }
-    else if (commandName === '123123') {
-        await interaction.reply('User Data.');
+    else if (interaction.commandName === 'profile'){
+        let user;
+        if (typeof interaction.options._hoistedOptions[0] === "undefined"){
+            user = interaction.user.id
+        }else{
+            user = interaction.options._hoistedOptions[0].value.toString()
+        }
+        const oracleResponse = await bootstrap.OracleObj.profileSlash(interaction, user);
+        await interaction.reply({ embeds: [oracleResponse] });
     }
-    else if (commandName === 'profile'){
-        // await interaction.reply({ content: 'Pong!', components: [row] });
-        // await interaction.followUp('Pong again!');
-        const oracleResponse = await bootstrap.OracleObj.profileSlash(interaction, interaction.options._hoistedOptions[0].value.toString());
-        console.log(oracleResponse)
-        await interaction.reply({embeds: [oracleResponse] })
-    }
+
 });
+bootstrap.Client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isStringSelectMenu()) return;
 
+    const selected = interaction.values[0];
+
+    const oracleResponse = await bootstrap.OracleObj.helpCommand(interaction, selected);
+    await interaction.update({embeds:[oracleResponse]});
+
+    // if (selected === 'deckstats') {
+    //     await interaction.update('The Ping option has been selected!');
+    // } else if (selected === 'decks') {
+    //     await interaction.update('The Pong option has been selected!');
+    // }
+});
