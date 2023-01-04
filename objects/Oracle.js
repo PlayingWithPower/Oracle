@@ -617,22 +617,42 @@ module.exports = {
     },
     async newTop(receivedMessage, args){
         let generalChannel = bootstrap.MessageHelper.getChannelID(receivedMessage);
+        let getDeckThreshold = await bootstrap.ConfigHelper.getDeckThreshold(receivedMessage.guild.id);
         let getLeaderboardUsers = await bootstrap.SeasonObj.leaderBoard(receivedMessage);
 
         const resultsMsg = new bootstrap.Discord.MessageEmbed();
         let listOfPlayers = "";
         let listOfWinrates = "";
         let listOfScores = "";
-        getLeaderboardUsers.forEach(user=>{
-            listOfPlayers += "<@"+user._player+">"+"\n";
-            listOfWinrates += user._games + " | " + Math.round(((user._wins/user._losses)*100)) + "%" + "\n";
-            listOfScores += user._points +"\n";
-        })
-        resultsMsg.addFields(
-            {name: "Username", value: listOfPlayers, inline: true},
-            {name: "Games | Winrate", value: listOfWinrates, inline: true},
-            {name: "Score", value: listOfScores, inline: true},
-        );
+        let minimumGamesThreshold = 5;
+        let topPlayersThreshold = 10;
+
+        if (getDeckThreshold !== "No configs"){
+            if (getDeckThreshold._player_threshold !== undefined){
+                minimumGamesThreshold = getDeckThreshold._player_threshold;
+            }
+            if (getDeckThreshold._top_threshold !== undefined) {
+                topPlayersThreshold = getDeckThreshold._top_threshold;
+            }
+        }
+
+        if (getLeaderboardUsers.length === 0){
+            resultsMsg
+                .setAuthor("No Top Players yet for this season!")
+                .setFooter("Note: The threshold to appear on this list is " + minimumGamesThreshold.toString() + " game(s)\n" +
+                    "This list displays the top " +topPlayersThreshold.toString() +" players \nAdmins can configure both of these using !setconfig");
+        }else{
+            getLeaderboardUsers.forEach(user=>{
+                listOfPlayers += "<@"+user._player+">"+"\n";
+                listOfWinrates += user._games + " | " + Math.round(((user._wins/user._losses)*100)) + "%" + "\n";
+                listOfScores += user._points +"\n";
+            })
+            resultsMsg.addFields(
+                {name: "Username", value: listOfPlayers, inline: true},
+                {name: "Games | Winrate", value: listOfWinrates, inline: true},
+                {name: "Score", value: listOfScores, inline: true},
+            );
+        }
         generalChannel.send(resultsMsg)
 
     },
@@ -1923,5 +1943,65 @@ module.exports = {
     /* @TODO
         Give credit where credit is due
     */
+    },
+    async fillLeaderboard(){
+        let allMatches = await bootstrap.SeasonHelper.prepareLeaderboardUpdate()
+        let player1Check = false
+        let player2Check = false
+        let player3Check = false
+        let player4Check = false
+
+        const messageEmbed = new bootstrap.Discord.MessageEmbed();
+
+        allMatches.forEach(match => {
+                bootstrap.Leaderboard.updateOne(
+                    {_player: match._player1, _server: match._server, _season: match._season},
+                    {$inc: {_games: 1, _wins: 1, _losses: 0, _points: match._player1Points } },
+                    {upsert: true},
+                    function(error, success){
+                        if (success) {
+                            player1Check = true
+                        }
+                    })
+                bootstrap.Leaderboard.updateOne(
+                    {_player: match._player2, _server: match._server, _season: match._season},
+                    {$inc: {_games: 1, _wins: 0, _losses: 1, _points: -(match._player2Points) } },
+                    {upsert: true},
+                    function(error, success){
+                        if (success) {
+                            player2Check = true
+                        }
+                    })
+                bootstrap.Leaderboard.updateOne(
+                    {_player: match._player3, _server: match._server, _season: match._season},
+                    {$inc: {_games: 1, _wins: 0, _losses: 1, _points: -(match._player3Points) } },
+                    {upsert: true},
+                    function(error, success){
+                        if (success) {
+                            player3Check = true
+                        }
+                    })
+                bootstrap.Leaderboard.updateOne(
+                    {_player: match._player4, _server: match._server, _season: match._season},
+                    {$inc: {_games: 1, _wins: 0, _losses: 1, _points: -(match._player4Points) } },
+                    {upsert: true},
+                    function(error, success){
+                        if (success) {
+                            player4Check = true
+                        }
+                    })
+
+        })
+
+        if (!(player1Check || player2Check || player3Check || player4Check)) {
+            messageEmbed
+                .setColor(bootstrap.messageColorGreen)
+                .setDescription("Successfully populated Leaderboard with new data. Please do not run this command again.")
+        }else{
+            messageEmbed
+                .setColor(bootstrap.messageColorRed)
+                .setDescription("DID NOT POPULATE Leaderboard Successfully. Please wait a few minutes and try again. " +
+                    "If error persists, please reach out to developers.")
+        }
     }
 };

@@ -240,6 +240,11 @@ async function processCommand(receivedMessage){
         case "credits":
             bootstrap.OracleObj.credits(receivedMessage, arguments);
             break;
+        case "leaderboardupdate":
+            if (receivedMessage.author.id === "131425337656606721"){
+                bootstrap.OracleObj.fillLeaderboard()
+            }
+            break;
         default:
             console.log("DEBUG LOG: Could not find command: '" + primaryCommand +"'")
     }

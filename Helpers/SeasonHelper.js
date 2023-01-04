@@ -179,4 +179,11 @@ module.exports = {
             })
         })
     },
+    async prepareLeaderboardUpdate(){
+        return new Promise((resolve, reject)=>{
+            bootstrap.Game.find({}, function (err, res){
+                resolve(res)
+            })
+        })
+    }
 };
