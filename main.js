@@ -241,8 +241,10 @@ async function processCommand(receivedMessage){
             bootstrap.OracleObj.credits(receivedMessage, arguments);
             break;
         case "leaderboardupdate":
-            if (receivedMessage.author.id === "131425337656606721"){
+            if (adminGet){
                 bootstrap.OracleObj.fillLeaderboard()
+            }else{
+                bootstrap.OracleObj.nonAdminAccess(receivedMessage, primaryCommand);
             }
             break;
         default:
