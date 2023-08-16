@@ -1,5 +1,8 @@
-# Oracle (DEPRECATED)
+# Oracle (OBSOLETE)
 Oracle is a Bot that runs gameplay leagues for EDH/CEDH via discord. It runs on NodeJS and MongoDB.  
+
+## OBSOLESION NOTICE
+Oracle bot's servers are shutting down October 1st, 2023.  If you are still using the bot, make sure to transfer to the new Thoracle bot.  Reach out to Ryan for more info.
 
 ## DEPRECATION NOTICE
 Oracle bot is deprecated and is no longer supported.  It will be replaced by an updated version of the bot. 
