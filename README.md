@@ -1,4 +1,4 @@
-# Oracle (OBSOLETE)
+# Oracle (OBSOLETE & ARCHIVED)
 Oracle is a Bot that runs gameplay leagues for EDH/CEDH via discord. It runs on NodeJS and MongoDB.  
 
 ## OBSOLESION NOTICE
